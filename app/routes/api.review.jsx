@@ -1,4 +1,3 @@
-import { json } from "@remix-run/node";
 import prisma from "../db.server";
 import { authenticate } from "../shopify.server";
 
@@ -84,7 +83,7 @@ export async function loader({ request }) {
   const productId = normalizeProductId(url.searchParams.get("productId"));
 
   if (!productId) {
-    return json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
+    return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
   }
 
   const store = await prisma.store.findUnique({
@@ -93,7 +92,7 @@ export async function loader({ request }) {
   });
 
   if (!store) {
-    return json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
+    return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
   }
 
   const product = await prisma.product.findUnique({
@@ -107,7 +106,7 @@ export async function loader({ request }) {
   });
 
   if (!product) {
-    return json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
+    return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
   }
 
   const where = {
@@ -136,7 +135,7 @@ export async function loader({ request }) {
     }),
   ]);
 
-  return json({
+  return Response.json({
     reviews,
     total,
     averageRating: summary._avg.rating || 0,
@@ -156,7 +155,7 @@ export async function action({ request }) {
     });
 
     if (!store) {
-      return json({ success: false }, { status: 404 });
+      return Response.json({ success: false }, { status: 404 });
     }
 
     const result = await prisma.review.updateMany({
@@ -172,7 +171,7 @@ export async function action({ request }) {
     });
 
     if (!result.count) {
-      return json({ success: false }, { status: 404 });
+      return Response.json({ success: false }, { status: 404 });
     }
 
     const review = await prisma.review.findUnique({
@@ -180,14 +179,14 @@ export async function action({ request }) {
       select: { id: true, likes: true },
     });
 
-    return json({ success: true, review });
+    return Response.json({ success: true, review });
   }
 
   const scopedProduct = await ensureStoreAndProduct(shop, data.productId);
   const comment = normalizeComment(data.comment);
 
   if (!scopedProduct || !comment) {
-    return json({ success: false, message: "Invalid review payload" }, { status: 400 });
+    return Response.json({ success: false, message: "Invalid review payload" }, { status: 400 });
   }
 
   const review = await prisma.review.create({
@@ -207,5 +206,5 @@ export async function action({ request }) {
     },
   });
 
-  return json({ success: true, review }, { status: 201 });
+  return Response.json({ success: true, review }, { status: 201 });
 }
