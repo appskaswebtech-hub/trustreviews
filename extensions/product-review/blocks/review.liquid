@@ -1,60 +1,59 @@
 <div class="review-section">
-<button id="open-review" class="review-btn">Write a Review</button>
-
-<div id="review-form" class="review-form" style="display:none">
-  <div class="form-header">
-    <h3>Write a Review</h3>
-    <button class="form-close" onclick="closeReview()">✕</button>
-  </div>
-
-  <div class="form-field-row">
-    <div class="form-field">
-      <label>Your name <span class="required">*</span></label>
-      <input type="text" id="name" placeholder="Name" required>
+  <div class="nr-review-top-hed-wr">
+    <!-- AVERAGE RATING SUMMARY -->
+    <div class="review-summary">
+      <div class="summary-inner">
+        <div class="nr-review-main-hed">
+          <div class="avg-score">
+            <span id="avg-rating">0</span><span class="out-of">/5</span>
+          </div>
+          <div class="avg-stars" id="avg-stars"></div>
+        </div>
+        <div class="total-reviews"><span>Based on</span> <span id="total-reviews">0</span> reviews</div>
+      </div>
     </div>
-  </div>  
-
-  <div class="form-field-row">
-    <div class="form-field">
-      <label>Your email address <span class="required">*</span></label>
-      <input type="email" id="email" placeholder="Email" required>
+    <button id="open-review" class="review-btn">Write a Review</button>
+    <div id="review-form" class="review-form" style="display:none">
+      <div class="form-header">
+        <h3>Write a Review</h3>
+        <button class="form-close" onclick="closeReview()">✕</button>
+      </div>
+      <div class="form-field">
+        <label>What would you rate this product? <span class="required">*</span></label>
+        <div class="star-rating" id="star-rating">
+          <span data-value="1">★</span>
+          <span data-value="2">★</span>
+          <span data-value="3">★</span>
+          <span data-value="4">★</span>
+          <span data-value="5">★</span>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Tell us your feedback about the product <span class="required">*</span></label>
+        <textarea id="comment" placeholder="Share your experience with this product..." required></textarea>
+      </div>
+      <div class="nr-dubble-field">
+        <div class="form-field-row">
+          <div class="form-field">
+            <label>Your name <span class="required">*</span></label>
+            <input type="text" id="name" placeholder="Name" required>
+          </div>
+        </div>  
+        <div class="form-field-row">
+          <div class="form-field">
+            <label>Your email address <span class="required">*</span></label>
+            <input type="email" id="email" placeholder="Email" required>
+          </div>
+        </div>  
+      </div>
+      <div class="form-actions">
+        <button onclick="closeReview()" class="cancel-btn">Cancel</button>
+        <button onclick="submitReview()" class="submit-btn">Submit</button>
+      </div>
     </div>
-  </div>  
-   
-
-  <div class="form-field">
-    <label>What would you rate this product? <span class="required">*</span></label>
-    <div class="star-rating" id="star-rating">
-      <span data-value="1">★</span>
-      <span data-value="2">★</span>
-      <span data-value="3">★</span>
-      <span data-value="4">★</span>
-      <span data-value="5">★</span>
-    </div>
+    
+    
   </div>
-
-  <div class="form-field">
-    <label>Tell us your feedback about the product <span class="required">*</span></label>
-    <textarea id="comment" placeholder="Share your experience with this product..." required></textarea>
-  </div>
-
-  <div class="form-actions">
-    <button onclick="closeReview()" class="cancel-btn">Cancel</button>
-    <button onclick="submitReview()" class="submit-btn">Submit</button>
-  </div>
-</div>
-
-<!-- AVERAGE RATING SUMMARY -->
-<div class="review-summary">
-  <div class="summary-inner">
-    <div class="avg-score">
-      <span id="avg-rating">0</span><span class="out-of">/5</span>
-    </div>
-    <div class="avg-stars" id="avg-stars"></div>
-    <div class="total-reviews"><span>Based on</span> <span id="total-reviews">0</span> reviews</div>
-  </div>
-</div>
-
 <!-- REVIEWS LIST -->
 <div class="reviews-section">
   <div class="reviews-toolbar">
@@ -77,7 +76,10 @@
 
       <!-- SEARCH BOX -->
       <div class="search-wrap">
-        <button class="search-btn" id="search-toggle-btn" onclick="toggleSearch()">🔍 Search</button>
+        <button class="search-btn" id="search-toggle-btn" onclick="toggleSearch()">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+          <span>Search</span>
+        </button>
         <div class="search-box" id="search-box" style="display:none">
           <input type="text" id="search-input" placeholder="Search reviews..." oninput="renderReviews()">
           <button class="search-clear" onclick="clearSearch()">✕</button>
@@ -103,13 +105,12 @@
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: #1a1a1a;
 }
-
 /* ============ WRITE REVIEW BUTTON ============ */
 .review-btn {
   display: inline-block;
   padding: 11px 22px;
-  background: #fff;
-  color: #1a1a1a;
+  background: #000;
+  color: #fff;
   border: 1.5px solid #1a1a1a;
   cursor: pointer;
   font-size: 14px;
@@ -117,7 +118,6 @@
   border-radius: 3px;
   letter-spacing: 0.3px;
   transition: background 0.18s, color 0.18s;
-  margin-bottom: 28px;
 }
 .review-btn:hover {
   background: #1a1a1a;
@@ -126,11 +126,12 @@
 
 /* ============ FORM ============ */
 .review-form {
-  background: #fff;
-  border: 1.5px solid #e5e5e5;
+  background: transparent;
+  border: 0;
   border-radius: 6px;
   padding: 30px 30px 24px;
   margin-bottom: 32px;
+  width: 100%;
 }
 .form-header {
   display: flex;
@@ -155,10 +156,8 @@
 .form-close:hover { color: #333; }
 
 .form-field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
   margin-bottom: 16px;
+  width: 100%;
 }
 @media (max-width: 600px) {
   .form-field-row { grid-template-columns: 1fr; }
@@ -181,13 +180,15 @@
 .form-field textarea {
   padding: 10px 13px;
   border: 1.5px solid #ddd;
-  border-radius: 4px;
+  border-radius: 0px;
   font-size: 14px;
   font-family: inherit;
   color: #1a1a1a;
   background: #fafafa;
   transition: border-color 0.15s;
   outline: none;
+  display: flex;
+  align-items: center;
 }
 .form-field input:focus,
 .form-field textarea:focus {
@@ -212,7 +213,7 @@
   transition: color 0.12s, transform 0.1s;
   line-height: 1;
 }
-.star-rating span.active { color: #f5a623; }
+.star-rating span.active { color: #000; }
 .star-rating span:hover { transform: scale(1.15); }
 
 /* ============ FORM ACTIONS ============ */
@@ -247,14 +248,13 @@
 .cancel-btn:hover { border-color: #999; }
 
 /* ============ SUMMARY ============ */
-.review-summary {
+/* .review-summary {
   border: 1.5px solid #e5e5e5;
   border-radius: 6px;
   padding: 24px;
-  margin: 28px 0;
   background: #fff;
   text-align: center;
-}
+} */
 .avg-score {
   font-size: 38px;
   font-weight: 800;
@@ -268,7 +268,7 @@
 }
 .avg-stars {
   font-size: 22px;
-  color: #f5a623;
+  color: #000;
   margin: 7px 0 5px;
 }
 .total-reviews {
@@ -282,17 +282,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 2px solid #e5e5e5;
-  padding-bottom: 0;
+  border-bottom: 1px solid #000;
+  border-top: 1px solid #000;
+  padding: 20px 0;
   margin-bottom: 0;
   flex-wrap: wrap;
   gap: 8px;
+  flex-direction: row-reverse;
 }
 .toolbar-tabs { display: flex; gap: 0; }
 .tab {
   font-size: 14px;
   font-weight: 600;
-  padding: 12px 18px 14px;
+  padding: 0px 0px 8px;
   cursor: pointer;
   color: #aaa;
   border-bottom: 2.5px solid transparent;
@@ -314,21 +316,22 @@
 /* ============ SORT ============ */
 .sort-wrap { position: relative; }
 .sort-btn {
-  font-size: 13px;
-  color: #555;
+  font-size: 16px;
+  color: #000000;
   cursor: pointer;
-  padding: 6px 12px;
-  border: 1px solid #ddd;
+  padding: 0;
+  border: 0;
   border-radius: 3px;
-  background: #fafafa;
+  background: transparent;
   transition: background 0.15s;
   white-space: nowrap;
+  font-weight: 600;
 }
 .sort-btn:hover, .sort-btn.open { background: #f0f0f0; border-color: #bbb; }
 .sort-menu {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 0;
   background: #fff;
   border: 1.5px solid #e0e0e0;
   border-radius: 5px;
@@ -359,11 +362,14 @@
   color: #555;
   cursor: pointer;
   padding: 6px 12px;
-  border: 1px solid #ddd;
+  border: 0;
   border-radius: 3px;
-  background: #fafafa;
+  background: transparent;
   transition: background 0.15s;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 .search-btn:hover, .search-btn.open { background: #f0f0f0; border-color: #bbb; }
 .search-box {
@@ -412,17 +418,16 @@
 /* ============ REVIEW CARD ============ */
 .review-card {
   display: flex;
-  gap: 20px;
   padding: 24px 0;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #000;
   align-items: flex-start;
 }
 .review-avatar {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  background: #1a1a1a;
-  color: #fff;
+  width: 60px;
+  height: 60px;
+  background: #0000001a;
+  color: #000;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -430,11 +435,22 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  padding-right: 0px;
 }
-.review-body { flex: 1; min-width: 0; }
+.review-avatar-outer{
+  margin-right: 20px;
+  width: 15%;
+}
+.review-body { 
+  flex: 1; 
+  min-width: 0; 
+  padding-left: 20px;
+  border-left: 1px solid #000;
+  width: 85%;
+}
 .review-stars {
   font-size: 17px;
-  color: #f5a623;
+  color: #000;
   margin-bottom: 4px;
   display: flex;
   gap: 2px;
@@ -497,13 +513,84 @@
   padding: 0 1px;
 }
 
-@media (max-width: 600px) {
-  .review-section { padding: 0 16px; }
-  .review-card { gap: 12px; }
-  .review-avatar { width: 36px; height: 36px; font-size: 13px; }
-  .reviews-toolbar { flex-wrap: wrap; gap: 8px; }
-  .toolbar-right { margin-bottom: 6px; }
-  .search-box input { width: 130px; }
+.nr-review-top-hed-wr {
+  display: flex;
+  /* flex-direction: row-reverse; */
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.nr-review-main-hed {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.review-summary .summary-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.search-btn svg {
+  height: 20px;
+  width: 20px;
+}
+.nr-dubble-field {
+  display: flex;
+  gap: 10px;
+}
+@media (max-width: 991px) {
+  .review-section { 
+    padding: 0; 
+  }
+  .review-card { 
+    flex-direction: column; 
+    gap: 10px;
+  }
+  .review-body{
+    border-left: 0;
+    width: 100%;
+    padding-left: 0;
+  }
+  .reviews-toolbar {
+    flex-direction: column-reverse;
+    gap: 8px;
+    border: 0;
+    align-items: start;
+    padding-bottom: 0;
+  }
+  .toolbar-right {
+    margin-bottom: 6px;
+    width: 100%;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 10px 0;
+  }
+  .search-box input { 
+    width: 130px; 
+  }
+  .toolbar-tabs {
+    margin: 0 auto;
+  }
+  .nr-review-top-hed-wr {
+    gap: 10px;
+    align-items: start;
+  }
+  .nr-review-top-hed-wr .review-btn {
+    width: 100%;
+  }
+  .nr-dubble-field {
+    flex-direction: column;
+  }
+  .review-form{
+    padding: 30px 0 24px;
+  }
+  .form-field-row {
+    margin-bottom: 0px;
+  }
+  .form-actions {
+    flex-direction: column;
+    margin-top: 10px;
+  }
 }
 </style>
 
@@ -664,7 +751,9 @@ function renderReviews(){
 
     container.innerHTML += `
       <div class="review-card" id="review-${r.id}">
-        <div class="review-avatar">${initials}</div>
+        <div class="review-avatar-outer">
+          <div class="review-avatar">${initials}</div>
+        </div>
         <div class="review-body">
           <div class="review-stars">${stars}</div>
           <div class="review-product-label">${productLabel}</div>
