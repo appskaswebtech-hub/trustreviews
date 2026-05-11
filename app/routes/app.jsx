@@ -24,7 +24,7 @@ export default function App() {
 
         <s-app-nav>
          
-          <s-link href="/app/review">Reviews</s-link>
+          {/* <s-link href="/app/review">Reviews</s-link> */}
           
         </s-app-nav>
 
