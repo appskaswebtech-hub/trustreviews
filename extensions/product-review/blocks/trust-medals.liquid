@@ -1,0 +1,67 @@
+<div id="trust-medals-{{ block.id }}" class="trust-medals" style="display:none">
+  <div class="trust-medals__stars"></div>
+  <div>
+    <div class="trust-medals__score"></div>
+    <div class="trust-medals__count"></div>
+  </div>
+</div>
+
+<style>
+.trust-medals {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-radius: 12px;
+  border: 2px solid var(--tm-accent, #6B1A2C);
+  font-family: var(--tm-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+  color: var(--tm-text, #333333);
+}
+.trust-medals__stars { font-size: 18px; }
+.trust-medals__score { font-weight: 700; font-size: 13px; }
+.trust-medals__count { font-size: 11px; color: #888; }
+</style>
+
+<script>
+(function(){
+  const productId = "{{ product.id }}";
+  const widget = document.getElementById('trust-medals-{{ block.id }}');
+  if (!widget) return;
+
+  function starsHtml(rating, color){
+    let out = '';
+    for(let i = 1; i <= 5; i++){
+      out += '<span style="color:' + (i <= Math.round(rating) ? color : '#ddd') + '">★</span>';
+    }
+    return out;
+  }
+
+  Promise.all([
+    fetch('/apps/review?productId=' + encodeURIComponent(productId)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=trust_medals').then(function(r){ return r.json(); }),
+  ]).then(function(results){
+    const reviewData = results[0];
+    const style = results[1].settings || {};
+    const accent = style.accentColor || '#6B1A2C';
+    const text = style.textColor || '#333333';
+
+    widget.style.setProperty('--tm-accent', accent);
+    widget.style.setProperty('--tm-text', text);
+    widget.style.setProperty('--tm-font', style.fontFamily || 'inherit');
+
+    const total = Number(reviewData.total || 0);
+    const avg = Number(reviewData.averageRating || 0);
+    if (!total) return;
+
+    widget.querySelector('.trust-medals__stars').innerHTML = starsHtml(avg, accent);
+    widget.querySelector('.trust-medals__score').textContent = avg.toFixed(1) + ' / 5';
+    widget.querySelector('.trust-medals__count').textContent = total + ' reviews · Verified';
+    widget.style.display = 'inline-flex';
+  }).catch(function(e){ console.error('Trust medals error:', e); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Trust Medals",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

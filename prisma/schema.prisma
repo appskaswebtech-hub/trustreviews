@@ -9,8 +9,8 @@ generator client {
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Session {
@@ -34,20 +34,25 @@ model Session {
 }
 
 model Store {
-  id        Int       @id @default(autoincrement())
-  shop      String    @unique
-  createdAt DateTime  @default(now())
-  products  Product[]
-  reviews   Review[]
+  id          Int          @id @default(autoincrement())
+  shop        String       @unique
+  language    String?
+  createdAt   DateTime     @default(now())
+  products    Product[]
+  reviews     Review[]
+  questions   Question[]
+  aiSummaries AiSummary[]
 }
 
 model Product {
-  id               Int      @id @default(autoincrement())
+  id               Int         @id @default(autoincrement())
   storeId          Int
-  store            Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store            Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   shopifyProductId String
-  createdAt        DateTime @default(now())
+  createdAt        DateTime    @default(now())
   reviews          Review[]
+  questions        Question[]
+  aiSummaries      AiSummary[]
 
   @@unique([storeId, shopifyProductId])
 }
@@ -65,6 +70,7 @@ model Review {
   store     Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
   product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   email     String?
+  title     String?
   rating    Int
   comment   String
   customer  String
@@ -72,7 +78,160 @@ model Review {
   status    ReviewStatus @default(pending)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  mediaUrl  String?
+  mediaType String?
+  fileName  String?
+
 
   @@index([storeId, status, createdAt])
   @@index([storeId, productId, status, createdAt])
+}
+enum QuestionStatus {
+  pending
+  answered
+  rejected
+}
+
+model Question {
+  id         Int            @id @default(autoincrement())
+  storeId    Int
+  productId  Int
+  store      Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer   String
+  email      String?
+  question   String
+  answer     String?
+  status     QuestionStatus @default(pending)
+  createdAt  DateTime       @default(now())
+  answeredAt DateTime?
+
+  @@index([storeId, productId, status])
+}
+
+model AiSummary {
+  id          String   @id @default(cuid())
+  storeId     Int
+  productId   Int
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  summary     String
+  reviewCount Int
+  generatedAt DateTime @default(now())
+
+  @@unique([storeId, productId])
+}
+
+model WidgetInstall {
+  id          Int      @id @default(autoincrement())
+  shop        String
+  widgetKey   String
+  installedAt DateTime @default(now())
+
+  @@unique([shop, widgetKey])
+}
+
+model ReviewFormSettings {
+  id              String   @id @default(cuid())
+  shop            String   @unique
+  accentColor     String   @default("#1a1a1a")
+  fontFamily      String   @default("inherit")
+  backgroundColor String   @default("#FFFFFF")
+  borderRadius    Int      @default(3)
+  buttonTextColor String   @default("#FFFFFF")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ShopPlan {
+  id               Int       @id @default(autoincrement())
+  shop             String    @unique
+  plan             String    @default("free")   // "free" | "advanced"
+  subscriptionId   String?
+  status           String    @default("active") // "active" | "cancelled" | "expired"
+  trialEndsAt      DateTime?
+  billingStartedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([shop])
+}
+
+model WidgetSettings {
+  id            String   @id @default(cuid())
+  shop          String   @unique
+  starColor     String   @default("#F59E0B")
+  starSize      Int      @default(15)
+  countColor    String   @default("#6B7280")
+  countFontSize Int      @default(12)
+  showEmpty     Boolean  @default(false)
+  borderRadius  Int      @default(4)
+  background    String   @default("#FFFFFF")
+  widgetStyle   String   @default("compact")   // ← NEW
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Widget {
+  id            Int    @id @default(autoincrement())
+  shop          String
+  widgetKey     String @default("review_widget")
+  contentFilter String @default("all") // all | video | photo
+
+  // Widget style & appearance
+  defaultStyle String   @default("dark_grid")
+  accentColor  String   @default("#6B1A2C")
+  heading      String   @default("Ce qu'en disent ceux qui l'ont essayé.")
+
+  // Typography
+  fontFamily   String?  @default("inherit")
+  headingSize  Int      @default(32)
+  reviewSize   Int      @default(16)
+  metaSize     Int      @default(13)
+
+  // Colors
+  backgroundColor String @default("#FFFFFF")
+  cardBackground  String @default("#FFFFFF")
+  textColor       String @default("#333333")
+  borderColor     String @default("#E5E5E5")
+
+  // Display toggles
+  showVerified Boolean @default(true)
+  showAvatar   Boolean @default(true)
+  showDate     Boolean @default(true)
+
+  // Layout
+  maxReviews   Int     @default(6)
+
+  columns      Int     @default(3)
+  tabletColumns Int    @default(2)
+  mobileColumns Int    @default(1)
+
+  // Spacing
+  paddingTop    Int    @default(40)
+  paddingBottom Int    @default(40)
+
+  cardPadding   Int    @default(16)
+  cardGap       Int    @default(16)
+
+  // Border & Shadow
+  borderRadius  Int    @default(10)
+  showShadow    Boolean @default(true)
+
+  // Slider Settings
+  autoplay      Boolean @default(true)
+  autoplaySpeed Int     @default(3000)
+
+  showArrows    Boolean @default(true)
+  showDots      Boolean @default(true)
+
+  // Popup Settings
+  popupEnabled  Boolean @default(false)
+  popupDelay    Int     @default(5000)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([shop, widgetKey])
+  @@map("Widget")
 }

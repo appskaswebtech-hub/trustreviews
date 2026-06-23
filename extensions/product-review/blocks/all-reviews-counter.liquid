@@ -1,0 +1,46 @@
+<div id="all-reviews-counter-{{ block.id }}" class="all-reviews-counter" style="display:none">
+  <span class="all-reviews-counter__star">★</span>
+  <span class="all-reviews-counter__text"></span>
+</div>
+
+<style>
+.all-reviews-counter {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 14px;
+  color: var(--arc-text, #333333); font-family: var(--arc-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+}
+.all-reviews-counter__star { color: var(--arc-accent, #6B1A2C); font-weight: 700; }
+</style>
+
+<script>
+(function(){
+  const widget = document.getElementById('all-reviews-counter-{{ block.id }}');
+  if (!widget) return;
+
+  Promise.all([
+    fetch('/apps/review?type=store-totals').then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=all_reviews_counter').then(function(r){ return r.json(); }),
+  ]).then(function(results){
+    const totals = results[0];
+    const style = results[1].settings || {};
+
+    widget.style.setProperty('--arc-accent', style.accentColor || '#6B1A2C');
+    widget.style.setProperty('--arc-text', style.textColor || '#333333');
+    widget.style.setProperty('--arc-font', style.fontFamily || 'inherit');
+
+    const total = Number(totals.total || 0);
+    if (!total) return;
+
+    widget.querySelector('.all-reviews-counter__text').textContent =
+      total + ' Total Reviews (' + Number(totals.averageRating || 0).toFixed(1) + ' avg)';
+    widget.style.display = 'inline-flex';
+  }).catch(function(e){ console.error('All reviews counter error:', e); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "All Reviews Counter",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

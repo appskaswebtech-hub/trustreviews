@@ -1,0 +1,46 @@
+<div id="verified-counter-{{ block.id }}" class="verified-counter" style="display:none">
+  <span class="verified-counter__check">✓</span>
+  <span class="verified-counter__text"></span>
+</div>
+
+<style>
+.verified-counter {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 14px;
+  color: var(--vc-text, #333333); font-family: var(--vc-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+}
+.verified-counter__check { color: var(--vc-accent, #16a34a); font-weight: 700; }
+</style>
+
+<script>
+(function(){
+  const productId = "{{ product.id }}";
+  const widget = document.getElementById('verified-counter-{{ block.id }}');
+  if (!widget) return;
+
+  Promise.all([
+    fetch('/apps/review?productId=' + encodeURIComponent(productId)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=verified_counter').then(function(r){ return r.json(); }),
+  ]).then(function(results){
+    const reviewData = results[0];
+    const style = results[1].settings || {};
+
+    widget.style.setProperty('--vc-accent', style.accentColor || '#16a34a');
+    widget.style.setProperty('--vc-text', style.textColor || '#333333');
+    widget.style.setProperty('--vc-font', style.fontFamily || 'inherit');
+
+    const total = Number(reviewData.total || 0);
+    if (!total) return;
+
+    widget.querySelector('.verified-counter__text').textContent = total + ' Verified Reviews';
+    widget.style.display = 'inline-flex';
+  }).catch(function(e){ console.error('Verified counter error:', e); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Verified Reviews Counter",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

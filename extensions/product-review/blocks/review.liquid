@@ -9,17 +9,17 @@
           </div>
           <div class="avg-stars" id="avg-stars"></div>
         </div>
-        <div class="total-reviews"><span>Based on</span> <span id="total-reviews">0</span> reviews</div>
+        <div class="total-reviews"><span id="based-on-label">Based on</span> <span id="total-reviews">0</span> <span id="reviews-word">reviews</span></div>
       </div>
     </div>
     <button id="open-review" class="review-btn">Write a Review</button>
     <div id="review-form" class="review-form" style="display:none">
       <div class="form-header">
-        <h3>Write a Review</h3>
-        <button class="form-close" onclick="closeReview()">✕</button>
+        <h3 id="form-title">Write a Review</h3>
+        <button class="form-close" id="form-close-btn" aria-label="Close" onclick="closeReview()">✕</button>
       </div>
       <div class="form-field">
-        <label>What would you rate this product? <span class="required">*</span></label>
+        <label><span id="rating-question">What would you rate this product?</span> <span class="required">*</span></label>
         <div class="star-rating" id="star-rating">
           <span data-value="1">★</span>
           <span data-value="2">★</span>
@@ -29,36 +29,50 @@
         </div>
       </div>
       <div class="form-field">
-        <label>Tell us your feedback about the product <span class="required">*</span></label>
+        <label id="review-title-label">Review title</label>
+        <input type="text" id="review-title" placeholder="Summarize your experience...">
+      </div>
+      <div class="form-field">
+        <label><span id="feedback-label">Tell us your feedback about the product</span> <span class="required">*</span></label>
         <textarea id="comment" placeholder="Share your experience with this product..." required></textarea>
+        <div class="form-field">
+        <label id="upload-label">Upload image/video</label>
+        <input
+          type="file"
+          id="review-file"
+          accept="image/*,video/*"
+          onchange="previewReviewFile(event)"
+        >
+        <div id="file-preview" class="file-preview"></div>
+      </div>
       </div>
       <div class="nr-dubble-field">
         <div class="form-field-row">
           <div class="form-field">
-            <label>Your name <span class="required">*</span></label>
+            <label><span id="name-label">Your name</span> <span class="required">*</span></label>
             <input type="text" id="name" placeholder="Name" required>
           </div>
-        </div>  
+        </div>
         <div class="form-field-row">
           <div class="form-field">
-            <label>Your email address <span class="required">*</span></label>
+            <label><span id="email-label">Your email address</span> <span class="required">*</span></label>
             <input type="email" id="email" placeholder="Email" required>
           </div>
-        </div>  
+        </div>
       </div>
       <div class="form-actions">
-        <button onclick="closeReview()" class="cancel-btn">Cancel</button>
-        <button onclick="submitReview()" class="submit-btn">Submit</button>
+        <button onclick="closeReview()" id="cancel-btn" class="cancel-btn">Cancel</button>
+        <button onclick="submitReview()" id="submit-btn" class="submit-btn">Submit</button>
       </div>
     </div>
-    
-    
+
+
   </div>
 <!-- REVIEWS LIST -->
 <div class="reviews-section">
   <div class="reviews-toolbar">
     <div class="toolbar-tabs">
-      <span class="tab active">Product Reviews</span>
+      <span class="tab active" id="reviews-tab-label">Product Reviews</span>
     </div>
     <div class="toolbar-right">
 
@@ -76,13 +90,13 @@
 
       <!-- SEARCH BOX -->
       <div class="search-wrap">
-        <button class="search-btn" id="search-toggle-btn" onclick="toggleSearch()">
+        <button class="search-btn" id="search-toggle-btn" aria-label="Search reviews" onclick="toggleSearch()">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-          <span>Search</span>
+          <span id="search-label">Search</span>
         </button>
         <div class="search-box" id="search-box" style="display:none">
           <input type="text" id="search-input" placeholder="Search reviews..." oninput="renderReviews()">
-          <button class="search-clear" onclick="clearSearch()">✕</button>
+          <button class="search-clear" id="search-clear-btn" aria-label="Clear search" onclick="clearSearch()">✕</button>
         </div>
       </div>
 
@@ -102,31 +116,31 @@
   max-width: 100%;
   margin: 60px 0;
   padding: 0 40px;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--rf-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
   color: #1a1a1a;
 }
 /* ============ WRITE REVIEW BUTTON ============ */
 .review-btn {
   display: inline-block;
   padding: 11px 22px;
-  background: #000;
-  color: #fff;
-  border: 1.5px solid #1a1a1a;
+  background: var(--rf-accent, #000);
+  color: var(--rf-btn-text, #fff);
+  border: 1.5px solid var(--rf-accent, #1a1a1a);
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 3px;
+  border-radius: var(--rf-radius, 3px);
   letter-spacing: 0.3px;
   transition: background 0.18s, color 0.18s;
 }
 .review-btn:hover {
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--rf-accent, #1a1a1a);
+  color: var(--rf-btn-text, #fff);
 }
 
 /* ============ FORM ============ */
 .review-form {
-  background: transparent;
+  background: var(--rf-bg, transparent);
   border: 0;
   border-radius: 6px;
   padding: 30px 30px 24px;
@@ -180,7 +194,7 @@
 .form-field textarea {
   padding: 10px 13px;
   border: 1.5px solid #ddd;
-  border-radius: 0px;
+  border-radius: var(--rf-radius, 0px);
   font-size: 14px;
   font-family: inherit;
   color: #1a1a1a;
@@ -213,7 +227,7 @@
   transition: color 0.12s, transform 0.1s;
   line-height: 1;
 }
-.star-rating span.active { color: #000; }
+.star-rating span.active { color: var(--rf-accent, #000); }
 .star-rating span:hover { transform: scale(1.15); }
 
 /* ============ FORM ACTIONS ============ */
@@ -225,16 +239,16 @@
 }
 .submit-btn {
   padding: 10px 26px;
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--rf-accent, #1a1a1a);
+  color: var(--rf-btn-text, #fff);
   border: none;
-  border-radius: 3px;
+  border-radius: var(--rf-radius, 3px);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s;
 }
-.submit-btn:hover { background: #333; }
+.submit-btn:hover { opacity: 0.88; }
 .cancel-btn {
   padding: 10px 20px;
   background: #fff;
@@ -592,15 +606,188 @@
     margin-top: 10px;
   }
 }
+  .file-preview {
+    margin-top: 10px;
+  }
+
+  .file-preview img,
+  .file-preview video {
+    max-width: 120px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  /* ============ REVIEW MEDIA ============ */
+.review-media {
+  margin: 12px 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.review-media img {
+  max-width: 100%;
+  width: auto;
+  max-height: 100px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: block;
+}
+
+.review-media img:hover {
+  opacity: 0.9;
+}
+
+.review-media video {
+  max-width: 100%;
+  width: 100%;
+  max-height: 122px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  display: block;
+}
+
+/* ============ MEDIA MODAL (for full-size image view) ============ */
+.media-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.media-modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-modal-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.media-modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  font-size: 36px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 300;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.media-modal-close:hover {
+  color: #ccc;
+}
+
+/* Mobile adjustments */
+@media (max-width: 991px) {
+  .review-media img {
+    max-height: 250px;
+  }
+
+  .review-media video {
+    max-height: 300px;
+  }
+
+  .media-modal-content {
+    max-width: 95%;
+    max-height: 95%;
+  }
+
+  .media-modal-close {
+    top: -35px;
+    font-size: 32px;
+  }
+}
+.flex-body {
+    display: flex;
+    justify-content: space-between;
+}
 </style>
 
 <script>
 const productId = "{{ product.id }}";
 const productTitle = {{ product.title | json }};
+const storeLocale = {{ request.locale.iso_code | json }};
 let rating = 0;
 let allReviews = [];
 let currentSort = "newest";
 let searchQuery = "";
+
+/* ============ TRANSLATIONS ============ */
+// Fallback only — the full set of languages is served by /apps/review (see
+// app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
+// Liquid-content cap per theme app extension.
+const REVIEW_TRANSLATIONS_EN = {
+  basedOn: "Based on", reviewsWord: "reviews", writeReview: "Write a Review", close: "Close",
+  ratingQuestion: "What would you rate this product?", reviewTitleLabel: "Review title",
+  reviewTitlePlaceholder: "Summarize your experience...",
+  feedbackLabel: "Tell us your feedback about the product",
+  feedbackPlaceholder: "Share your experience with this product...",
+  uploadLabel: "Upload image/video", nameLabel: "Your name", namePlaceholder: "Name",
+  emailLabel: "Your email address", emailPlaceholder: "Email", cancel: "Cancel", submit: "Submit",
+  productReviewsTab: "Product Reviews", sort: "Sort",
+  sortOptions: { newest: "Newest First", oldest: "Oldest First", highest: "Highest Rated", lowest: "Lowest Rated", helpful: "Most Helpful" },
+  search: "Search", searchAria: "Search reviews", searchPlaceholder: "Search reviews...",
+  searchClearAria: "Clear search", noResults: "No reviews match your search.",
+  helpful: "Helpful", share: "Share",
+  requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
+};
+let T = REVIEW_TRANSLATIONS_EN;
+
+function applyTranslations(remoteT){
+  T = remoteT || REVIEW_TRANSLATIONS_EN;
+
+  document.getElementById("based-on-label").textContent = T.basedOn;
+  document.getElementById("reviews-word").textContent = T.reviewsWord;
+  document.getElementById("open-review").textContent = T.writeReview;
+  document.getElementById("form-title").textContent = T.writeReview;
+  document.getElementById("form-close-btn").setAttribute("aria-label", T.close);
+  document.getElementById("rating-question").textContent = T.ratingQuestion;
+  document.getElementById("review-title-label").textContent = T.reviewTitleLabel;
+  document.getElementById("review-title").placeholder = T.reviewTitlePlaceholder;
+  document.getElementById("feedback-label").textContent = T.feedbackLabel;
+  document.getElementById("comment").placeholder = T.feedbackPlaceholder;
+  document.getElementById("upload-label").textContent = T.uploadLabel;
+  document.getElementById("name-label").textContent = T.nameLabel;
+  document.getElementById("name").placeholder = T.namePlaceholder;
+  document.getElementById("email-label").textContent = T.emailLabel;
+  document.getElementById("email").placeholder = T.emailPlaceholder;
+  document.getElementById("cancel-btn").textContent = T.cancel;
+  document.getElementById("submit-btn").textContent = T.submit;
+  document.getElementById("reviews-tab-label").textContent = T.productReviewsTab;
+  document.getElementById("sort-btn").textContent = T.sort + " ▾";
+  document.querySelectorAll(".sort-option").forEach(function(el){
+    var key = el.dataset.sort;
+    if (T.sortOptions[key]) el.textContent = T.sortOptions[key];
+  });
+  document.getElementById("search-toggle-btn").setAttribute("aria-label", T.searchAria);
+  document.getElementById("search-label").textContent = T.search;
+  document.getElementById("search-input").placeholder = T.searchPlaceholder;
+  document.getElementById("search-clear-btn").setAttribute("aria-label", T.searchClearAria);
+  document.getElementById("no-results").textContent = T.noResults;
+}
 
 /* ============ OPEN / CLOSE FORM ============ */
 document.getElementById("open-review").onclick = function(){
@@ -633,6 +820,29 @@ document.querySelectorAll("#star-rating span").forEach(star => {
   });
 });
 
+function previewReviewFile(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById("file-preview");
+
+  preview.innerHTML = "";
+
+  if (!file) return;
+
+  // if (file.size > 5 * 1024 * 1024) {
+  //   alert("File size must be under 5MB");
+  //   event.target.value = "";
+  //   return;
+  // }
+
+  const url = URL.createObjectURL(file);
+
+  if (file.type.startsWith("image/")) {
+    preview.innerHTML = `<img src="${url}" alt="Review upload">`;
+  } else if (file.type.startsWith("video/")) {
+    preview.innerHTML = `<video src="${url}" controls></video>`;
+  }
+}
+
 /* ============ SORT MENU ============ */
 function toggleSortMenu(){
   const menu = document.getElementById("sort-menu");
@@ -647,13 +857,9 @@ function selectSort(el){
   currentSort = el.dataset.sort;
   document.getElementById("sort-menu").style.display = "none";
   document.getElementById("sort-btn").classList.remove("open");
-
-  /* Update button label */
   document.getElementById("sort-btn").textContent = el.textContent + " ▾";
-
   renderReviews();
 }
-/* Close sort menu on outside click */
 document.addEventListener("click", function(e){
   if(!e.target.closest(".sort-wrap")){
     document.getElementById("sort-menu").style.display = "none";
@@ -714,14 +920,12 @@ function renderReviews(){
   const noResults = document.getElementById("no-results");
   const q = searchQuery;
 
-  /* Filter */
   let filtered = allReviews.filter(r => {
     if(!q) return true;
     return (r.customer || "").toLowerCase().includes(q) ||
            (r.comment  || "").toLowerCase().includes(q);
   });
 
-  /* Sort */
   filtered = filtered.slice().sort((a, b) => {
     if(currentSort === "newest")  return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     if(currentSort === "oldest")  return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
@@ -749,21 +953,44 @@ function renderReviews(){
     const commentHTML   = highlight(r.comment  || "", q);
     const productLabel  = escapeHTML(productTitle);
 
+    let mediaHTML = "";
+    if (r.mediaUrl) {
+      if (r.mediaType && r.mediaType.startsWith("image/")) {
+        mediaHTML = `
+          <div class="review-media">
+            <img src="https://trustreviews.kaswebtechsolutions.com${escapeHTML(r.mediaUrl)}" alt="Review image" onclick="openMediaModal('https://staging-trustreviews.kaswebtechsolutions.com${escapeHTML(r.mediaUrl)}', 'image')" />
+          </div>
+        `;
+      } else if (r.mediaType && r.mediaType.startsWith("video/")) {
+        mediaHTML = `
+          <div class="review-media">
+            <video src="https://trustreviews.kaswebtechsolutions.com${escapeHTML(r.mediaUrl)}" controls></video>
+          </div>
+        `;
+      }
+    }
+
     container.innerHTML += `
       <div class="review-card" id="review-${r.id}">
         <div class="review-avatar-outer">
           <div class="review-avatar">${initials}</div>
         </div>
         <div class="review-body">
+
+          <div class="flex-body">
+          <div class="review-flex">
           <div class="review-stars">${stars}</div>
           <div class="review-product-label">${productLabel}</div>
           <div class="review-author">${customerHTML}</div>
           <p class="review-comment">${commentHTML}</p>
+          </div>
+          ${mediaHTML}
+          </div>
           <div class="review-meta">
             <button class="helpful-btn" onclick="likeReview(${r.id})">
-              <span class="check">✓</span> Helpful (${r.likes || 0})
+              <span class="check">✓</span> ${T.helpful} (${r.likes || 0})
             </button>
-            <button class="share-btn" onclick="shareReview(${r.id})">Share</button>
+            <button class="share-btn" onclick="shareReview(${r.id})">${T.share}</button>
           </div>
         </div>
       </div>
@@ -771,15 +998,35 @@ function renderReviews(){
   });
 }
 
+/* ============ MEDIA MODAL ============ */
+function openMediaModal(url, type) {
+  const modal = document.createElement('div');
+  modal.className = 'media-modal';
+  modal.onclick = function() {
+    document.body.removeChild(modal);
+  };
+
+  if (type === 'image') {
+    modal.innerHTML = `
+      <div class="media-modal-content">
+        <span class="media-modal-close">&times;</span>
+        <img src="${url}" alt="Review image full size" />
+      </div>
+    `;
+  }
+
+  document.body.appendChild(modal);
+}
+
 /* ============ FETCH REVIEWS ============ */
 async function loadReviews(){
   try {
-    const res  = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}`);
+    const res  = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}&locale=${encodeURIComponent(storeLocale)}`);
     if(!res.ok) throw new Error("Unable to load reviews");
     const data = await res.json();
     allReviews = data.reviews || [];
+    applyTranslations(data.translations);
 
-    /* Summary */
     const total = Number(data.total || 0);
     const avgValue = Number(data.averageRating || 0);
     const avg = total ? avgValue.toFixed(1) : "0.0";
@@ -801,38 +1048,79 @@ async function loadReviews(){
 }
 
 /* ============ SUBMIT REVIEW ============ */
-async function submitReview(){
-  const name    = document.getElementById("name").value.trim();
-  const email   = document.getElementById("email").value.trim();
+async function submitReview() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
   const comment = document.getElementById("comment").value.trim();
-  if(!name || !email || !comment || rating == 0){
-    alert("Please fill all fields and select a rating");
+  const file = document.getElementById("review-file")?.files[0];
+  const title   = document.getElementById("review-title").value.trim(); 
+
+  if (!name || !email || !comment || rating == 0) {
+    alert(T.requiredFieldsAlert);
     return;
   }
-  const data = {
-    email: email,
-    productId: productId,
-    rating: rating,
-    comment: comment,
-    customer: name
-  };
+
+  let uploadedFile = null;
+
   try {
+    if (file) {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+
+      const uploadResponse = await fetch("/apps/review", {
+        method: "POST",
+        body: uploadFormData
+      });
+
+      uploadedFile = await uploadResponse.json();
+
+      if (!uploadedFile.success) {
+        throw new Error("File upload failed");
+      }
+    }
+
+    const data = {
+      email,
+      productId,
+      rating,
+      comment,
+      title,          // ← NEW — sent to backend
+      customer: name,
+      mediaUrl: uploadedFile?.url || null,
+      mediaType: uploadedFile?.mediaType || null,
+      fileName: uploadedFile?.fileName || null
+    };
+
     const response = await fetch("/apps/review", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(data)
     });
-    if(!response.ok) throw new Error("Submit failed");
-    alert("Review submitted and sent for approval.");
-    document.getElementById("name").value    = "";
-    document.getElementById("email").value   = "";
+
+    if (!response.ok) {
+      throw new Error("Review submit failed");
+    }
+
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
     document.getElementById("comment").value = "";
+    document.getElementById("review-file").value = "";
+    document.getElementById("file-preview").innerHTML = "";
+
     rating = 0;
-    document.querySelectorAll("#star-rating span").forEach(s => s.classList.remove("active"));
+
+    document.querySelectorAll("#star-rating span").forEach(s => {
+      s.classList.remove("active");
+    });
+
     closeReview();
     loadReviews();
-  } catch(err){
-    alert("Error submitting review");
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
   }
 }
 
@@ -851,11 +1139,31 @@ async function likeReview(id){
 function shareReview(id){
   const url = window.location.href + "#review-" + id;
   navigator.clipboard.writeText(url);
-  alert("Review link copied!");
+  alert(T.reviewLinkCopiedAlert);
+}
+
+/* ============ FORM STYLE (color/font/size/background) ============ */
+async function applyFormStyle(){
+  try {
+    const res = await fetch("/apps/review?type=form-settings");
+    if(!res.ok) return;
+    const data = await res.json();
+    const s = data.settings || {};
+    const section = document.querySelector(".review-section");
+    if(!section) return;
+    section.style.setProperty("--rf-accent",   s.accentColor     || "#1a1a1a");
+    section.style.setProperty("--rf-btn-text", s.buttonTextColor || "#FFFFFF");
+    section.style.setProperty("--rf-bg",       s.backgroundColor || "transparent");
+    section.style.setProperty("--rf-font",     s.fontFamily      || "inherit");
+    section.style.setProperty("--rf-radius",   (s.borderRadius ?? 3) + "px");
+  } catch(e){
+    console.error("Review form style error:", e);
+  }
 }
 
 /* ============ INIT ============ */
 loadReviews();
+applyFormStyle();
 </script>
 
 {% schema %}
@@ -866,3 +1174,4 @@ loadReviews();
 }
 {% endschema %}
 </div>
+

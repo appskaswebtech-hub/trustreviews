@@ -1,0 +1,59 @@
+<div class="trust-ai-summary" id="trust-ai-summary-{{ block.id }}" style="display:none">
+  <span class="trust-ai-summary__badge">✨ AI Summary</span>
+  <p class="trust-ai-summary__text"></p>
+</div>
+
+<style>
+.trust-ai-summary {
+  margin: 24px 0;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e5e5;
+  font-family: var(--ai-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+}
+.trust-ai-summary__badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ai-accent, #6B1A2C);
+  margin-bottom: 8px;
+}
+.trust-ai-summary__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ai-text, #333333);
+}
+</style>
+
+<script>
+(function(){
+  const productId = "{{ product.id }}";
+  const widget = document.getElementById('trust-ai-summary-{{ block.id }}');
+  if (!widget) return;
+
+  fetch('/apps/review?type=ai-summary&productId=' + encodeURIComponent(productId))
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if (!data.summary) return;
+      const s = data.style || {};
+      widget.style.setProperty('--ai-accent', s.accentColor || '#6B1A2C');
+      widget.style.setProperty('--ai-text', s.textColor || '#333333');
+      widget.style.setProperty('--ai-font', s.fontFamily || 'inherit');
+      widget.querySelector('.trust-ai-summary__text').textContent = data.summary;
+      widget.style.display = 'block';
+    })
+    .catch(function(e){ console.error('AI summary error:', e); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "AI Reviews Summary",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

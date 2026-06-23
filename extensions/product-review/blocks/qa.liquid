@@ -1,0 +1,158 @@
+<div class="trust-qa">
+  <div class="trust-qa__header">
+    <h3 id="trust-qa-title">Questions & Answers</h3>
+    <button id="trust-qa-open" class="trust-qa__ask-btn">Ask a question</button>
+  </div>
+
+  <div id="trust-qa-form" class="trust-qa__form" style="display:none">
+    <input type="text" id="trust-qa-name" placeholder="Your name">
+    <input type="email" id="trust-qa-email" placeholder="Your email">
+    <textarea id="trust-qa-question" placeholder="Type your question..."></textarea>
+    <div class="trust-qa__form-actions">
+      <button id="trust-qa-cancel" class="trust-qa__cancel-btn">Cancel</button>
+      <button id="trust-qa-submit" class="trust-qa__submit-btn">Submit</button>
+    </div>
+  </div>
+
+  <div id="trust-qa-list" class="trust-qa__list"></div>
+  <div id="trust-qa-empty" class="trust-qa__empty" style="display:none">No questions yet. Be the first to ask!</div>
+</div>
+
+<style>
+.trust-qa { max-width: 100%; margin: 40px 0; padding: 0 40px; font-family: var(--qa-font, 'Helvetica Neue', Helvetica, Arial, sans-serif); }
+.trust-qa__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+.trust-qa__header h3 { font-size: 18px; font-weight: 700; margin: 0; color: var(--qa-text, #1a1a1a); }
+.trust-qa__ask-btn { background: var(--qa-accent, #1a1a1a); color: #fff; border: none; border-radius: 3px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.trust-qa__form { display: flex; flex-direction: column; gap: 10px; padding: 18px; border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 20px; background: #fafafa; }
+.trust-qa__form input, .trust-qa__form textarea { padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 4px; font-size: 13px; font-family: inherit; background: #fff; }
+.trust-qa__form textarea { min-height: 80px; resize: vertical; }
+.trust-qa__form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.trust-qa__submit-btn { background: var(--qa-accent, #1a1a1a); color: #fff; border: none; border-radius: 3px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.trust-qa__cancel-btn { background: #fff; color: #555; border: 1.5px solid #ddd; border-radius: 3px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+.trust-qa__item { padding: 14px 0; border-top: 1px solid #eee; }
+.trust-qa__q { font-size: 14px; font-weight: 700; color: var(--qa-text, #1a1a1a); margin: 0 0 6px; }
+.trust-qa__q::before { content: "Q: "; color: #888; }
+.trust-qa__a { font-size: 13px; color: var(--qa-text, #444); margin: 0 0 6px; line-height: 1.5; }
+.trust-qa__a::before { content: "A: "; color: var(--qa-accent, #888); font-weight: 700; }
+.trust-qa__meta { font-size: 11px; color: #999; }
+.trust-qa__empty { padding: 24px 0; text-align: center; color: #999; font-size: 13px; }
+</style>
+
+<script>
+(function(){
+  const productId = "{{ product.id }}";
+  const storeLocale = {{ request.locale.iso_code | json }};
+
+  // Fallback only — the full set of languages is served by /apps/review (see
+  // app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
+  // Liquid-content cap per theme app extension.
+  var TRANSLATIONS_EN = { title: "Questions & Answers", ask: "Ask a question", namePlaceholder: "Your name", emailPlaceholder: "Your email", questionPlaceholder: "Type your question...", cancel: "Cancel", submit: "Submit", empty: "No questions yet. Be the first to ask!", requiredAlert: "Please fill all required fields", thanksAlert: "Thanks! Your question will appear once it's answered." };
+  let T = TRANSLATIONS_EN;
+
+  function applyTranslations(remoteT){
+    T = remoteT || TRANSLATIONS_EN;
+    document.getElementById("trust-qa-title").textContent = T.title;
+    document.getElementById("trust-qa-open").textContent = T.ask;
+    document.getElementById("trust-qa-name").placeholder = T.namePlaceholder;
+    document.getElementById("trust-qa-email").placeholder = T.emailPlaceholder;
+    document.getElementById("trust-qa-question").placeholder = T.questionPlaceholder;
+    document.getElementById("trust-qa-cancel").textContent = T.cancel;
+    document.getElementById("trust-qa-submit").textContent = T.submit;
+    document.getElementById("trust-qa-empty").textContent = T.empty;
+  }
+
+  document.getElementById("trust-qa-open").onclick = function(){
+    document.getElementById("trust-qa-form").style.display = "flex";
+    this.style.display = "none";
+  };
+  document.getElementById("trust-qa-cancel").onclick = function(){
+    document.getElementById("trust-qa-form").style.display = "none";
+    document.getElementById("trust-qa-open").style.display = "inline-block";
+  };
+
+  function escapeHTML(text){
+    return String(text || "").replace(/[&<>"']/g, function(c){
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderQuestions(questions){
+    const list  = document.getElementById("trust-qa-list");
+    const empty = document.getElementById("trust-qa-empty");
+    if(!questions.length){ list.innerHTML = ""; empty.style.display = "block"; return; }
+    empty.style.display = "none";
+    list.innerHTML = questions.map(function(q){
+      const date = q.answeredAt ? new Date(q.answeredAt).toLocaleDateString() : "";
+      return (
+        '<div class="trust-qa__item">' +
+          '<p class="trust-qa__q">' + escapeHTML(q.question) + '</p>' +
+          '<p class="trust-qa__a">' + escapeHTML(q.answer) + '</p>' +
+          '<div class="trust-qa__meta">' + escapeHTML(q.customer) + (date ? ' · ' + date : '') + '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function loadQuestions(){
+    fetch('/apps/review?type=questions&productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(storeLocale))
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        applyTranslations(data.translations);
+        renderQuestions(data.questions || []);
+      })
+      .catch(function(e){ console.error("Q&A load error:", e); });
+  }
+
+  function applyStyle(){
+    fetch('/apps/review?type=widget-defaults&widgetKey=questions_answers')
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        const s = data.settings || {};
+        const root = document.querySelector(".trust-qa");
+        if(!root) return;
+        root.style.setProperty("--qa-accent", s.accentColor || "#1a1a1a");
+        root.style.setProperty("--qa-text", s.textColor || "#1a1a1a");
+        root.style.setProperty("--qa-font", s.fontFamily || "inherit");
+      })
+      .catch(function(e){ console.error("Q&A style error:", e); });
+  }
+
+  document.getElementById("trust-qa-submit").onclick = function(){
+    const name     = document.getElementById("trust-qa-name").value.trim();
+    const email    = document.getElementById("trust-qa-email").value.trim();
+    const question = document.getElementById("trust-qa-question").value.trim();
+
+    if(!name || !email || !question){
+      alert(T.requiredAlert);
+      return;
+    }
+
+    fetch('/apps/review', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "question", productId: productId, customer: name, email: email, question: question }),
+    })
+      .then(function(res){ if(!res.ok) throw new Error("Question submit failed"); return res.json(); })
+      .then(function(){
+        document.getElementById("trust-qa-name").value = "";
+        document.getElementById("trust-qa-email").value = "";
+        document.getElementById("trust-qa-question").value = "";
+        document.getElementById("trust-qa-form").style.display = "none";
+        document.getElementById("trust-qa-open").style.display = "inline-block";
+        alert(T.thanksAlert);
+      })
+      .catch(function(e){ console.error(e); });
+  };
+
+  loadQuestions();
+  applyStyle();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Questions & Answers",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

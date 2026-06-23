@@ -1,21 +1,52 @@
-{% assign avg_rating = block.settings.product.metafields.demo.avg_rating.value | round %}
-<span style="color:{{ block.settings.colour }}">
-  {% render 'stars', rating: avg_rating %}
-</span>
-{% if avg_rating >= 4 %}
-  <br>
-  <img src="{{ "thumbs-up.png" | asset_img_url: '15x' }}" height="15" width="15" loading="lazy">
-  {{ 'ratings.home.recommendationText' | t }}
-{% endif %}
+<div id="star-rating-block">
+  <span id="star-rating-stars" style="color:{{ block.settings.colour }};font-size:22px;"></span>
+  <span id="star-rating-score" style="font-size:14px; color:#555;"></span>
+</div>
+
+<script>
+(function(){
+  const productId = {{ product.id | json }};
+
+  function renderEmpty(){
+    let stars = '';
+    for(let i = 1; i <= 5; i++){
+      stars += '<span style="opacity:0.25">★</span>';
+    }
+    document.getElementById('star-rating-stars').innerHTML = stars;
+    document.getElementById('star-rating-score').textContent = '0.0 (0 reviews)';
+  }
+
+  renderEmpty();
+
+  fetch('/apps/review?productId=' + encodeURIComponent(productId))
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      const avg   = parseFloat(data.averageRating || 0);
+      const total = parseInt(data.total || 0);
+
+      const rounded = Math.round(avg);
+      let stars = '';
+      for(let i = 1; i <= 5; i++){
+        stars += '<span style="opacity:' + (i <= rounded ? '1' : '0.25') + '">★</span>';
+      }
+
+      document.getElementById('star-rating-stars').innerHTML = stars;
+      document.getElementById('star-rating-score').textContent =
+        total ? avg.toFixed(1) + ' (' + total + ' reviews)' : '0.0 (0 reviews)';
+    })
+    .catch(function(e){
+      console.error('Star rating error:', e);
+      renderEmpty();
+    });
+})();
+</script>
 
 {% schema %}
 {
   "name": "Star Rating",
   "target": "section",
   "settings": [
-    { "type": "product", "id": "product", "label": "product", "autofill": true },
     { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
   ]
 }
 {% endschema %}
-

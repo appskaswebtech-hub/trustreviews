@@ -1,0 +1,760 @@
+{% comment %}
+  extensions/trust-reviews/blocks/reviews-widget.liquid
+{% endcomment %}
+
+<div
+  id="trust-reviews-widget-{{ block.id }}"
+  class="trust-reviews-widget"
+  data-product-id="{{ product.id }}"
+  data-style="{{ block.settings.widget_style }}"
+  data-color="{{ block.settings.accent_color }}"
+  data-columns="{{ block.settings.columns }}"
+  data-max="{{ block.settings.max_reviews }}"
+  data-verified="{{ block.settings.show_verified }}"
+  data-avatar="{{ block.settings.show_avatar }}"
+  data-date="{{ block.settings.show_date }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-widget-key="{{ block.settings.widget_key }}"
+>
+  <h2 class="trust-reviews__heading">{{ block.settings.heading }}</h2>
+  <div class="trust-reviews__loading">Loading reviews...</div>
+  <div class="trust-reviews__container"></div>
+</div>
+
+<button
+  id="trust-reviews-popup-btn-{{ block.id }}"
+  class="trust-reviews__popup-fab"
+  aria-label="Read reviews"
+  style="display:none"
+>
+  Reviews
+</button>
+
+<div id="trust-reviews-popup-{{ block.id }}" class="trust-reviews__popup-overlay" role="dialog" aria-modal="true" style="display:none">
+  <div class="trust-reviews__popup-modal">
+    <button class="trust-reviews__popup-close" aria-label="Close">&times;</button>
+    <h3 class="trust-reviews__popup-title">Customer Reviews</h3>
+    <div class="trust-reviews__popup-body"></div>
+  </div>
+</div>
+
+<style>
+.trust-reviews-widget {
+  font-family: var(--tr-font, inherit);
+  padding: var(--tr-pt, 40px) 0 var(--tr-pb, 40px);
+  background: var(--tr-bg, transparent);
+  box-sizing: border-box;
+}
+.trust-reviews__heading {
+  margin: 0 0 16px;
+  font-size: var(--tr-h-size, 1.5rem);
+  font-weight: 700;
+  color: var(--tr-accent, #6B1A2C);
+}
+.trust-reviews__loading { color: #888; font-size: 0.9rem; padding: 12px 0; }
+
+.trust-reviews__grid {
+  display: grid;
+  gap: var(--tr-gap, 16px);
+  grid-template-columns: repeat(var(--tr-cols, 3), 1fr);
+}
+
+.trust-reviews__card {
+  background: var(--tr-card-bg, #fff);
+  border: 1px solid var(--tr-border, #e4e4e4);
+  border-radius: var(--tr-radius, 10px);
+  padding: var(--tr-card-pad, 16px);
+  box-shadow: var(--tr-shadow, none);
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.trust-reviews__card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.trust-reviews__stars { font-size: 1rem; margin-bottom: 6px; }
+.trust-reviews__title { font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700; margin-bottom: 4px; color: var(--tr-text, #333); }
+.trust-reviews__comment { font-size: var(--tr-rev-size, 16px); color: var(--tr-text, #333); margin-bottom: 10px; line-height: 1.6; }
+.trust-reviews__meta { font-size: var(--tr-meta-size, 13px); color: #888; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trust-reviews__avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 11px; flex-shrink: 0;
+  background: var(--tr-accent, #6B1A2C);
+}
+.trust-reviews__verified {
+  font-size: 0.75rem; font-weight: 600;
+  border-radius: 4px; padding: 1px 6px;
+  background: #e6f4ea; color: #1a7a3a;
+}
+.trust-reviews__like-btn {
+  margin-left: auto; background: none;
+  border: 1px solid var(--tr-accent, #6B1A2C);
+  color: var(--tr-accent, #6B1A2C);
+  border-radius: 20px; padding: 3px 10px;
+  cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; gap: 4px;
+  transition: background 0.15s;
+}
+.trust-reviews__like-btn:hover { background: rgba(0,0,0,.05); }
+.trust-reviews__media img,
+.trust-reviews__media video {
+  max-width: 100%; border-radius: 6px; margin-bottom: 8px; display: block;
+}
+
+@media (max-width: 768px) {
+  .trust-reviews__grid { grid-template-columns: repeat(var(--tr-cols-tablet, 2), 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .trust-reviews__grid { grid-template-columns: repeat(var(--tr-cols-mobile, 1), 1fr) !important; }
+}
+
+.trust-reviews-widget[data-style="list_view"] .trust-reviews__grid {
+  grid-template-columns: 1fr !important;
+}
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__card {
+  background: #1a1a1a; border-color: #333;
+}
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__comment,
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__title { color: #f0f0f0; }
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__meta { color: #aaa; }
+
+.trust-reviews-widget[data-style="minimal_grid"] .trust-reviews__card {
+  border: none; border-top: 2px solid var(--tr-accent, #6B1A2C);
+  border-radius: 0; box-shadow: none;
+}
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__card {
+  background: var(--tr-accent, #6B1A2C); border: none;
+}
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__comment,
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__title,
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__meta { color: #fff; }
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__avatar { background: rgba(255,255,255,.25); }
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__like-btn { border-color: #fff; color: #fff; }
+
+.trust-reviews-widget[data-style="editorial"] .trust-reviews__grid {
+  grid-template-columns: 1fr !important;
+}
+.trust-reviews-widget[data-style="editorial"] .trust-reviews__card {
+  display: flex; gap: 20px; align-items: flex-start;
+  border: none; border-bottom: 1px solid var(--tr-border, #e4e4e4);
+  border-radius: 0; padding: 20px 0; box-shadow: none;
+}
+.trust-reviews-widget[data-style="editorial"] .trust-reviews__avatar {
+  width: 48px; height: 48px; font-size: 16px; flex-shrink: 0;
+}
+.trust-reviews-widget[data-style="editorial"] .trust-reviews__body { flex: 1; }
+
+.trust-reviews__summary-bar {
+  background: var(--tr-card-bg, #fff);
+  border: 1px solid var(--tr-border, #e4e4e4);
+  border-radius: var(--tr-radius, 10px);
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--tr-shadow, none);
+}
+.trust-reviews__summary-score {
+  font-size: 3rem; font-weight: 800; line-height: 1;
+  color: var(--tr-accent, #6B1A2C);
+}
+.trust-reviews__summary-label { font-size: 0.85rem; color: #888; margin-top: 4px; }
+
+.trust-reviews__badge-strip {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  padding: 16px; background: var(--tr-card-bg, #fff);
+  border: 1px solid var(--tr-border, #e4e4e4);
+  border-radius: var(--tr-radius, 10px);
+  box-shadow: var(--tr-shadow, none);
+}
+.trust-reviews__badge {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--tr-accent, #6B1A2C); color: #fff;
+  border-radius: 24px; padding: 6px 14px;
+  font-size: 0.82rem; font-weight: 600;
+}
+
+.trust-reviews__slider-wrap { position: relative; overflow: hidden; }
+.trust-reviews__slider-track { display: flex; transition: transform 0.4s ease; }
+.trust-reviews__slider-track .trust-reviews__card { min-width: 100%; flex-shrink: 0; }
+.trust-reviews__slider-arrows { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.trust-reviews__slider-btn {
+  background: var(--tr-accent, #6B1A2C); color: #fff;
+  border: none; border-radius: 50%;
+  width: 36px; height: 36px; cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.2s;
+}
+.trust-reviews__slider-btn:disabled { opacity: 0.35; cursor: default; }
+.trust-reviews__slider-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+.trust-reviews__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ddd; cursor: pointer; border: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.trust-reviews__dot.active { background: var(--tr-accent, #6B1A2C); transform: scale(1.25); }
+
+.trust-reviews__scroll-strip {
+  display: flex; gap: var(--tr-gap, 16px);
+  overflow-x: auto; padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tr-accent, #6B1A2C) #eee;
+}
+.trust-reviews__scroll-strip .trust-reviews__card {
+  min-width: 280px; max-width: 320px;
+  flex-shrink: 0; scroll-snap-align: start;
+}
+
+.trust-reviews__popup-fab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+  background: var(--tr-accent, #6B1A2C); color: #fff;
+  border: none; border-radius: 28px;
+  padding: 12px 20px; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  transition: transform 0.15s;
+}
+.trust-reviews__popup-fab:hover { transform: scale(1.05); }
+.trust-reviews__popup-overlay {
+  position: fixed; inset: 0; z-index: 9001;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.trust-reviews__popup-modal {
+  background: #fff; border-radius: 16px;
+  padding: 28px; max-width: 680px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+  position: relative;
+}
+.trust-reviews__popup-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;
+}
+.trust-reviews__popup-title {
+  margin: 0 0 20px; font-size: 1.3rem; font-weight: 700;
+  color: var(--tr-accent, #6B1A2C);
+}
+.trust-reviews__popup-body .trust-reviews__grid {
+  grid-template-columns: 1fr !important;
+}
+
+.trust-reviews__floating-tab {
+  position: fixed; top: 45%; right: 0; z-index: 9000;
+  background: var(--tr-accent, #6B1A2C); color: #fff;
+  padding: 12px 8px; border-radius: 8px 0 0 8px; cursor: pointer;
+  font-size: 0.85rem; font-weight: 700;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  box-shadow: -2px 0 10px rgba(0,0,0,.15);
+}
+.trust-reviews__floating-panel {
+  position: fixed; top: 0; right: 0; height: 100%; width: 360px; max-width: 90vw;
+  background: #fff; z-index: 9001; box-shadow: -4px 0 20px rgba(0,0,0,.2);
+  transform: translateX(100%); transition: transform 0.25s ease;
+  overflow-y: auto; padding: 20px;
+}
+.trust-reviews__floating-panel.open { transform: translateX(0); }
+.trust-reviews__floating-close {
+  position: absolute; top: 14px; right: 16px; background: none; border: none;
+  font-size: 1.2rem; cursor: pointer; color: #888;
+}
+.trust-reviews__floating-panel .trust-reviews__grid { grid-template-columns: 1fr !important; margin-top: 36px; }
+</style>
+
+<script>
+(function () {
+  var widget = document.getElementById('trust-reviews-widget-{{ block.id }}');
+  if (!widget) return;
+
+  var productId   = widget.dataset.productId;
+  var shop        = widget.dataset.shop;
+  var storeLocale = {{ request.locale.iso_code | json }};
+  var blockColor  = widget.dataset.color;
+  var blockCols   = widget.dataset.columns;
+  var blockMax    = widget.dataset.max;
+  var blockVerif  = widget.dataset.verified;
+  var blockAvatar = widget.dataset.avatar;
+  var blockDate   = widget.dataset.date;
+  var blockStyle  = widget.dataset.style;
+  var widgetKey   = widget.dataset.widgetKey || 'review_widget';
+
+  var loadingEl = widget.querySelector('.trust-reviews__loading');
+  var container = widget.querySelector('.trust-reviews__container');
+  var headingEl = widget.querySelector('.trust-reviews__heading');
+
+  // Fallback only — the full set of languages is served by /apps/review (see
+  // app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
+  // Liquid-content cap per theme app extension.
+  var TRANSLATIONS = {
+    en: { verified: 'Verified', noReviews: 'No reviews yet.', couldNotLoad: 'Could not load reviews.', review: 'review', reviews: 'reviews', readReviews: 'Read reviews', reviewsBtn: 'Reviews', close: 'Close', customerReviews: 'Customer Reviews', previous: 'Previous', next: 'Next' },
+  };
+
+  var D_COLOR   = '#6B1A2C';
+  var D_STYLE   = 'dark_grid';
+  var D_COLS    = '3';
+  var D_MAX     = '6';
+  var D_HEADING = 'What our customers say';
+
+  function starHTML(rating, accent) {
+    var out = '';
+    for (var i = 0; i < 5; i++) {
+      out += '<span style="color:' + (i < rating ? accent : '#ddd') + '">&#9733;</span>';
+    }
+    return out;
+  }
+
+  function initials(name) {
+    return (name || 'A').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0, 2);
+  }
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function mediaHTML(r) {
+    if (!r.mediaUrl) return '';
+    if ((r.mediaType || '').indexOf('video') === 0) {
+      return '<div class="trust-reviews__media"><video src="' + r.mediaUrl + '" controls playsinline></video></div>';
+    }
+    return '<div class="trust-reviews__media"><img src="' + r.mediaUrl + '" alt="review media" loading="lazy"></div>';
+  }
+
+  function buildCard(r, s) {
+    var card = document.createElement('div');
+    card.className = 'trust-reviews__card';
+
+    var avatarHTML   = s.showAvatar   ? '<span class="trust-reviews__avatar" style="background:' + s.accentColor + '">' + initials(r.customer) + '</span>' : '';
+    var verifiedHTML = s.showVerified ? '<span class="trust-reviews__verified">' + s.t.verified + '</span>' : '';
+    var dateHTML     = (s.showDate && r.createdAt) ? '<span>' + fmtDate(r.createdAt) + '</span>' : '';
+    var titleHTML    = r.title ? '<p class="trust-reviews__title">' + r.title + '</p>' : '';
+    var likeHTML     = '<button class="trust-reviews__like-btn" data-id="' + r.id + '">+1 <span class="like-count">' + (r.likes || 0) + '</span></button>';
+
+    if (s.style === 'editorial') {
+      card.innerHTML =
+        avatarHTML +
+        '<div class="trust-reviews__body">' +
+          '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+          titleHTML +
+          '<p class="trust-reviews__comment">' + r.comment + '</p>' +
+          mediaHTML(r) +
+          '<div class="trust-reviews__meta"><strong>' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div>' +
+        '</div>';
+    } else {
+      card.innerHTML =
+        '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+        titleHTML +
+        '<p class="trust-reviews__comment">' + r.comment + '</p>' +
+        mediaHTML(r) +
+        '<div class="trust-reviews__meta">' + avatarHTML + '<strong>' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div>';
+    }
+    return card;
+  }
+
+  function attachLikes(root) {
+    var btns = root.querySelectorAll('.trust-reviews__like-btn');
+    for (var i = 0; i < btns.length; i++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          if (btn.disabled) return;
+          btn.disabled = true;
+          fetch('/apps/review?shop=' + shop, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'like', id: btn.dataset.id })
+          })
+          .then(function(r){ return r.json(); })
+          .then(function(json){
+            if (json.success) btn.querySelector('.like-count').textContent = json.review.likes;
+          })
+          .catch(function(){})
+          .finally(function(){ btn.disabled = false; });
+        });
+      })(btns[i]);
+    }
+  }
+
+  function buildSlider(reviews, s) {
+    var items = reviews.slice(0, s.maxRev);
+    var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__slider-wrap';
+    var track = document.createElement('div'); track.className = 'trust-reviews__slider-track';
+    wrap.appendChild(track);
+
+    for (var i = 0; i < items.length; i++) {
+      track.appendChild(buildCard(items[i], s));
+    }
+
+    var current = 0;
+    var total   = items.length;
+    var dotBtns = [];
+    var prevBtn, nextBtn;
+
+    if (s.showDots) {
+      var dotsEl = document.createElement('div');
+      dotsEl.className = 'trust-reviews__slider-dots';
+      for (var j = 0; j < items.length; j++) {
+        (function(idx) {
+          var d = document.createElement('button');
+          d.className = 'trust-reviews__dot' + (idx === 0 ? ' active' : '');
+          d.addEventListener('click', function(){ goTo(idx); });
+          dotsEl.appendChild(d);
+          dotBtns.push(d);
+        })(j);
+      }
+      wrap.appendChild(dotsEl);
+    }
+
+    function goTo(idx) {
+      current = ((idx % total) + total) % total;
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      for (var k = 0; k < dotBtns.length; k++) {
+        dotBtns[k].classList.toggle('active', k === current);
+      }
+    }
+
+    if (s.showArrows) {
+      var arrowRow = document.createElement('div');
+      arrowRow.className = 'trust-reviews__slider-arrows';
+      prevBtn = document.createElement('button');
+      nextBtn = document.createElement('button');
+      prevBtn.className = nextBtn.className = 'trust-reviews__slider-btn';
+      prevBtn.innerHTML = '&#8249;';
+      nextBtn.innerHTML = '&#8250;';
+      prevBtn.setAttribute('aria-label', s.t.previous);
+      nextBtn.setAttribute('aria-label', s.t.next);
+      prevBtn.addEventListener('click', function(){ goTo(current - 1); });
+      nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+      arrowRow.appendChild(prevBtn);
+      arrowRow.appendChild(nextBtn);
+      wrap.appendChild(arrowRow);
+    }
+
+    if (s.autoplay && total > 1) {
+      var timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed);
+      wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+      wrap.addEventListener('mouseleave', function(){
+        timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed);
+      });
+    }
+
+    var startX = 0;
+    track.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', function(e){
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+    });
+
+    return wrap;
+  }
+
+  function buildScrollStrip(reviews, s) {
+    var strip = document.createElement('div');
+    strip.className = 'trust-reviews__scroll-strip';
+    var items = reviews.slice(0, s.maxRev);
+    for (var i = 0; i < items.length; i++) {
+      strip.appendChild(buildCard(items[i], s));
+    }
+    return strip;
+  }
+
+  function buildBadgeStrip(reviews, s, avgRating) {
+    var wrap = document.createElement('div');
+    wrap.className = 'trust-reviews__badge-strip';
+    var overall = document.createElement('div');
+    overall.className = 'trust-reviews__badge';
+    overall.textContent = avgRating.toFixed(1) + ' Overall';
+    wrap.appendChild(overall);
+    var items = reviews.slice(0, s.maxRev);
+    for (var i = 0; i < items.length; i++) {
+      var b = document.createElement('div');
+      b.className = 'trust-reviews__badge';
+      b.textContent = items[i].rating + '/5 ' + items[i].customer;
+      wrap.appendChild(b);
+    }
+    return wrap;
+  }
+
+  function buildStarSummary(reviews, s, total, avgRating) {
+    var wrap = document.createElement('div');
+    var bar  = document.createElement('div');
+    bar.className = 'trust-reviews__summary-bar';
+
+    var starsRow = '';
+    for (var i = 0; i < 5; i++) {
+      starsRow += '<span style="color:' + (i < Math.round(avgRating) ? s.accentColor : '#ddd') + '">&#9733;</span>';
+    }
+
+    var barsHTML = '';
+    var ns = [5, 4, 3, 2, 1];
+    for (var ni = 0; ni < ns.length; ni++) {
+      var n   = ns[ni];
+      var cnt = 0;
+      for (var ri = 0; ri < reviews.length; ri++) { if (reviews[ri].rating === n) cnt++; }
+      var pct = total ? Math.round(cnt / total * 100) : 0;
+      barsHTML +=
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+          '<span style="width:18px;font-size:0.8rem;color:#555">' + n + '</span>' +
+          '<div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden">' +
+            '<div style="width:' + pct + '%;height:100%;background:' + s.accentColor + ';border-radius:4px"></div>' +
+          '</div>' +
+          '<span style="font-size:0.8rem;color:#888;width:30px">' + cnt + '</span>' +
+        '</div>';
+    }
+
+    bar.innerHTML =
+      '<div>' +
+        '<div class="trust-reviews__summary-score">' + avgRating.toFixed(1) + '</div>' +
+        '<div style="font-size:1.1rem">' + starsRow + '</div>' +
+        '<div class="trust-reviews__summary-label">' + total + ' ' + (total === 1 ? s.t.review : s.t.reviews) + '</div>' +
+      '</div>' +
+      '<div style="flex:1">' + barsHTML + '</div>';
+
+    wrap.appendChild(bar);
+
+    var grid = document.createElement('div');
+    grid.className = 'trust-reviews__grid';
+    grid.style.gridTemplateColumns = 'repeat(' + s.columns + ', 1fr)';
+    var items = reviews.slice(0, s.maxRev);
+    for (var j = 0; j < items.length; j++) { grid.appendChild(buildCard(items[j], s)); }
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function buildFloatingTab(reviews, s) {
+    var tab = document.createElement('div');
+    tab.className = 'trust-reviews__floating-tab';
+    tab.textContent = '★ ' + (s.t ? s.t.reviewsBtn : 'Reviews');
+    tab.style.background = s.accentColor;
+
+    var panel = document.createElement('div');
+    panel.className = 'trust-reviews__floating-panel';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'trust-reviews__floating-close';
+    closeBtn.setAttribute('aria-label', s.t ? s.t.close : 'Close');
+    closeBtn.innerHTML = '&times;';
+
+    var grid = document.createElement('div');
+    grid.className = 'trust-reviews__grid';
+    var items = reviews.slice(0, s.maxRev);
+    for (var i = 0; i < items.length; i++) { grid.appendChild(buildCard(items[i], s)); }
+
+    panel.appendChild(closeBtn);
+    panel.appendChild(grid);
+    document.body.appendChild(panel);
+    document.body.appendChild(tab);
+
+    tab.addEventListener('click', function(){ panel.classList.add('open'); });
+    closeBtn.addEventListener('click', function(){ panel.classList.remove('open'); });
+
+    attachLikes(panel);
+    return document.createElement('div'); // placeholder for the in-flow container
+  }
+
+  function setupPopup(reviews, s) {
+    if (!s.popupEnabled) return;
+    var fab      = document.getElementById('trust-reviews-popup-btn-{{ block.id }}');
+    var overlay  = document.getElementById('trust-reviews-popup-{{ block.id }}');
+    if (!fab || !overlay) return;
+    var body     = overlay.querySelector('.trust-reviews__popup-body');
+    var closeBtn = overlay.querySelector('.trust-reviews__popup-close');
+    var titleEl  = overlay.querySelector('.trust-reviews__popup-title');
+
+    if (titleEl) titleEl.style.color = s.accentColor;
+    fab.style.background = s.accentColor;
+    fab.style.display = 'block';
+
+    var grid = document.createElement('div');
+    grid.className = 'trust-reviews__grid';
+    grid.style.gridTemplateColumns = '1fr';
+    var items = reviews.slice(0, s.maxRev);
+    for (var i = 0; i < items.length; i++) { grid.appendChild(buildCard(items[i], s)); }
+    body.appendChild(grid);
+    attachLikes(body);
+
+    function openPopup()  { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function closePopup() { overlay.style.display = 'none'; document.body.style.overflow = ''; }
+
+    fab.addEventListener('click', openPopup);
+    if (closeBtn) closeBtn.addEventListener('click', closePopup);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) closePopup(); });
+  }
+
+  function applyVars(s) {
+    widget.style.setProperty('--tr-accent',      s.accentColor);
+    widget.style.setProperty('--tr-bg',          s.backgroundColor);
+    widget.style.setProperty('--tr-card-bg',     s.cardBackground);
+    widget.style.setProperty('--tr-text',        s.textColor);
+    widget.style.setProperty('--tr-border',      s.borderColor);
+    widget.style.setProperty('--tr-font',        s.fontFamily);
+    widget.style.setProperty('--tr-h-size',      s.headingSize + 'px');
+    widget.style.setProperty('--tr-rev-size',    s.reviewSize  + 'px');
+    widget.style.setProperty('--tr-meta-size',   s.metaSize    + 'px');
+    widget.style.setProperty('--tr-pt',          s.paddingTop    + 'px');
+    widget.style.setProperty('--tr-pb',          s.paddingBottom + 'px');
+    widget.style.setProperty('--tr-card-pad',    s.cardPadding   + 'px');
+    widget.style.setProperty('--tr-gap',         s.cardGap       + 'px');
+    widget.style.setProperty('--tr-radius',      s.borderRadius  + 'px');
+    widget.style.setProperty('--tr-shadow',      s.showShadow ? '0 2px 12px rgba(0,0,0,.08)' : 'none');
+    widget.style.setProperty('--tr-cols',        String(s.columns));
+    widget.style.setProperty('--tr-cols-tablet', String(s.tabletColumns));
+    widget.style.setProperty('--tr-cols-mobile', String(s.mobileColumns));
+    if (headingEl) headingEl.style.color = s.accentColor;
+    widget.setAttribute('data-style', s.style);
+  }
+
+  function renderReviews(apiData, s) {
+    loadingEl.style.display = 'none';
+    var reviews = apiData.reviews || [];
+    if (!reviews.length) {
+      container.innerHTML = '<p style="color:#888;font-size:0.9rem">No reviews yet.</p>';
+      return;
+    }
+
+    applyVars(s);
+
+    var el;
+    if (s.style === 'floating_tab') {
+      el = buildFloatingTab(reviews, s);
+    } else if (s.style === 'slider') {
+      el = buildSlider(reviews, s);
+    } else if (s.style === 'scroll_strip') {
+      el = buildScrollStrip(reviews, s);
+    } else if (s.style === 'badge_strip') {
+      el = buildBadgeStrip(reviews, s, apiData.averageRating || 0);
+    } else if (s.style === 'star_summary') {
+      el = buildStarSummary(reviews, s, apiData.total || reviews.length, apiData.averageRating || 0);
+    } else if (s.style === 'popup') {
+      el = document.createElement('div');
+      el.className = 'trust-reviews__grid';
+      el.style.gridTemplateColumns = 'repeat(' + s.columns + ', 1fr)';
+      var pItems = reviews.slice(0, s.maxRev);
+      for (var pi = 0; pi < pItems.length; pi++) { el.appendChild(buildCard(pItems[pi], s)); }
+      setupPopup(reviews, s);
+    } else {
+      el = document.createElement('div');
+      el.className = 'trust-reviews__grid';
+      if (s.style !== 'list_view' && s.style !== 'editorial') {
+        el.style.gridTemplateColumns = 'repeat(' + s.columns + ', 1fr)';
+      }
+      var gItems = reviews.slice(0, s.maxRev);
+      for (var gi = 0; gi < gItems.length; gi++) { el.appendChild(buildCard(gItems[gi], s)); }
+    }
+
+    container.appendChild(el);
+    attachLikes(container);
+  }
+
+  fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(storeLocale))
+    .then(function(r){ return r.json(); })
+    .then(function(resp) {
+      var d = resp.settings || {};
+      var t = resp.translations || TRANSLATIONS.en;
+
+      var accentColor = (blockColor && blockColor !== D_COLOR) ? blockColor : (d.accentColor || D_COLOR);
+      var style       = (blockStyle && blockStyle !== D_STYLE) ? blockStyle : (d.defaultStyle || D_STYLE);
+      var columns     = (blockCols  && blockCols  !== D_COLS)  ? parseInt(blockCols, 10) : (d.columns    || 3);
+      var maxRev      = (blockMax   && blockMax   !== D_MAX)   ? parseInt(blockMax,  10) : (d.maxReviews || 6);
+
+      var showVerified = (blockVerif  === 'false') ? false : (d.showVerified !== false);
+      var showAvatar   = (blockAvatar === 'false') ? false : (d.showAvatar   !== false);
+      var showDate     = (blockDate   === 'false') ? false : (d.showDate     !== false);
+
+      if (headingEl) {
+        var cur = headingEl.textContent.trim();
+        if (!cur || cur === D_HEADING) headingEl.textContent = d.heading || D_HEADING;
+      }
+
+      var s = {
+        t:               t,
+        accentColor:     accentColor,
+        style:           style,
+        columns:         columns,
+        maxRev:          maxRev,
+        showVerified:    showVerified,
+        showAvatar:      showAvatar,
+        showDate:        showDate,
+        tabletColumns:   d.tabletColumns   || 2,
+        mobileColumns:   d.mobileColumns   || 1,
+        paddingTop:      d.paddingTop      != null ? d.paddingTop    : 40,
+        paddingBottom:   d.paddingBottom   != null ? d.paddingBottom : 40,
+        cardPadding:     d.cardPadding     != null ? d.cardPadding   : 16,
+        cardGap:         d.cardGap         != null ? d.cardGap       : 16,
+        borderRadius:    d.borderRadius    != null ? d.borderRadius  : 10,
+        showShadow:      d.showShadow      !== false,
+        backgroundColor: d.backgroundColor || 'transparent',
+        cardBackground:  d.cardBackground  || '#ffffff',
+        textColor:       d.textColor       || '#333333',
+        borderColor:     d.borderColor     || '#e4e4e4',
+        fontFamily:      d.fontFamily      || 'inherit',
+        headingSize:     d.headingSize     || 32,
+        reviewSize:      d.reviewSize      || 16,
+        metaSize:        d.metaSize        || 13,
+        autoplay:        d.autoplay        !== false,
+        autoplaySpeed:   d.autoplaySpeed   || 3000,
+        showArrows:      d.showArrows      !== false,
+        showDots:        d.showDots        !== false,
+        popupEnabled:    d.popupEnabled    || false,
+        popupDelay:      d.popupDelay      != null ? d.popupDelay : 5000
+      };
+
+      return fetch('/apps/review?shop=' + shop + '&productId=' + productId + '&widgetKey=' + widgetKey)
+        .then(function(r){ return r.json(); })
+        .then(function(apiData){ renderReviews(apiData, s); });
+    })
+    .catch(function() {
+      loadingEl.textContent = 'Could not load reviews.';
+    });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Trust Reviews",
+  "target": "section",
+  "settings": [
+    { "type": "header", "content": "Widget Style" },
+    {
+      "type": "select",
+      "id": "widget_key",
+      "label": "Saved widget",
+      "default": "review_widget",
+      "info": "Pick which widget from the Widgets gallery in your admin this block should display — each has its own saved colors/fonts/layout.",
+      "options": [
+        { "value": "review_widget",        "label": "Review Widget"          },
+        { "value": "cards_carousel",        "label": "Cards Carousel"         },
+        { "value": "testimonial_carousel",  "label": "Testimonial Carousel"   },
+        { "value": "videos_carousel",       "label": "Videos Carousel"        },
+        { "value": "popup_reviews",         "label": "Pop-up Reviews"         },
+        { "value": "reviews_grid",          "label": "Reviews Grid"           },
+        { "value": "happy_customers",       "label": "Happy Customers widget" },
+        { "value": "review_snippets",       "label": "Review Snippets"        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "widget_style",
+      "label": "Widget Design",
+      "default": "dark_grid",
+      "options": [
+        { "value": "dark_grid",    "label": "Dark Grid"            },
+        { "value": "minimal_grid", "label": "Minimal Grid"         },
+        { "value": "slider",       "label": "Slider"               },
+        { "value": "star_summary", "label": "Star Summary Grid"    },
+        { "value": "accent_wall",  "label": "Accent Wall"          },
+        { "value": "list_view",    "label": "Review List"          },
+        { "value": "editorial",    "label": "Editorial Magazine"   },
+        { "value": "scroll_strip", "label": "Horizontal Scroll"    },
+        { "value": "popup",        "label": "Popup Widget"         },
+        { "value": "badge_strip",  "label": "Badge Strip"          }
+      ]
+    },
+    { "type": "header",   "content": "Appearance" },
+    { "type": "text",     "id": "heading",      "label": "Section Heading", "default": "What our customers say" },
+    { "type": "color",    "id": "accent_color", "label": "Accent Color",    "default": "#6B1A2C" },
+    { "type": "header",   "content": "Display Options" },
+    { "type": "range",    "id": "max_reviews",  "label": "Max reviews",  "min": 2, "max": 20, "step": 1, "default": 6 },
+    { "type": "range",    "id": "columns",      "label": "Grid columns", "min": 1, "max": 4,  "step": 1, "default": 3 },
+    { "type": "checkbox", "id": "show_verified","label": "Show verified badge",   "default": true },
+    { "type": "checkbox", "id": "show_avatar",  "label": "Show reviewer avatar",  "default": true },
+    { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true }
+  ]
+}
+{% endschema %}
