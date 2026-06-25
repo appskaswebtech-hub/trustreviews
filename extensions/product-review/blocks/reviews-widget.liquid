@@ -173,7 +173,20 @@
 
 .trust-reviews__slider-wrap { position: relative; overflow: hidden; }
 .trust-reviews__slider-track { display: flex; transition: transform 0.4s ease; }
-.trust-reviews__slider-track .trust-reviews__card { min-width: 100%; flex-shrink: 0; }
+.trust-reviews__slide {
+  display: grid;
+  grid-template-columns: repeat(var(--tr-cols, 3), 1fr);
+  gap: var(--tr-gap, 16px);
+  min-width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 768px) {
+  .trust-reviews__slide { grid-template-columns: repeat(var(--tr-cols-tablet, 2), 1fr); }
+}
+@media (max-width: 480px) {
+  .trust-reviews__slide { grid-template-columns: repeat(var(--tr-cols-mobile, 1), 1fr); }
+}
 .trust-reviews__slider-arrows { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .trust-reviews__slider-btn {
   background: var(--tr-accent, #6B1A2C); color: #fff;
@@ -306,7 +319,7 @@
   }
 
   function fmtDate(iso) {
-    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleDateString(storeLocale || undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function mediaHTML(r) {
@@ -372,24 +385,33 @@
   }
 
   function buildSlider(reviews, s) {
-    var items = reviews.slice(0, s.maxRev);
-    var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__slider-wrap';
-    var track = document.createElement('div'); track.className = 'trust-reviews__slider-track';
+    var items   = reviews.slice(0, s.maxRev);
+    var perView = Math.max(1, parseInt(s.columns, 10) || 1);
+    var wrap    = document.createElement('div'); wrap.className = 'trust-reviews__slider-wrap';
+    var track   = document.createElement('div'); track.className = 'trust-reviews__slider-track';
     wrap.appendChild(track);
 
-    for (var i = 0; i < items.length; i++) {
-      track.appendChild(buildCard(items[i], s));
+    var slides = [];
+    for (var i = 0; i < items.length; i += perView) {
+      var slideEl = document.createElement('div');
+      slideEl.className = 'trust-reviews__slide';
+      var slideItems = items.slice(i, i + perView);
+      for (var k = 0; k < slideItems.length; k++) {
+        slideEl.appendChild(buildCard(slideItems[k], s));
+      }
+      track.appendChild(slideEl);
+      slides.push(slideEl);
     }
 
     var current = 0;
-    var total   = items.length;
+    var total   = slides.length;
     var dotBtns = [];
     var prevBtn, nextBtn;
 
     if (s.showDots) {
       var dotsEl = document.createElement('div');
       dotsEl.className = 'trust-reviews__slider-dots';
-      for (var j = 0; j < items.length; j++) {
+      for (var j = 0; j < slides.length; j++) {
         (function(idx) {
           var d = document.createElement('button');
           d.className = 'trust-reviews__dot' + (idx === 0 ? ' active' : '');
@@ -659,7 +681,7 @@
 
       if (headingEl) {
         var cur = headingEl.textContent.trim();
-        if (!cur || cur === D_HEADING) headingEl.textContent = d.heading || D_HEADING;
+        if (!cur || cur === D_HEADING) headingEl.textContent = d.heading || t.defaultHeading || D_HEADING;
       }
 
       var s = {
@@ -751,7 +773,7 @@
     { "type": "color",    "id": "accent_color", "label": "Accent Color",    "default": "#6B1A2C" },
     { "type": "header",   "content": "Display Options" },
     { "type": "range",    "id": "max_reviews",  "label": "Max reviews",  "min": 2, "max": 20, "step": 1, "default": 6 },
-    { "type": "range",    "id": "columns",      "label": "Grid columns", "min": 1, "max": 4,  "step": 1, "default": 3 },
+    { "type": "range",    "id": "columns",      "label": "Columns / Cards per slide", "info": "Used by the grid styles for column count, and by Slider for how many reviews show per slide.", "min": 1, "max": 4,  "step": 1, "default": 3 },
     { "type": "checkbox", "id": "show_verified","label": "Show verified badge",   "default": true },
     { "type": "checkbox", "id": "show_avatar",  "label": "Show reviewer avatar",  "default": true },
     { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true }

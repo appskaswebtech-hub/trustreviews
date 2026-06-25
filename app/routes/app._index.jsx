@@ -1,4 +1,4 @@
-import { useLoaderData, useSubmit, useSearchParams } from "react-router";
+import { useLoaderData, useSubmit, useSearchParams, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import { redirect } from "react-router";
 import db from "../db.server";
@@ -6,6 +6,24 @@ import { useState, useRef } from "react";
 import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
+
+const HIDE_REASONS = [
+  { value: "fake",                    label: "Fake" },
+  { value: "duplicate",                label: "Duplicated review" },
+  { value: "spam",                     label: "Spam" },
+  { value: "unrelated",                label: "Unrelated to the product" },
+  { value: "legal",                    label: "Legal reasons" },
+  { value: "inappropriate_language",   label: "Inappropriate language" },
+  { value: "foreign_language",         label: "Foreign language" },
+  { value: "private_info",             label: "Contains private information" },
+  { value: "false_misleading",         label: "False or misleading" },
+];
+
+const SENTIMENT_META = {
+  positive: { icon: "🟢", label: "Positive" },
+  neutral:  { icon: "⚪", label: "Neutral"  },
+  negative: { icon: "🔴", label: "Negative" },
+};
 
 const normalizeProductId = (value) => {
   const normalized = String(value ?? "")
@@ -119,7 +137,7 @@ export const loader = async ({ request }) => {
 
   const store = await db.store.findUnique({
     where: { shop: session.shop },
-    select: { id: true, language: true },
+    select: { id: true, language: true, autoPublish: true },
   });
 
   shopLocale = store?.language || shopLocale;
@@ -129,7 +147,7 @@ export const loader = async ({ request }) => {
       shopLocale,
       grouped: [], total: 0, page, limit,
       allCount: 0, approvedCount: 0, pendingCount: 0, rejectedCount: 0,
-      tab, search,
+      tab, search, autoPublish: false,
     };
   }
 
@@ -217,6 +235,7 @@ export const loader = async ({ request }) => {
     total, page, limit,
     allCount, approvedCount, pendingCount, rejectedCount,
     tab, search,
+    autoPublish: store.autoPublish,
   };
 
 
@@ -241,16 +260,52 @@ export const action = async ({ request }) => {
   });
 
   if (actionType === "approve" && store) {
-    await db.review.updateMany({ where: { id, storeId: store.id }, data: { status: "approved" } });
+    await db.review.updateMany({ where: { id, storeId: store.id }, data: { status: "approved", hideReason: null } });
   }
   if (actionType === "reject" && store) {
-    await db.review.updateMany({ where: { id, storeId: store.id }, data: { status: "rejected" } });
+    const hideReason = formData.get("hideReason");
+    await db.review.updateMany({
+      where: { id, storeId: store.id },
+      data: { status: "rejected", hideReason: hideReason ? String(hideReason) : null },
+    });
   }
   if (actionType === "delete" && store) {
     await db.review.deleteMany({ where: { id, storeId: store.id } });
   }
   if (actionType === "edit" && store) {
     await db.review.updateMany({ where: { id, storeId: store.id }, data: { comment: normalizeComment(comment) } });
+  }
+  if (actionType === "reply" && store) {
+    const reply = String(formData.get("reply") || "").trim();
+    await db.review.updateMany({
+      where: { id, storeId: store.id },
+      data: reply ? { reply, repliedAt: new Date() } : { reply: null, repliedAt: null },
+    });
+  }
+  if (actionType === "tag" && store) {
+    const tags = String(formData.get("tags") || "").trim();
+    await db.review.updateMany({ where: { id, storeId: store.id }, data: { tags: tags || null } });
+  }
+  if (actionType === "bulk" && store) {
+    const ids = JSON.parse(String(formData.get("ids") || "[]")).map(Number).filter(Number.isFinite);
+    const bulkAction = formData.get("bulkAction");
+    if (ids.length) {
+      if (bulkAction === "approve") {
+        await db.review.updateMany({ where: { id: { in: ids }, storeId: store.id }, data: { status: "approved", hideReason: null } });
+      } else if (bulkAction === "reject") {
+        await db.review.updateMany({ where: { id: { in: ids }, storeId: store.id }, data: { status: "rejected" } });
+      } else if (bulkAction === "delete") {
+        await db.review.deleteMany({ where: { id: { in: ids }, storeId: store.id } });
+      }
+    }
+  }
+  if (actionType === "toggleAutoPublish") {
+    const autoPublish = formData.get("autoPublish") === "true";
+    await db.store.upsert({
+      where: { shop: session.shop },
+      update: { autoPublish },
+      create: { shop: session.shop, autoPublish },
+    });
   }
   if (actionType === "import") {
     const rows = JSON.parse(String(formData.get("rows") || "[]"));
@@ -264,8 +319,13 @@ export const action = async ({ request }) => {
           customer: normalizeCustomer(row.customer),
           email:    normalizeEmail(row.email),
           rating:   normalizeRating(row.rating),
+          title:    row.title ? normalizeComment(row.title) : null,
           comment:  normalizeComment(row.comment),
           status:   normalizeStatus(row.status),
+          source:   "imported",
+          mediaUrl:  row.mediaUrl  || null,
+          mediaType: row.mediaType || null,
+          fileName:  row.fileName  || null,
         },
       });
     }
@@ -437,6 +497,435 @@ const TRANSLATIONS = {
     widgetSubtitle: "Ajoutez maintenant le widget d'avis à vos pages produits en suivant ces étapes :",
     gotIt: "Compris ! Fermer",
   },
+  de: {
+    flag: "🇩🇪", label: "Deutsch",
+    pageTitle: "Produktbewertungen",
+    pageSubtitle: "Kundenfeedback verwalten, moderieren und exportieren",
+    installWidget: "Widget installieren",
+    installing: "Wird installiert...",
+    import: "Importieren",
+    exportCSV: "CSV exportieren",
+    totalReviews: "Bewertungen insgesamt",
+    approved: "Genehmigt",
+    pending: "Ausstehend",
+    rejected: "Abgelehnt",
+    allReviews: "Alle Bewertungen",
+    searchPlaceholder: "Kunde, E-Mail oder Kommentar suchen…",
+    search: "Suchen",
+    customer: "Kunde",
+    rating: "Bewertung",
+    comment: "Kommentar",
+    status: "Status",
+    date: "Datum",
+    actions: "Aktionen",
+    approve: "Genehmigen",
+    reject: "Ablehnen",
+    noReviews: "Keine Bewertungen für den aktuellen Filter gefunden.",
+    prev: "← Zurück",
+    next: "Weiter →",
+    page: "Seite",
+    of: "von",
+    reviews: "Bewertungen",
+    review: "Bewertung",
+    importTitle: "Bewertungen importieren",
+    importSubtitle: "Laden Sie eine CSV-Datei aus jeder unterstützten Bewertungs-App hoch — das Format wird automatisch erkannt.",
+    chooseFile: "CSV-Datei auswählen",
+    changeFile: "Datei ändern",
+    cancel: "Abbrechen",
+    widgetInstalled: "Widget erfolgreich installiert!",
+    widgetSubtitle: "Fügen Sie nun das Bewertungs-Widget mit folgenden Schritten zu Ihren Produktseiten hinzu:",
+    gotIt: "Verstanden! Schließen",
+  },
+  it: {
+    flag: "🇮🇹", label: "Italiano",
+    pageTitle: "Recensioni Prodotti",
+    pageSubtitle: "Gestisci, modera ed esporta i feedback dei clienti",
+    installWidget: "Installa Widget",
+    installing: "Installazione in corso...",
+    import: "Importa",
+    exportCSV: "Esporta CSV",
+    totalReviews: "Recensioni Totali",
+    approved: "Approvata",
+    pending: "In attesa",
+    rejected: "Rifiutata",
+    allReviews: "Tutte le Recensioni",
+    searchPlaceholder: "Cerca cliente, email o commento…",
+    search: "Cerca",
+    customer: "Cliente",
+    rating: "Valutazione",
+    comment: "Commento",
+    status: "Stato",
+    date: "Data",
+    actions: "Azioni",
+    approve: "Approva",
+    reject: "Rifiuta",
+    noReviews: "Nessuna recensione trovata per il filtro attuale.",
+    prev: "← Precedente",
+    next: "Successivo →",
+    page: "Pagina",
+    of: "di",
+    reviews: "recensioni",
+    review: "recensione",
+    importTitle: "Importa Recensioni",
+    importSubtitle: "Carica un CSV da qualsiasi app di recensioni supportata — il formato viene rilevato automaticamente.",
+    chooseFile: "Scegli file CSV",
+    changeFile: "Cambia file",
+    cancel: "Annulla",
+    widgetInstalled: "Widget installato con successo!",
+    widgetSubtitle: "Ora aggiungi il widget delle recensioni alle tue pagine prodotto seguendo questi passaggi:",
+    gotIt: "Capito! Chiudi",
+  },
+  pt: {
+    flag: "🇵🇹", label: "Português",
+    pageTitle: "Avaliações de Produtos",
+    pageSubtitle: "Gerencie, modere e exporte o feedback dos clientes",
+    installWidget: "Instalar Widget",
+    installing: "Instalando...",
+    import: "Importar",
+    exportCSV: "Exportar CSV",
+    totalReviews: "Total de Avaliações",
+    approved: "Aprovada",
+    pending: "Pendente",
+    rejected: "Rejeitada",
+    allReviews: "Todas as Avaliações",
+    searchPlaceholder: "Buscar cliente, e-mail ou comentário…",
+    search: "Buscar",
+    customer: "Cliente",
+    rating: "Classificação",
+    comment: "Comentário",
+    status: "Status",
+    date: "Data",
+    actions: "Ações",
+    approve: "Aprovar",
+    reject: "Rejeitar",
+    noReviews: "Nenhuma avaliação encontrada para o filtro atual.",
+    prev: "← Anterior",
+    next: "Próximo →",
+    page: "Página",
+    of: "de",
+    reviews: "avaliações",
+    review: "avaliação",
+    importTitle: "Importar Avaliações",
+    importSubtitle: "Envie um CSV de qualquer app de avaliações compatível — o formato é detectado automaticamente.",
+    chooseFile: "Escolher arquivo CSV",
+    changeFile: "Alterar arquivo",
+    cancel: "Cancelar",
+    widgetInstalled: "Widget instalado com sucesso!",
+    widgetSubtitle: "Agora adicione o widget de avaliações às suas páginas de produto seguindo estas etapas:",
+    gotIt: "Entendi! Fechar",
+  },
+  nl: {
+    flag: "🇳🇱", label: "Nederlands",
+    pageTitle: "Productrecensies",
+    pageSubtitle: "Beheer, modereer en exporteer klantfeedback",
+    installWidget: "Widget installeren",
+    installing: "Installeren...",
+    import: "Importeren",
+    exportCSV: "CSV exporteren",
+    totalReviews: "Totaal aantal recensies",
+    approved: "Goedgekeurd",
+    pending: "In behandeling",
+    rejected: "Afgewezen",
+    allReviews: "Alle recensies",
+    searchPlaceholder: "Zoek klant, e-mail of opmerking…",
+    search: "Zoeken",
+    customer: "Klant",
+    rating: "Beoordeling",
+    comment: "Opmerking",
+    status: "Status",
+    date: "Datum",
+    actions: "Acties",
+    approve: "Goedkeuren",
+    reject: "Afwijzen",
+    noReviews: "Geen recensies gevonden voor het huidige filter.",
+    prev: "← Vorige",
+    next: "Volgende →",
+    page: "Pagina",
+    of: "van",
+    reviews: "recensies",
+    review: "recensie",
+    importTitle: "Recensies importeren",
+    importSubtitle: "Upload een CSV vanuit elke ondersteunde recensie-app — het formaat wordt automatisch herkend.",
+    chooseFile: "CSV-bestand kiezen",
+    changeFile: "Bestand wijzigen",
+    cancel: "Annuleren",
+    widgetInstalled: "Widget succesvol geïnstalleerd!",
+    widgetSubtitle: "Voeg nu de recensiewidget toe aan je productpagina's met deze stappen:",
+    gotIt: "Begrepen! Sluiten",
+  },
+  ar: {
+    flag: "🇸🇦", label: "العربية",
+    pageTitle: "تقييمات المنتجات",
+    pageSubtitle: "إدارة وتعديل وتصدير ملاحظات العملاء",
+    installWidget: "تثبيت الودجت",
+    installing: "جاري التثبيت...",
+    import: "استيراد",
+    exportCSV: "تصدير CSV",
+    totalReviews: "إجمالي التقييمات",
+    approved: "مقبول",
+    pending: "قيد الانتظار",
+    rejected: "مرفوض",
+    allReviews: "جميع التقييمات",
+    searchPlaceholder: "البحث عن العميل أو البريد الإلكتروني أو التعليق…",
+    search: "بحث",
+    customer: "العميل",
+    rating: "التقييم",
+    comment: "التعليق",
+    status: "الحالة",
+    date: "التاريخ",
+    actions: "الإجراءات",
+    approve: "قبول",
+    reject: "رفض",
+    noReviews: "لم يتم العثور على تقييمات لهذا الفلتر.",
+    prev: "← السابق",
+    next: "التالي →",
+    page: "صفحة",
+    of: "من",
+    reviews: "تقييمات",
+    review: "تقييم",
+    importTitle: "استيراد التقييمات",
+    importSubtitle: "قم بتحميل ملف CSV من أي تطبيق تقييمات مدعوم — يتم اكتشاف التنسيق تلقائيًا.",
+    chooseFile: "اختر ملف CSV",
+    changeFile: "تغيير الملف",
+    cancel: "إلغاء",
+    widgetInstalled: "تم تثبيت الودجت بنجاح!",
+    widgetSubtitle: "أضف الآن ودجت التقييمات إلى صفحات منتجاتك باتباع هذه الخطوات:",
+    gotIt: "حسنًا! إغلاق",
+  },
+  zh: {
+    flag: "🇨🇳", label: "中文",
+    pageTitle: "产品评论",
+    pageSubtitle: "管理、审核并导出客户反馈",
+    installWidget: "安装小工具",
+    installing: "正在安装...",
+    import: "导入",
+    exportCSV: "导出 CSV",
+    totalReviews: "评论总数",
+    approved: "已批准",
+    pending: "待处理",
+    rejected: "已拒绝",
+    allReviews: "所有评论",
+    searchPlaceholder: "搜索客户、邮箱或评论内容…",
+    search: "搜索",
+    customer: "客户",
+    rating: "评分",
+    comment: "评论",
+    status: "状态",
+    date: "日期",
+    actions: "操作",
+    approve: "批准",
+    reject: "拒绝",
+    noReviews: "当前筛选条件下未找到评论。",
+    prev: "← 上一页",
+    next: "下一页 →",
+    page: "第",
+    of: "/ 共",
+    reviews: "条评论",
+    review: "条评论",
+    importTitle: "导入评论",
+    importSubtitle: "从任何受支持的评论应用上传 CSV 文件 — 格式将自动识别。",
+    chooseFile: "选择 CSV 文件",
+    changeFile: "更改文件",
+    cancel: "取消",
+    widgetInstalled: "小工具安装成功！",
+    widgetSubtitle: "现在请按照以下步骤将评论小工具添加到您的产品页面：",
+    gotIt: "知道了！关闭",
+  },
+  ja: {
+    flag: "🇯🇵", label: "日本語",
+    pageTitle: "商品レビュー",
+    pageSubtitle: "顧客フィードバックの管理・承認・エクスポート",
+    installWidget: "ウィジェットをインストール",
+    installing: "インストール中...",
+    import: "インポート",
+    exportCSV: "CSVを書き出す",
+    totalReviews: "レビュー総数",
+    approved: "承認済み",
+    pending: "保留中",
+    rejected: "拒否",
+    allReviews: "すべてのレビュー",
+    searchPlaceholder: "顧客名、メール、コメントを検索…",
+    search: "検索",
+    customer: "顧客",
+    rating: "評価",
+    comment: "コメント",
+    status: "状態",
+    date: "日付",
+    actions: "操作",
+    approve: "承認",
+    reject: "拒否",
+    noReviews: "現在のフィルターに一致するレビューはありません。",
+    prev: "← 前へ",
+    next: "次へ →",
+    page: "ページ",
+    of: "/ 全",
+    reviews: "件のレビュー",
+    review: "件のレビュー",
+    importTitle: "レビューをインポート",
+    importSubtitle: "対応するレビューアプリからCSVをアップロードしてください — 形式は自動的に検出されます。",
+    chooseFile: "CSVファイルを選択",
+    changeFile: "ファイルを変更",
+    cancel: "キャンセル",
+    widgetInstalled: "ウィジェットのインストールが完了しました！",
+    widgetSubtitle: "次の手順に従って、商品ページにレビューウィジェットを追加してください：",
+    gotIt: "了解しました！閉じる",
+  },
+  ru: {
+    flag: "🇷🇺", label: "Русский",
+    pageTitle: "Отзывы о товарах",
+    pageSubtitle: "Управляйте, модерируйте и экспортируйте отзывы клиентов",
+    installWidget: "Установить виджет",
+    installing: "Установка...",
+    import: "Импорт",
+    exportCSV: "Экспорт CSV",
+    totalReviews: "Всего отзывов",
+    approved: "Одобрено",
+    pending: "На рассмотрении",
+    rejected: "Отклонено",
+    allReviews: "Все отзывы",
+    searchPlaceholder: "Поиск по клиенту, email или комментарию…",
+    search: "Поиск",
+    customer: "Клиент",
+    rating: "Оценка",
+    comment: "Комментарий",
+    status: "Статус",
+    date: "Дата",
+    actions: "Действия",
+    approve: "Одобрить",
+    reject: "Отклонить",
+    noReviews: "По текущему фильтру отзывов не найдено.",
+    prev: "← Назад",
+    next: "Далее →",
+    page: "Страница",
+    of: "из",
+    reviews: "отзывов",
+    review: "отзыв",
+    importTitle: "Импорт отзывов",
+    importSubtitle: "Загрузите CSV из любого поддерживаемого приложения отзывов — формат определяется автоматически.",
+    chooseFile: "Выбрать файл CSV",
+    changeFile: "Изменить файл",
+    cancel: "Отмена",
+    widgetInstalled: "Виджет успешно установлен!",
+    widgetSubtitle: "Теперь добавьте виджет отзывов на страницы товаров, выполнив следующие шаги:",
+    gotIt: "Понятно! Закрыть",
+  },
+  tr: {
+    flag: "🇹🇷", label: "Türkçe",
+    pageTitle: "Ürün Değerlendirmeleri",
+    pageSubtitle: "Müşteri geri bildirimlerini yönetin, denetleyin ve dışa aktarın",
+    installWidget: "Widget'ı Yükle",
+    installing: "Yükleniyor...",
+    import: "İçe Aktar",
+    exportCSV: "CSV Dışa Aktar",
+    totalReviews: "Toplam Değerlendirme",
+    approved: "Onaylandı",
+    pending: "Beklemede",
+    rejected: "Reddedildi",
+    allReviews: "Tüm Değerlendirmeler",
+    searchPlaceholder: "Müşteri, e-posta veya yorum ara…",
+    search: "Ara",
+    customer: "Müşteri",
+    rating: "Puan",
+    comment: "Yorum",
+    status: "Durum",
+    date: "Tarih",
+    actions: "İşlemler",
+    approve: "Onayla",
+    reject: "Reddet",
+    noReviews: "Geçerli filtre için değerlendirme bulunamadı.",
+    prev: "← Önceki",
+    next: "Sonraki →",
+    page: "Sayfa",
+    of: "/",
+    reviews: "değerlendirme",
+    review: "değerlendirme",
+    importTitle: "Değerlendirmeleri İçe Aktar",
+    importSubtitle: "Desteklenen herhangi bir değerlendirme uygulamasından CSV yükleyin — biçim otomatik olarak algılanır.",
+    chooseFile: "CSV dosyası seç",
+    changeFile: "Dosyayı değiştir",
+    cancel: "İptal",
+    widgetInstalled: "Widget başarıyla yüklendi!",
+    widgetSubtitle: "Şimdi şu adımları izleyerek değerlendirme widget'ını ürün sayfalarınıza ekleyin:",
+    gotIt: "Anladım! Kapat",
+  },
+  pl: {
+    flag: "🇵🇱", label: "Polski",
+    pageTitle: "Opinie o Produktach",
+    pageSubtitle: "Zarządzaj, moderuj i eksportuj opinie klientów",
+    installWidget: "Zainstaluj Widget",
+    installing: "Instalowanie...",
+    import: "Importuj",
+    exportCSV: "Eksportuj CSV",
+    totalReviews: "Łączna liczba opinii",
+    approved: "Zatwierdzona",
+    pending: "Oczekująca",
+    rejected: "Odrzucona",
+    allReviews: "Wszystkie opinie",
+    searchPlaceholder: "Szukaj klienta, e-maila lub komentarza…",
+    search: "Szukaj",
+    customer: "Klient",
+    rating: "Ocena",
+    comment: "Komentarz",
+    status: "Status",
+    date: "Data",
+    actions: "Akcje",
+    approve: "Zatwierdź",
+    reject: "Odrzuć",
+    noReviews: "Nie znaleziono opinii dla bieżącego filtra.",
+    prev: "← Wstecz",
+    next: "Dalej →",
+    page: "Strona",
+    of: "z",
+    reviews: "opinii",
+    review: "opinia",
+    importTitle: "Importuj opinie",
+    importSubtitle: "Wczytaj plik CSV z dowolnej obsługiwanej aplikacji do opinii — format jest wykrywany automatycznie.",
+    chooseFile: "Wybierz plik CSV",
+    changeFile: "Zmień plik",
+    cancel: "Anuluj",
+    widgetInstalled: "Widget został pomyślnie zainstalowany!",
+    widgetSubtitle: "Teraz dodaj widget opinii do swoich stron produktów, wykonując te kroki:",
+    gotIt: "Rozumiem! Zamknij",
+  },
+  ko: {
+    flag: "🇰🇷", label: "한국어",
+    pageTitle: "상품 리뷰",
+    pageSubtitle: "고객 피드백을 관리, 검토 및 내보내기",
+    installWidget: "위젯 설치",
+    installing: "설치 중...",
+    import: "가져오기",
+    exportCSV: "CSV 내보내기",
+    totalReviews: "총 리뷰 수",
+    approved: "승인됨",
+    pending: "대기 중",
+    rejected: "거부됨",
+    allReviews: "모든 리뷰",
+    searchPlaceholder: "고객, 이메일 또는 댓글 검색…",
+    search: "검색",
+    customer: "고객",
+    rating: "평점",
+    comment: "댓글",
+    status: "상태",
+    date: "날짜",
+    actions: "작업",
+    approve: "승인",
+    reject: "거부",
+    noReviews: "현재 필터에 대한 리뷰가 없습니다.",
+    prev: "← 이전",
+    next: "다음 →",
+    page: "페이지",
+    of: "/",
+    reviews: "리뷰",
+    review: "리뷰",
+    importTitle: "리뷰 가져오기",
+    importSubtitle: "지원되는 리뷰 앱에서 CSV를 업로드하세요 — 형식이 자동으로 감지됩니다.",
+    chooseFile: "CSV 파일 선택",
+    changeFile: "파일 변경",
+    cancel: "취소",
+    widgetInstalled: "위젯이 성공적으로 설치되었습니다!",
+    widgetSubtitle: "다음 단계를 따라 리뷰 위젯을 상품 페이지에 추가하세요:",
+    gotIt: "확인! 닫기",
+  },
 };
 
 /* ─────────────────────────────────────────
@@ -602,9 +1091,14 @@ function ImportModal({ onClose, onImport, t }) {
     return values.map((v) => v.replace(/\r$/, ""));
   };
 
+  // Normalize "Reviewer Name", "reviewer.name", "reviewer_name" etc. to the
+  // same key so every export's header spelling lines up with FIELD_ALIASES.
+  const normalizeHeader = (h) =>
+    h.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
   const parseCSV = (text) => {
     const lines = text.trim().split(/\r?\n/).filter(Boolean);
-    const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
+    const headers = parseCSVLine(lines[0]).map(normalizeHeader);
     const rows = lines.slice(1).map((line) => {
       const vals = parseCSVLine(line);
       const row  = {};
@@ -614,37 +1108,87 @@ function ImportModal({ onClose, onImport, t }) {
     return { headers, rows };
   };
 
+  // Every review platform names its export columns differently — instead of
+  // hardcoding one column-mapping per platform (and rejecting anything that
+  // doesn't match exactly), we look for the same logical field under any of
+  // its common aliases. This makes import work with Judge.me, Loox, Yotpo,
+  // Stamped, Okendo, Ali Reviews, and our own native export alike.
+  const FIELD_ALIASES = {
+    customer:  ["customer", "reviewer_name", "author", "name", "user_display_name", "username", "full_name", "reviewer"],
+    email:     ["email", "reviewer_email", "user_email", "customer_email"],
+    productId: ["product_id", "productid", "product_sku", "productsku", "sku", "external_id"],
+    rating:    ["rating", "score", "review_score", "stars", "star_rating"],
+    title:     ["title", "review_title", "headline", "subject"],
+    comment:   ["comment", "body", "content", "message", "review", "review_content", "review_text", "review_body", "description", "text"],
+    status:    ["status", "published", "curated", "approved", "review_state", "state", "verified", "verified_buyer"],
+    media:     ["pics", "picture_urls", "pic_urls", "images", "image_urls", "photos", "photo_urls", "videos", "video_urls", "media_urls", "media", "attachments", "photourls", "videourls"],
+  };
+
+  const pickField = (row, field) => {
+    for (const key of FIELD_ALIASES[field]) {
+      if (row[key]) return row[key];
+    }
+    return "";
+  };
+
+  const TRUTHY_STATUS = new Set(["true", "1", "yes", "approved", "published", "verified"]);
+
+  // Media columns often hold multiple URLs separated by commas/semicolons/pipes.
+  // We import the first one — good enough for a "does this review have media"
+  // signal without needing to model multiple attachments per review yet.
+  const parseMedia = (raw) => {
+    if (!raw) return null;
+    const parts = raw.split(/[,;|]+/).map((s) => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+    const url = parts.find((p) => /^https?:\/\//i.test(p));
+    if (!url) return null;
+    const clean = url.split("?")[0];
+    const ext = (clean.split(".").pop() || "").toLowerCase();
+    const isVideo = ["mp4", "mov", "webm", "m4v", "avi"].includes(ext);
+    const mediaType = isVideo
+      ? `video/${ext === "mov" ? "quicktime" : ext}`
+      : `image/${ext === "jpg" ? "jpeg" : (ext || "jpeg")}`;
+    let fileName;
+    try { fileName = decodeURIComponent(clean.split("/").pop()); } catch { fileName = clean.split("/").pop(); }
+    return { mediaUrl: url, mediaType, fileName: fileName || null };
+  };
+
+  // Cosmetic only — picks which badge to show in the UI. Import itself never
+  // depends on this; normalizeRow() below works the same regardless of label.
   const detectFormat = (headers) => {
-    if (headers.includes("reviewer_name") && headers.includes("product_id")) return "judgeme";
-    if (headers.includes("author") && (headers.includes("product_id") || headers.includes("productid"))) return "zeppo";
-    if (headers.includes("customer") && (headers.includes("productid") || headers.includes("product_id"))) return "native";
+    const set = new Set(headers);
+    if (set.has("curated") && (set.has("reviewer_name") || set.has("reviewer_email"))) return "judgeme";
+    if (set.has("verified_buyer")) return "loox";
+    if (set.has("review_score") || set.has("user_display_name")) return "yotpo";
+    if (set.has("author") && (set.has("photourls") || set.has("videourls"))) return "stamped";
+    if (set.has("author") && (set.has("product_id") || set.has("productid"))) return "zeppo";
+    if (set.has("customer") && (set.has("productid") || set.has("product_id"))) return "native";
+    if (FIELD_ALIASES.productId.some((a) => set.has(a))) return "generic";
     return "unknown";
   };
 
-  const normalizeRow = (row, format) => {
-    if (format === "judgeme") return {
-      customer:  row["reviewer_name"]  || "Unknown",
-      email:     row["reviewer_email"] || "",
-      productId: row["product_id"]     || "",
-      rating:    row["rating"]         || "5",
-      comment:   row["body"]           || row["title"] || "",
-      status:    row["curated"] === "true" ? "approved" : "pending",
-    };
-    if (format === "zeppo") return {
-      customer:  row["author"]     || row["reviewer_name"] || "Unknown",
-      email:     row["email"]      || row["reviewer_email"] || "",
-      productId: row["product_id"] || row["productid"]     || "",
-      rating:    row["rating"]     || row["score"]          || "5",
-      comment:   row["body"]       || row["content"]        || row["message"] || "",
-      status:    row["published"] === "true" || row["status"] === "approved" ? "approved" : "pending",
-    };
+  // A CSV is importable as long as we can locate a product reference and
+  // some kind of review text — everything else (name, email, rating, status,
+  // media) has a sane fallback.
+  const isImportable = (headers) => {
+    const set = new Set(headers);
+    const hasProduct = FIELD_ALIASES.productId.some((a) => set.has(a));
+    const hasText = [...FIELD_ALIASES.comment, ...FIELD_ALIASES.title].some((a) => set.has(a));
+    return hasProduct && hasText;
+  };
+
+  const normalizeRow = (row) => {
+    const media = parseMedia(pickField(row, "media"));
     return {
-      customer:  row["customer"]  || "Unknown",
-      email:     row["email"]     || "",
-      productId: row["productid"] || row["product_id"] || "",
-      rating:    row["rating"]    || "5",
-      comment:   row["comment"]   || "",
-      status:    row["status"]    || "pending",
+      customer:  pickField(row, "customer") || "Unknown",
+      email:     pickField(row, "email"),
+      productId: pickField(row, "productId"),
+      rating:    pickField(row, "rating") || "5",
+      title:     pickField(row, "title"),
+      comment:   pickField(row, "comment") || pickField(row, "title") || "",
+      status:    TRUTHY_STATUS.has(String(pickField(row, "status")).toLowerCase()) ? "approved" : "pending",
+      mediaUrl:  media?.mediaUrl  || "",
+      mediaType: media?.mediaType || "",
+      fileName:  media?.fileName  || "",
     };
   };
 
@@ -656,13 +1200,13 @@ function ImportModal({ onClose, onImport, t }) {
     reader.onload = (ev) => {
       try {
         const { headers, rows } = parseCSV(ev.target.result);
-        const format = detectFormat(headers);
-        if (format === "unknown") {
-          setError("Could not recognise the CSV format. Supported: Judge.me, Zeppo/Okendo/Stamped, or native export.");
+        if (!isImportable(headers)) {
+          setError("Could not find a product and review-text column in this CSV. Make sure the export includes a product ID/SKU and a review body/content column.");
           setPreview([]); setDetected(""); setTotalRows(0);
           return;
         }
-        const normalized = rows.map((r) => normalizeRow(r, format));
+        const format = detectFormat(headers);
+        const normalized = rows.map(normalizeRow);
         setDetected(format); setTotalRows(normalized.length);
         setPreview(normalized.slice(0, 3)); setError("");
       } catch { setError("Failed to parse CSV."); }
@@ -675,9 +1219,8 @@ function ImportModal({ onClose, onImport, t }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const { headers, rows } = parseCSV(ev.target.result);
-      const format = detectFormat(headers);
-      const normalized = rows.map((r) => normalizeRow(r, format));
+      const { rows } = parseCSV(ev.target.result);
+      const normalized = rows.map(normalizeRow);
       onImport(normalized);
       onClose();
     };
@@ -685,9 +1228,13 @@ function ImportModal({ onClose, onImport, t }) {
   };
 
   const FORMAT_META = {
-    judgeme: { icon: "⚖️", label: "Judge.me",               color: "#7c3aed", bg: "#ede9fe" },
-    zeppo:   { icon: "⚡", label: "Zeppo / Okendo / Stamped", color: "#0369a1", bg: "#e0f2fe" },
-    native:  { icon: "🏠", label: "Native Export",            color: "#16a34a", bg: "#dcfce7" },
+    judgeme: { icon: "⚖️", label: "Judge.me",            color: "#7c3aed", bg: "#ede9fe" },
+    loox:    { icon: "📸", label: "Loox",                 color: "#be185d", bg: "#fce7f3" },
+    yotpo:   { icon: "🟦", label: "Yotpo",                color: "#1d4ed8", bg: "#dbeafe" },
+    stamped: { icon: "🟧", label: "Stamped",              color: "#c2410c", bg: "#ffedd5" },
+    zeppo:   { icon: "⚡", label: "Zeppo / Okendo",        color: "#0369a1", bg: "#e0f2fe" },
+    native:  { icon: "🏠", label: "Native Export",         color: "#16a34a", bg: "#dcfce7" },
+    generic: { icon: "📄", label: "Generic CSV",          color: "#475569", bg: "#f1f5f9" },
   };
 
   const fmt = FORMAT_META[detected];
@@ -730,7 +1277,7 @@ function ImportModal({ onClose, onImport, t }) {
           <span style={{ fontSize: 13, color: C.accent, fontWeight: 600 }}>
             {detected ? t.changeFile : t.chooseFile}
           </span>
-          <span style={{ fontSize: 11, color: C.muted }}>Judge.me · Zeppo/Okendo/Stamped · Native export</span>
+          <span style={{ fontSize: 11, color: C.muted }}>Judge.me · Loox · Yotpo · Stamped · Okendo · Ali Reviews · any CSV with a product + review column</span>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={handleFile} />
         </label>
 
@@ -792,6 +1339,18 @@ function ImportModal({ onClose, onImport, t }) {
                     {row.comment.length > 100 ? row.comment.slice(0, 100) + "…" : row.comment}
                   </div>
                 )}
+                {row.mediaUrl && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, paddingLeft: 34 }}>
+                    {row.mediaType.startsWith("video/") ? (
+                      <video src={row.mediaUrl} style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover" }} />
+                    ) : (
+                      <img src={row.mediaUrl} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover" }} />
+                    )}
+                    <span style={{ fontSize: 10.5, color: C.muted }}>
+                      {row.mediaType.startsWith("video/") ? "🎬 video attached" : "🖼 image attached"}
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -819,59 +1378,203 @@ function ImportModal({ onClose, onImport, t }) {
 /* ─────────────────────────────────────────
    REVIEW ROW
 ───────────────────────────────────────── */
-function ReviewRow({ review, onAction, t }) {
+function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
   const ss = statusStyle(review.status);
+  const [replying, setReplying]   = useState(false);
+  const [replyDraft, setReplyDraft] = useState(review.reply || "");
+  const [tagDraft, setTagDraft]   = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [sentiment, setSentiment] = useState(review.sentiment || null);
+  const tags = (review.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
+
+  const saveReply = () => {
+    onAction("reply", review, { reply: replyDraft });
+    setReplying(false);
+  };
+
+  const addTag = (e) => {
+    if (e.key !== "Enter" || !tagDraft.trim()) return;
+    e.preventDefault();
+    onAction("tag", review, { tags: [...tags, tagDraft.trim()].join(",") });
+    setTagDraft("");
+  };
+
+  const removeTag = (tag) => {
+    onAction("tag", review, { tags: tags.filter((x) => x !== tag).join(",") || null });
+  };
+
+  const analyzeSentiment = async () => {
+    setAnalyzing(true);
+    try {
+      const res  = await fetch("/api/sentiment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: review.id }),
+      });
+      const data = await res.json();
+      if (data.success) setSentiment(data.sentiment);
+      else alert(data.message || "Could not analyze sentiment.");
+    } catch {
+      alert("Could not analyze sentiment.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   return (
-    <tr
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#f8f9fc")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-      style={{ transition: "background .12s" }}
-    >
-      <td style={TD}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: "50%", background: C.accentLt,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 800, fontSize: 13, color: C.accent, flexShrink: 0,
-          }}>{(review.customer || "?")[0].toUpperCase()}</div>
-          <span style={{ fontWeight: 600, fontSize: 13 }}>{review.customer}</span>
-        </div>
-      </td>
-      <td style={TD}><div style={{ display: "flex" }}>{stars(review.rating)}</div></td>
-      <td style={TD}>
-        <input
-          type="text"
-          defaultValue={review.comment}
-          style={{
-            border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 10px",
-            fontSize: 13, color: C.text, background: "#f9fafb",
-            fontFamily: "inherit", outline: "none", width: "100%", minWidth: 140,
-          }}
-          onFocus={(e) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentLt}`; }}
-          onBlur={(e)  => { e.target.style.borderColor = C.border;  e.target.style.boxShadow = "none"; onAction("edit", review, e.target.value); }}
-        />
-      </td>
-      <td style={TD}>
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 5,
-          background: ss.bg, color: ss.color, borderRadius: 20, padding: "3px 11px",
-          fontSize: 12, fontWeight: 600,
-        }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: ss.dot }} />
-          {t[review.status] || review.status}
-        </span>
-      </td>
-      <td style={{ ...TD, color: C.muted, fontSize: 12, whiteSpace: "nowrap" }}>
-        {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-      </td>
-      <td style={TD}>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => onAction("approve", review)} style={ABT("approve")}>✓ {t.approve}</button>
-          <button onClick={() => onAction("reject",  review)} style={ABT("reject")}>✕ {t.reject}</button>
-          <button onClick={() => onAction("delete",  review)} style={ABT("delete")} title="Delete">🗑</button>
-        </div>
-      </td>
-    </tr>
+    <>
+      <tr
+        onMouseEnter={(e) => (e.currentTarget.style.background = "#f8f9fc")}
+        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        style={{ transition: "background .12s" }}
+      >
+        <td style={{ ...TD, width: 30 }}>
+          <input type="checkbox" checked={selected} onChange={() => onToggleSelect(review.id)} />
+        </td>
+        <td style={TD}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%", background: C.accentLt,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: 800, fontSize: 13, color: C.accent, flexShrink: 0,
+            }}>{(review.customer || "?")[0].toUpperCase()}</div>
+            <div>
+              <span style={{ fontWeight: 600, fontSize: 13, display: "block" }}>{review.customer}</span>
+              <span style={{ fontSize: 10.5, color: C.muted }}>
+                {review.source === "imported" ? "via Imported" : "via Storefront"}
+              </span>
+            </div>
+          </div>
+        </td>
+        <td style={TD}>
+          <div style={{ display: "flex" }}>{stars(review.rating)}</div>
+          {sentiment ? (
+            <button onClick={analyzeSentiment} disabled={analyzing} title="Re-analyze sentiment" style={{
+              border: "none", background: "none", cursor: analyzing ? "default" : "pointer",
+              fontSize: 11, marginTop: 4, padding: 0, color: C.muted,
+            }}>
+              {SENTIMENT_META[sentiment]?.icon} {SENTIMENT_META[sentiment]?.label}
+            </button>
+          ) : (
+            <button onClick={analyzeSentiment} disabled={analyzing} style={{
+              border: `1px dashed ${C.border}`, background: "none", cursor: analyzing ? "default" : "pointer",
+              fontSize: 10.5, marginTop: 4, padding: "2px 6px", borderRadius: 6, color: C.muted,
+            }}>
+              {analyzing ? "Analyzing…" : "✨ Analyze"}
+            </button>
+          )}
+        </td>
+        <td style={TD}>
+          {review.mediaUrl ? (
+            <a href={review.mediaUrl} target="_blank" rel="noreferrer" title={review.fileName || "View attachment"}>
+              {review.mediaType?.startsWith("video/") ? (
+                <video src={review.mediaUrl} style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", display: "block" }} />
+              ) : (
+                <img src={review.mediaUrl} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", display: "block" }} />
+              )}
+            </a>
+          ) : (
+            <span style={{ color: C.muted }}>—</span>
+          )}
+        </td>
+        <td style={TD}>
+          <input
+            type="text"
+            defaultValue={review.comment}
+            style={{
+              border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 10px",
+              fontSize: 13, color: C.text, background: "#f9fafb",
+              fontFamily: "inherit", outline: "none", width: "100%", minWidth: 140,
+            }}
+            onFocus={(e) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentLt}`; }}
+            onBlur={(e)  => { e.target.style.borderColor = C.border;  e.target.style.boxShadow = "none"; onAction("edit", review, { comment: e.target.value }); }}
+          />
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6, alignItems: "center" }}>
+            {tags.map((tag) => (
+              <span key={tag} style={{
+                fontSize: 10.5, background: "#eef2ff", color: "#4338ca", borderRadius: 12, padding: "2px 8px",
+                display: "inline-flex", alignItems: "center", gap: 4,
+              }}>
+                {tag}
+                <span onClick={() => removeTag(tag)} style={{ cursor: "pointer", fontWeight: 700 }}>×</span>
+              </span>
+            ))}
+            <input
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              onKeyDown={addTag}
+              placeholder="+ tag"
+              style={{
+                border: `1px dashed ${C.border}`, borderRadius: 12, padding: "2px 8px",
+                fontSize: 10.5, width: 60, outline: "none", background: "transparent",
+              }}
+            />
+          </div>
+          {review.reply && !replying && (
+            <div style={{ marginTop: 6, fontSize: 11.5, color: C.muted, background: "#f9fafb", borderRadius: 6, padding: "5px 8px" }}>
+              💬 <strong>Your reply:</strong> {review.reply}
+            </div>
+          )}
+        </td>
+        <td style={TD}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            background: ss.bg, color: ss.color, borderRadius: 20, padding: "3px 11px",
+            fontSize: 12, fontWeight: 600,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: ss.dot }} />
+            {t[review.status] || review.status}
+          </span>
+          {review.status === "rejected" && review.hideReason && (
+            <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>
+              {HIDE_REASONS.find((r) => r.value === review.hideReason)?.label || review.hideReason}
+            </div>
+          )}
+        </td>
+        <td style={{ ...TD, color: C.muted, fontSize: 12, whiteSpace: "nowrap" }}>
+          {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+        </td>
+        <td style={TD}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button onClick={() => onAction("approve", review)} style={ABT("approve")}>✓ {t.approve}</button>
+            <select
+              defaultValue=""
+              onChange={(e) => onAction("reject", review, { hideReason: e.target.value || null })}
+              style={{ ...ABT("reject"), padding: "5px 6px" }}
+              title="Reject / hide with reason"
+            >
+              <option value="">✕ {t.reject}</option>
+              {HIDE_REASONS.map((r) => (
+                <option key={r.value} value={r.value}>Hide: {r.label}</option>
+              ))}
+            </select>
+            <button onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>💬 Reply</button>
+            <button onClick={() => onAction("delete", review)} style={ABT("delete")} title="Delete">🗑</button>
+          </div>
+        </td>
+      </tr>
+      {replying && (
+        <tr>
+          <td colSpan={8} style={{ padding: "0 16px 14px", borderTop: "none" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", background: "#f9fafb", borderRadius: 8, padding: 10 }}>
+              <textarea
+                value={replyDraft}
+                onChange={(e) => setReplyDraft(e.target.value)}
+                placeholder="Write a public reply to this review…"
+                style={{
+                  flex: 1, minHeight: 60, border: `1px solid ${C.border}`, borderRadius: 8,
+                  padding: "8px 10px", fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical",
+                }}
+              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <button onClick={saveReply} style={{ ...ABT("approve"), whiteSpace: "nowrap" }}>Save</button>
+                <button onClick={() => setReplying(false)} style={{ ...ABT("neutral"), whiteSpace: "nowrap" }}>Cancel</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -891,7 +1594,7 @@ const ABT = (v) => ({
 /* ─────────────────────────────────────────
    PRODUCT GROUP
 ───────────────────────────────────────── */
-function ProductGroup({ group, onAction, t }) {
+function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect }) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -930,8 +1633,8 @@ function ProductGroup({ group, onAction, t }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              {[t.customer, t.rating, t.comment, t.status, t.date, t.actions].map((h) => (
-                <th key={h} style={{
+              {["", t.customer, t.rating, "🖼", t.comment, t.status, t.date, t.actions].map((h, i) => (
+                <th key={i} style={{
                   textAlign: "left", fontSize: 10, fontWeight: 700, color: C.muted,
                   letterSpacing: ".07em", textTransform: "uppercase",
                   padding: "9px 16px", background: "#f8f9fc",
@@ -941,7 +1644,10 @@ function ProductGroup({ group, onAction, t }) {
           </thead>
           <tbody>
             {group.reviews.map((r) => (
-              <ReviewRow key={r.id} review={r} onAction={onAction} t={t} />
+              <ReviewRow
+                key={r.id} review={r} onAction={onAction} t={t}
+                selected={selectedIds.includes(r.id)} onToggleSelect={onToggleSelect}
+              />
             ))}
           </tbody>
         </table>
@@ -957,13 +1663,14 @@ export default function ReviewsPage() {
   const {
     shopLocale, grouped, total, page, limit,
     allCount, approvedCount, pendingCount, rejectedCount,
-    tab, search,
+    tab, search, autoPublish,
   } = useLoaderData();
 
   const submit = useSubmit();
   const [, setSearchParams] = useSearchParams();
   const [showImport, setShowImport] = useState(false);
   const [searchVal,  setSearchVal]  = useState(search);
+  const [selectedIds, setSelectedIds] = useState([]);
   const lang = shopLocale || "en"; // ← persisted store language, switcher lives in Settings
 
   const [installing, setInstalling]     = useState(false);
@@ -971,14 +1678,42 @@ export default function ReviewsPage() {
   const [installOk,  setInstallOk]      = useState(null);
   const [showInstallDocs, setShowInstallDocs] = useState(false);
 
-  const t = TRANSLATIONS[lang]; // current language strings
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en; // current language strings
   const totalPages = Math.ceil(total / limit);
 
-  const handleAction = (actionType, review, comment = null) => {
+  const handleAction = (actionType, review, extra = {}) => {
     const fd = new FormData();
     fd.append("actionType", actionType);
     fd.append("id", review.id);
-    if (comment !== null) fd.append("comment", comment);
+    for (const [key, value] of Object.entries(extra)) {
+      if (value !== null && value !== undefined) fd.append(key, value);
+    }
+    submit(fd, { method: "post" });
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const allVisibleIds = grouped.flatMap((g) => g.reviews.map((r) => r.id));
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => prev.length === allVisibleIds.length ? [] : allVisibleIds);
+  };
+
+  const handleBulkAction = (bulkAction) => {
+    if (!selectedIds.length) return;
+    const fd = new FormData();
+    fd.append("actionType", "bulk");
+    fd.append("bulkAction", bulkAction);
+    fd.append("ids", JSON.stringify(selectedIds));
+    submit(fd, { method: "post" });
+    setSelectedIds([]);
+  };
+
+  const handleToggleAutoPublish = () => {
+    const fd = new FormData();
+    fd.append("actionType", "toggleAutoPublish");
+    fd.append("autoPublish", String(!autoPublish));
     submit(fd, { method: "post" });
   };
 
@@ -1080,11 +1815,38 @@ export default function ReviewsPage() {
             </span>
           )}
 
+          <button
+            onClick={handleToggleAutoPublish}
+            title="When on, new reviews skip moderation and go live immediately"
+            style={{
+              border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 14px",
+              fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
+              color: C.text, display: "flex", alignItems: "center", gap: 8,
+            }}
+          >
+            <span style={{
+              width: 30, height: 17, borderRadius: 20, position: "relative",
+              background: autoPublish ? C.accent : "#d1d5db", transition: "background .15s", flexShrink: 0,
+            }}>
+              <span style={{
+                position: "absolute", top: 2, left: autoPublish ? 15 : 2, width: 13, height: 13,
+                borderRadius: "50%", background: "#fff", transition: "left .15s",
+              }} />
+            </span>
+            Auto-publish: {autoPublish ? "On" : "Off"}
+          </button>
+
           <button onClick={() => setShowImport(true)} style={{
             border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
             fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
             color: C.text, display: "flex", alignItems: "center", gap: 7,
           }}>📥 {t.import}</button>
+
+          <Link to="/app/review-groups" style={{
+            border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
+            fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
+            color: C.text, display: "flex", alignItems: "center", gap: 7, textDecoration: "none",
+          }}>🔗 Review groups</Link>
 
           <button onClick={exportCSV} style={{
             border: "none", borderRadius: 10, padding: "9px 18px",
@@ -1157,6 +1919,27 @@ export default function ReviewsPage() {
         </form>
       </div>
 
+      {/* ── Bulk Selection Bar ── */}
+      {grouped.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, fontSize: 12.5, color: C.muted }}>
+          {selectedIds.length > 0 ? (
+            <>
+              <span style={{ fontWeight: 700, color: C.text }}>{selectedIds.length} selected</span>
+              <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve selected</button>
+              <button onClick={() => handleBulkAction("reject")} style={ABT("reject")}>✕ Reject selected</button>
+              <button onClick={() => handleBulkAction("delete")} style={ABT("delete")}>🗑 Delete selected</button>
+              <button onClick={() => setSelectedIds([])} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12.5, textDecoration: "underline" }}>
+                Clear
+              </button>
+            </>
+          ) : (
+            <button onClick={toggleSelectAll} style={{ border: "none", background: "none", color: C.accent, cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}>
+              Select all {allVisibleIds.length} visible
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Groups ── */}
       {grouped.length === 0 ? (
         <div style={{
@@ -1167,7 +1950,12 @@ export default function ReviewsPage() {
           {t.noReviews}
         </div>
       ) : (
-        grouped.map((g) => <ProductGroup key={g.productId} group={g} onAction={handleAction} t={t} />)
+        grouped.map((g) => (
+          <ProductGroup
+            key={g.productId} group={g} onAction={handleAction} t={t}
+            selectedIds={selectedIds} onToggleSelect={toggleSelect}
+          />
+        ))
       )}
 
       {/* ── Pagination ── */}

@@ -64,6 +64,15 @@ const WIDGETS = [
     icon: "✎",
   },
   {
+    key: "review_list",
+    title: "Review List Design",
+    description: "Pick a layout for your review list, style the cards, and set how many reviews show per page.",
+    href: "/app/widgets/review-list",
+    blockHandle: "review",
+    bg: "linear-gradient(135deg,#fde8e8,#f7c2c2)",
+    icon: "📋",
+  },
+  {
     key: "cards_carousel",
     title: "Cards Carousel",
     description: "Bring your best reviews to life in an eye-catching carousel.",

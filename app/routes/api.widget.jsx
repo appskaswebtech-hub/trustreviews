@@ -1,21 +1,21 @@
 import prisma from "../db.server";
 
 const REVIEW_WORDS = {
-  en: { review: "review", reviews: "reviews" },
-  hi: { review: "रिव्यू", reviews: "रिव्यू" },
-  es: { review: "reseña", reviews: "reseñas" },
-  fr: { review: "avis", reviews: "avis" },
-  de: { review: "Bewertung", reviews: "Bewertungen" },
-  it: { review: "recensione", reviews: "recensioni" },
-  pt: { review: "avaliação", reviews: "avaliações" },
-  nl: { review: "review", reviews: "reviews" },
-  ar: { review: "تقييم", reviews: "تقييمات" },
-  zh: { review: "条评论", reviews: "条评论" },
-  ja: { review: "レビュー", reviews: "レビュー" },
-  ru: { review: "отзыв", reviews: "отзывов" },
-  tr: { review: "değerlendirme", reviews: "değerlendirme" },
-  pl: { review: "opinia", reviews: "opinii" },
-  ko: { review: "리뷰", reviews: "리뷰" },
+  en: { review: "review", reviews: "reviews", starsFrom: "Stars From" },
+  hi: { review: "रिव्यू", reviews: "रिव्यू", starsFrom: "स्टार आधारित" },
+  es: { review: "reseña", reviews: "reseñas", starsFrom: "Estrellas Basado en" },
+  fr: { review: "avis", reviews: "avis", starsFrom: "Étoiles Basé sur" },
+  de: { review: "Bewertung", reviews: "Bewertungen", starsFrom: "Sterne Basierend auf" },
+  it: { review: "recensione", reviews: "recensioni", starsFrom: "Stelle Basato su" },
+  pt: { review: "avaliação", reviews: "avaliações", starsFrom: "Estrelas Baseado em" },
+  nl: { review: "review", reviews: "reviews", starsFrom: "Sterren Gebaseerd op" },
+  ar: { review: "تقييم", reviews: "تقييمات", starsFrom: "نجوم بناءً على" },
+  zh: { review: "条评论", reviews: "条评论", starsFrom: "星 基于" },
+  ja: { review: "レビュー", reviews: "レビュー", starsFrom: "つ星 に基づく" },
+  ru: { review: "отзыв", reviews: "отзывов", starsFrom: "Звёзд На основе" },
+  tr: { review: "değerlendirme", reviews: "değerlendirme", starsFrom: "Yıldız Şuna dayanarak" },
+  pl: { review: "opinia", reviews: "opinii", starsFrom: "Gwiazdek Na podstawie" },
+  ko: { review: "리뷰", reviews: "리뷰", starsFrom: "별점 기준" },
 };
 
 export async function loader({ request }) {
@@ -39,6 +39,7 @@ export async function loader({ request }) {
     borderRadius:   settings?.borderRadius  ?? 4,
     background:     settings?.background    ?? "#FFFFFF",
     widgetStyle:    settings?.widgetStyle   ?? "compact",
+    secondaryStat:  settings?.secondaryStat ?? "",
     // Full word table baked in (not just one language) so the widget can pick
     // the right words from the storefront's current language at render time,
     // even though this script is generated once per request.
@@ -125,6 +126,22 @@ export async function loader({ request }) {
           stars(avg) +
           '<span class="trust-avg-count" style="font-size:' + CFG.countFontSize + 'px;color:' + CFG.countColor + ';margin-left:3px;">' +
             avg.toFixed(1) + ' (' + count + ')' +
+          '</span>' +
+        '</span>'
+      );
+    },
+
+    /* ★★★★★ 4.8 Stars From 4,225 Reviews | 1.5M+ Servings */
+    text: function(avg, count, words) {
+      var secondary = CFG.secondaryStat
+        ? '<span style="color:' + CFG.countColor + ';font-weight:500;"> | ' + CFG.secondaryStat + '</span>'
+        : '';
+      return (
+        '<span class="trust-main" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+          stars(avg) +
+          '<span style="font-size:' + (CFG.countFontSize + 2) + 'px;font-weight:700;color:#111827;">' +
+            avg.toFixed(1) + ' ' + words.starsFrom + ' ' + count.toLocaleString() + ' ' + (count === 1 ? words.review : words.reviews) +
+            secondary +
           '</span>' +
         '</span>'
       );

@@ -4,7 +4,7 @@ import { useLoaderData, useSubmit } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import WidgetCustomizeShell, {
-  InstallSection, ColorField, SelectField, RangeField,
+  InstallSection, ColorField, SelectField, RangeField, ToggleField,
 } from "../components/WidgetCustomizeShell";
 import WriteReviewPreview from "../components/WriteReviewPreview";
 
@@ -16,7 +16,7 @@ export async function loader({ request }) {
   return data({
     settings: settings || {
       accentColor: "#1a1a1a", fontFamily: "inherit", backgroundColor: "#FFFFFF",
-      borderRadius: 3, buttonTextColor: "#FFFFFF",
+      borderRadius: 3, buttonTextColor: "#FFFFFF", showWriteReview: true,
     },
     apiKey: process.env.SHOPIFY_API_KEY || "",
     shop: session.shop,
@@ -33,6 +33,7 @@ export async function action({ request }) {
     backgroundColor: form.get("backgroundColor") || "#FFFFFF",
     borderRadius:    parseInt(form.get("borderRadius")) || 3,
     buttonTextColor: form.get("buttonTextColor") || "#FFFFFF",
+    showWriteReview: form.get("showWriteReview") === "true",
   };
 
   await db.reviewFormSettings.upsert({
@@ -63,6 +64,7 @@ export default function WriteReviewCustomizePage() {
   const [backgroundColor, setBackgroundColor] = useState(settings.backgroundColor);
   const [borderRadius, setBorderRadius]       = useState(settings.borderRadius);
   const [buttonTextColor, setButtonTextColor] = useState(settings.buttonTextColor);
+  const [showWriteReview, setShowWriteReview] = useState(settings.showWriteReview ?? true);
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
@@ -72,6 +74,7 @@ export default function WriteReviewCustomizePage() {
     fd.set("backgroundColor", backgroundColor);
     fd.set("borderRadius", String(borderRadius));
     fd.set("buttonTextColor", buttonTextColor);
+    fd.set("showWriteReview", String(showWriteReview));
     submit(fd, { method: "post" });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -94,6 +97,17 @@ export default function WriteReviewCustomizePage() {
       }
       sections={[
         {
+          key: "visibility", label: "Visibility",
+          content: (
+            <ToggleField
+              label='Show "Write a Review" button & form on storefront'
+              checked={showWriteReview}
+              onChange={setShowWriteReview}
+              helpText="Turning this off hides the button and form on your storefront — it doesn't remove the block, so re-enabling brings it straight back. The star rating summary and review list stay visible either way."
+            />
+          ),
+        },
+        {
           key: "style", label: "Color and styling",
           content: (
             <>
@@ -106,7 +120,7 @@ export default function WriteReviewCustomizePage() {
           ),
         },
       ]}
-      preview={<WriteReviewPreview settings={{ accentColor, fontFamily, backgroundColor, borderRadius, buttonTextColor }} />}
+      preview={<WriteReviewPreview settings={{ accentColor, fontFamily, backgroundColor, borderRadius, buttonTextColor, showWriteReview }} />}
     />
   );
 }

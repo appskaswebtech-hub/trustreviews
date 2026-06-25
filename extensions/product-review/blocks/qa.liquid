@@ -82,7 +82,7 @@
     if(!questions.length){ list.innerHTML = ""; empty.style.display = "block"; return; }
     empty.style.display = "none";
     list.innerHTML = questions.map(function(q){
-      const date = q.answeredAt ? new Date(q.answeredAt).toLocaleDateString() : "";
+      const date = q.answeredAt ? new Date(q.answeredAt).toLocaleDateString(storeLocale || undefined) : "";
       return (
         '<div class="trust-qa__item">' +
           '<p class="trust-qa__q">' + escapeHTML(q.question) + '</p>' +

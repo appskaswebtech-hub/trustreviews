@@ -1,52 +1,66 @@
-<div id="star-rating-block">
-  <span id="star-rating-stars" style="color:{{ block.settings.colour }};font-size:22px;"></span>
-  <span id="star-rating-score" style="font-size:14px; color:#555;"></span>
-</div>
+<span style="color:{{ block.settings.colour }}">
+  <span id="api-star-rating-{{ block.id }}">☆☆☆☆☆</span>
+</span>
+
+<span id="api-avg-rating-{{ block.id }}">0.0</span>/5
 
 <script>
-(function(){
-  const productId = {{ product.id | json }};
+  (function () {
+    const productId = "{{ block.settings.product.id | default: product.id }}";
+    const ratingEl = document.getElementById("api-star-rating-{{ block.id }}");
+    const avgEl = document.getElementById("api-avg-rating-{{ block.id }}");
 
-  function renderEmpty(){
-    let stars = '';
-    for(let i = 1; i <= 5; i++){
-      stars += '<span style="opacity:0.25">★</span>';
-    }
-    document.getElementById('star-rating-stars').innerHTML = stars;
-    document.getElementById('star-rating-score').textContent = '0.0 (0 reviews)';
-  }
+    if (!productId || !ratingEl || !avgEl) return;
 
-  renderEmpty();
+    async function loadAverageRating() {
+      try {
+        const res = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}`);
+        if (!res.ok) throw new Error("Unable to load rating");
 
-  fetch('/apps/review?productId=' + encodeURIComponent(productId))
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      const avg   = parseFloat(data.averageRating || 0);
-      const total = parseInt(data.total || 0);
+        const data = await res.json();
 
-      const rounded = Math.round(avg);
-      let stars = '';
-      for(let i = 1; i <= 5; i++){
-        stars += '<span style="opacity:' + (i <= rounded ? '1' : '0.25') + '">★</span>';
+        const total = Number(data.total || 0);
+        const avgValue = Number(data.averageRating || 0);
+        const roundedRating = Math.round(avgValue);
+
+        avgEl.innerText = total ? avgValue.toFixed(1) : "0.0";
+
+        let stars = "";
+        for (let i = 1; i <= 5; i++) {
+          stars += i <= roundedRating ? "★" : "☆";
+        }
+
+        ratingEl.innerText = stars;
+      } catch (error) {
+        console.error("Average rating error:", error);
       }
+    }
 
-      document.getElementById('star-rating-stars').innerHTML = stars;
-      document.getElementById('star-rating-score').textContent =
-        total ? avg.toFixed(1) + ' (' + total + ' reviews)' : '0.0 (0 reviews)';
-    })
-    .catch(function(e){
-      console.error('Star rating error:', e);
-      renderEmpty();
-    });
-})();
+    loadAverageRating();
+  })();
 </script>
 
 {% schema %}
 {
   "name": "Star Rating",
   "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
   "settings": [
-    { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "autofill": true
+    },
+    {
+      "type": "color",
+      "id": "colour",
+      "label": "Star Colour",
+      "default": "#ff0000"
+    }
   ]
 }
 {% endschema %}
+</content>

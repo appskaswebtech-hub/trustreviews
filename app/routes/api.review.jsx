@@ -57,17 +57,17 @@ async function ensureStoreAndProduct(shop, rawProductId) {
     where:  { shop },
     update: {},
     create: { shop },
-    select: { id: true },
+    select: { id: true, autoPublish: true },
   });
 
   const product = await prisma.product.upsert({
     where: { storeId_shopifyProductId: { storeId: store.id, shopifyProductId } },
     update: {},
     create: { storeId: store.id, shopifyProductId },
-    select: { id: true },
+    select: { id: true, groupId: true },
   });
 
-  return { storeId: store.id, productId: product.id };
+  return { storeId: store.id, productId: product.id, groupId: product.groupId, autoPublish: store.autoPublish };
 }
 
 // ── File upload ────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ export async function loader({ request }) {
     return Response.json({
       settings: formSettings || {
         accentColor: "#1a1a1a", fontFamily: "inherit", backgroundColor: "#FFFFFF",
-        borderRadius: 3, buttonTextColor: "#FFFFFF",
+        borderRadius: 3, buttonTextColor: "#FFFFFF", showWriteReview: true,
       },
       language: resolveLanguage(url.searchParams.get("locale"), langStore?.language),
     });
@@ -264,31 +264,53 @@ export async function loader({ request }) {
     return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
   }
 
-  const store = await prisma.store.findUnique({
-    where:  { shop },
-    select: { id: true, language: true },
-  });
+  const [store, listSettingsRow] = await Promise.all([
+    prisma.store.findUnique({ where: { shop }, select: { id: true, language: true } }),
+    prisma.reviewListSettings.findUnique({ where: { shop } }),
+  ]);
 
   const language = resolveLanguage(url.searchParams.get("locale"), store?.language);
   const reviewTranslations = REVIEW_TRANSLATIONS[language] || REVIEW_TRANSLATIONS.en;
+  const listSettings = listSettingsRow || {
+    listStyle: "list", cardBackground: "#FFFFFF", cardBorderColor: "#000000",
+    cardTextColor: "#333333", accentColor: "#1a1a1a", reviewsPerPage: 10,
+    showAllProducts: false,
+  };
 
   if (!store) {
     return Response.json({
       reviews: [], total: 0, averageRating: 0, page: 1, limit: 0, language,
-      translations: reviewTranslations,
+      translations: reviewTranslations, listSettings,
     });
   }
 
-  const product = await prisma.product.findUnique({
-    where: { storeId_shopifyProductId: { storeId: store.id, shopifyProductId: productId } },
-    select: { id: true },
-  });
+  const where = { storeId: store.id, status: "approved" };
 
-  if (!product) {
-    return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0, language, translations: reviewTranslations });
+  // showAllProducts pools reviews from every product in the store for this
+  // widget only — other widgets (star rating, AI summary, etc.) keep filtering
+  // by the current product as usual.
+  if (!listSettings.showAllProducts) {
+    const product = await prisma.product.findUnique({
+      where: { storeId_shopifyProductId: { storeId: store.id, shopifyProductId: productId } },
+      select: { id: true, groupId: true },
+    });
+
+    if (!product) {
+      return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0, language, translations: reviewTranslations, listSettings });
+    }
+
+    // Products grouped together (e.g. variants split into separate listings,
+    // or duplicate listings) pool each other's reviews.
+    if (product.groupId) {
+      const groupProducts = await prisma.product.findMany({
+        where: { groupId: product.groupId },
+        select: { id: true },
+      });
+      where.productId = { in: groupProducts.map((p) => p.id) };
+    } else {
+      where.productId = product.id;
+    }
   }
-
-  const where = { storeId: store.id, productId: product.id, status: "approved" };
 
   const widgetKey = url.searchParams.get("widgetKey");
   if (widgetKey) {
@@ -307,6 +329,7 @@ export async function loader({ request }) {
         id: true, rating: true, comment: true, customer: true,
         title: true, likes: true, createdAt: true,
         mediaUrl: true, mediaType: true, fileName: true,
+        reply: true, repliedAt: true, sentiment: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -322,6 +345,7 @@ export async function loader({ request }) {
     limit: reviews.length,
     language,
     translations: reviewTranslations,
+    listSettings,
   });
 }
 
@@ -398,6 +422,12 @@ export async function action({ request }) {
     return Response.json({ success: false, message: "Invalid review payload" }, { status: 400 });
   }
 
+  // Auto-publish (set in Settings) skips the pending queue for new storefront
+  // submissions; explicit data.status (not used by the live form today) still wins.
+  const status = data.status
+    ? normalizeStatus(data.status)
+    : (scopedProduct.autoPublish ? "approved" : "pending");
+
   const review = await prisma.review.create({
     data: {
       storeId:   scopedProduct.storeId,
@@ -407,7 +437,8 @@ export async function action({ request }) {
       title:     normalizeTitle(data.title),
       comment,
       customer:  normalizeCustomer(data.customer),
-      status:    normalizeStatus(data.status),
+      status,
+      source:    "storefront",
       mediaUrl:  data.mediaUrl  || null,
       mediaType: data.mediaType || null,
       fileName:  data.fileName  || null,

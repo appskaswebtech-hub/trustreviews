@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import WidgetCustomizeShell, {
-  InstallSection, ColorField, SelectField, RangeField, ToggleField, SHELL_C,
+  InstallSection, ColorField, SelectField, RangeField, ToggleField, TextFieldInput, SHELL_C,
 } from "../components/WidgetCustomizeShell";
 import { resolveLanguage } from "../utils/widgetTranslations.server";
 
@@ -30,6 +30,7 @@ export async function loader({ request }) {
     settings: settings || {
       starColor: "#F59E0B", starSize: 15, countColor: "#6B7280", countFontSize: 12,
       showEmpty: false, borderRadius: 4, background: "#FFFFFF", widgetStyle: "compact",
+      secondaryStat: "",
     },
   };
 }
@@ -55,6 +56,7 @@ export async function action({ request }) {
       countColor: body.countColor, countFontSize: Number(body.countFontSize),
       showEmpty: Boolean(body.showEmpty), borderRadius: Number(body.borderRadius),
       background: body.background, widgetStyle: body.widgetStyle,
+      secondaryStat: body.secondaryStat || "",
     },
     create: {
       shop: session.shop,
@@ -62,6 +64,7 @@ export async function action({ request }) {
       countColor: body.countColor || "#6B7280", countFontSize: Number(body.countFontSize) || 12,
       showEmpty: Boolean(body.showEmpty) || false, borderRadius: Number(body.borderRadius) || 4,
       background: body.background || "#FFFFFF", widgetStyle: body.widgetStyle || "compact",
+      secondaryStat: body.secondaryStat || "",
     },
   });
   return { success: true, settings };
@@ -74,10 +77,11 @@ const LANG_LABELS = {
   tr: "🇹🇷 Türkçe", pl: "🇵🇱 Polski", ko: "🇰🇷 한국어",
 };
 const STYLE_OPTIONS = [
-  { label: "Compact  (★★★★☆ 4.7 - 13 reviews)", value: "compact" },
-  { label: "Card  (★★★★☆ 4.7  (13 reviews))",   value: "card"    },
-  { label: "Pill  (★ 4.7 · 13 reviews)",         value: "pill"    },
-  { label: "Minimal  (★★★★☆ 4.7 (13))",          value: "minimal" },
+  { label: "Compact  (★★★★☆ 4.7 - 13 reviews)",              value: "compact" },
+  { label: "Card  (★★★★☆ 4.7  (13 reviews))",                value: "card"    },
+  { label: "Pill  (★ 4.7 · 13 reviews)",                      value: "pill"    },
+  { label: "Minimal  (★★★★☆ 4.7 (13))",                       value: "minimal" },
+  { label: "Text  (★★★★★ 4.8 Stars From 4,225 Reviews | ...)", value: "text"    },
 ];
 
 // ─── Star renderer ─────────────────────────────────────────────────────────────
@@ -123,6 +127,17 @@ function BadgePreview({ cfg, style, average = 4.7, count = 13 }) {
       </div>
     );
   }
+  if (style === "text") {
+    return (
+      <div style={{ ...shared, gap: 6, flexWrap: "wrap" }}>
+        <StarRow average={average} cfg={cfg} />
+        <span style={{ fontSize: cfg.countFontSize + 2, fontWeight: 700, color: "#111827" }}>
+          {average.toFixed(1)} Stars From {count.toLocaleString()} Reviews
+          {cfg.secondaryStat ? <span style={{ color: cfg.countColor, fontWeight: 500 }}> | {cfg.secondaryStat}</span> : null}
+        </span>
+      </div>
+    );
+  }
   return (
     <div style={{ ...shared, background: cfg.background, borderRadius: cfg.borderRadius, padding: "2px 6px" }}>
       <StarRow average={average} cfg={cfg} />
@@ -160,8 +175,9 @@ export default function WidgetSettingsPage() {
   const [background, setBackground]    = useState(settings.background);
   const [borderRadius, setBorderRadius] = useState(settings.borderRadius);
   const [showEmpty, setShowEmpty]       = useState(settings.showEmpty);
+  const [secondaryStat, setSecondaryStat] = useState(settings.secondaryStat || "");
 
-  const cfg = { starColor, starSize, countColor, countFontSize, background, borderRadius };
+  const cfg = { starColor, starSize, countColor, countFontSize, background, borderRadius, secondaryStat };
 
   const changeLanguage = (key) => {
     setLang(key);
@@ -171,6 +187,7 @@ export default function WidgetSettingsPage() {
   const handleSave = () => {
     fetcher.submit({
       widgetStyle, starColor, starSize, countColor, countFontSize, background, borderRadius, showEmpty,
+      secondaryStat,
     }, { method: "POST", encType: "application/json" });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -192,7 +209,12 @@ export default function WidgetSettingsPage() {
           key: "style", label: "Color and styling",
           content: (
             <>
-              <SelectField label="Display style" value={widgetStyle} onChange={setWidgetStyle} options={STYLE_OPTIONS} />
+              <SelectField label="Display style" value={widgetStyle} onChange={setWidgetStyle} options={STYLE_OPTIONS} helpText="Choose how the rating badge looks on product cards" />
+              <TextFieldInput
+                label="Secondary Stat (optional)" value={secondaryStat} onChange={setSecondaryStat}
+                placeholder="1.5M+ Servings"
+                helpText="Shown after a divider in the Text style, e.g. '1.5M+ Servings'. Leave empty to hide."
+              />
               <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
               <RangeField label="Star Size" value={starSize} onChange={setStarSize} min={10} max={30} unit="px" />
               <ColorField label="Background Color" value={background} onChange={setBackground} helpText="Used by card/compact styles" />
@@ -227,10 +249,10 @@ export default function WidgetSettingsPage() {
       preview={
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>
-            All 4 styles — yours is highlighted
+            All 5 styles — yours is highlighted
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
-            {["compact", "card", "pill", "minimal"].map((s) => (
+            {["compact", "card", "pill", "minimal", "text"].map((s) => (
               <div
                 key={s} onClick={() => setWidgetStyle(s)}
                 style={{

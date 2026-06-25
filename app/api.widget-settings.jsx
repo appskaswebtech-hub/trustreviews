@@ -20,6 +20,7 @@ export async function loader({ request }) {
       borderRadius:  4,
       background:    "#FFFFFF",
       widgetStyle:   "compact",   // ← NEW default
+      secondaryStat: "",
     }
   );
 }
@@ -40,6 +41,7 @@ export async function action({ request }) {
       borderRadius:  Number(body.borderRadius),
       background:    body.background,
       widgetStyle:   body.widgetStyle   || "compact",   // ← NEW
+      secondaryStat: body.secondaryStat || "",
     },
     create: {
       shop:          session.shop,
@@ -51,6 +53,7 @@ export async function action({ request }) {
       borderRadius:  Number(body.borderRadius)  || 4,
       background:    body.background    || "#FFFFFF",
       widgetStyle:   body.widgetStyle   || "compact",   // ← NEW
+      secondaryStat: body.secondaryStat || "",
     },
   });
 

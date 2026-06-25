@@ -34,27 +34,45 @@ model Session {
 }
 
 model Store {
-  id          Int          @id @default(autoincrement())
-  shop        String       @unique
-  language    String?
-  createdAt   DateTime     @default(now())
-  products    Product[]
-  reviews     Review[]
-  questions   Question[]
-  aiSummaries AiSummary[]
+  id           Int            @id @default(autoincrement())
+  shop         String         @unique
+  language     String?
+  autoPublish  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  products     Product[]
+  reviews      Review[]
+  questions    Question[]
+  aiSummaries  AiSummary[]
+  reviewGroups ProductGroup[]
 }
 
 model Product {
-  id               Int         @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
   storeId          Int
-  store            Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store            Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
   shopifyProductId String
-  createdAt        DateTime    @default(now())
+  groupId          Int?
+  group            ProductGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt        DateTime     @default(now())
   reviews          Review[]
   questions        Question[]
   aiSummaries      AiSummary[]
 
   @@unique([storeId, shopifyProductId])
+  @@index([groupId])
+}
+
+// Lets a merchant pool reviews from several products (variants, duplicate
+// listings, etc.) so they all display the combined set of reviews together.
+model ProductGroup {
+  id        Int       @id @default(autoincrement())
+  storeId   Int
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@index([storeId])
 }
 
 enum ReviewStatus {
@@ -64,24 +82,31 @@ enum ReviewStatus {
 }
 
 model Review {
-  id        Int          @id @default(autoincrement())
-  storeId   Int
-  productId Int
-  store     Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  email     String?
-  title     String?
-  rating    Int
-  comment   String
-  customer  String
-  likes     Int          @default(0)
-  status    ReviewStatus @default(pending)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  mediaUrl  String?
-  mediaType String?
-  fileName  String?
+  id          Int          @id @default(autoincrement())
+  storeId     Int
+  productId   Int
+  store       Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  email       String?
+  title       String?
+  rating      Int
+  comment     String
+  customer    String
+  likes       Int          @default(0)
+  status      ReviewStatus @default(pending)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  mediaUrl    String?
+  mediaType   String?
+  fileName    String?
 
+  reply       String?      @db.Text   // merchant's public reply to the review
+  repliedAt   DateTime?
+  hideReason  String?                 // set when status=rejected via the "hide with reason" flow
+  tags        String?                 // comma-separated free-form tags
+  source      String       @default("storefront") // "storefront" | "imported"
+  sentiment   String?                 // "positive" | "neutral" | "negative" — set by AI sentiment analysis
+  sentimentAt DateTime?
 
   @@index([storeId, status, createdAt])
   @@index([storeId, productId, status, createdAt])
@@ -139,6 +164,21 @@ model ReviewFormSettings {
   backgroundColor String   @default("#FFFFFF")
   borderRadius    Int      @default(3)
   buttonTextColor String   @default("#FFFFFF")
+  showWriteReview Boolean  @default(true) // hides (not removes) the button/form on the storefront when off
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ReviewListSettings {
+  id              String   @id @default(cuid())
+  shop            String   @unique
+  listStyle       String   @default("list")     // "list" | "grid" | "compact"
+  cardBackground  String   @default("#FFFFFF")
+  cardBorderColor String   @default("#000000")
+  cardTextColor   String   @default("#333333")
+  accentColor     String   @default("#1a1a1a")  // stars, avatar background, helpful check
+  reviewsPerPage  Int      @default(10)
+  showAllProducts Boolean  @default(false)       // show reviews from every product in the store, not just the current one
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -168,6 +208,7 @@ model WidgetSettings {
   borderRadius  Int      @default(4)
   background    String   @default("#FFFFFF")
   widgetStyle   String   @default("compact")   // ← NEW
+  secondaryStat String?                        // ← NEW — optional stat shown after a divider in the Text style
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

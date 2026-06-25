@@ -84,8 +84,9 @@ export async function loader({ request }) {
   function buildCard(review) {
     var initials = (review.customer || 'A').trim().split(' ')
       .map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase();
+    var cardLocale = document.documentElement.lang || 'en-IN';
     var date = review.createdAt
-      ? new Date(review.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+      ? new Date(review.createdAt).toLocaleDateString(cardLocale, { month: 'short', year: 'numeric' })
       : '';
     var comment = String(review.comment || '');
     var quote = comment

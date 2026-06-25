@@ -35,6 +35,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Clear search", noResults: "No reviews match your search.",
     helpful: "Helpful", share: "Share",
     requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
+    prev: "← Prev", next: "Next →", page: "Page", of: "of",
+    storeReplyLabel: "Store reply",
   },
   hi: {
     basedOn: "आधारित", reviewsWord: "समीक्षाएँ", writeReview: "रिव्यू लिखें", close: "बंद करें",
@@ -50,6 +52,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "खोज साफ़ करें", noResults: "वर्तमान खोज के लिए कोई समीक्षा नहीं मिली।",
     helpful: "उपयोगी", share: "शेयर करें",
     requiredFieldsAlert: "कृपया सभी आवश्यक फ़ील्ड भरें", reviewLinkCopiedAlert: "समीक्षा लिंक कॉपी हो गया!",
+    prev: "← पिछला", next: "अगला →", page: "पृष्ठ", of: "में से",
+    storeReplyLabel: "स्टोर का जवाब",
   },
   es: {
     basedOn: "Basado en", reviewsWord: "reseñas", writeReview: "Escribir una reseña", close: "Cerrar",
@@ -65,6 +69,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Borrar búsqueda", noResults: "No se encontraron reseñas para tu búsqueda.",
     helpful: "Útil", share: "Compartir",
     requiredFieldsAlert: "Por favor completa todos los campos obligatorios", reviewLinkCopiedAlert: "¡Enlace de la reseña copiado!",
+    prev: "← Anterior", next: "Siguiente →", page: "Página", of: "de",
+    storeReplyLabel: "Respuesta de la tienda",
   },
   fr: {
     basedOn: "Basé sur", reviewsWord: "avis", writeReview: "Écrire un avis", close: "Fermer",
@@ -80,6 +86,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Effacer la recherche", noResults: "Aucun avis ne correspond à votre recherche.",
     helpful: "Utile", share: "Partager",
     requiredFieldsAlert: "Veuillez remplir tous les champs obligatoires", reviewLinkCopiedAlert: "Lien de l'avis copié !",
+    prev: "← Précédent", next: "Suivant →", page: "Page", of: "sur",
+    storeReplyLabel: "Réponse du magasin",
   },
   de: {
     basedOn: "Basierend auf", reviewsWord: "Bewertungen", writeReview: "Bewertung schreiben", close: "Schließen",
@@ -95,6 +103,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Suche löschen", noResults: "Keine Bewertungen entsprechen Ihrer Suche.",
     helpful: "Hilfreich", share: "Teilen",
     requiredFieldsAlert: "Bitte füllen Sie alle Pflichtfelder aus", reviewLinkCopiedAlert: "Bewertungslink kopiert!",
+    prev: "← Zurück", next: "Weiter →", page: "Seite", of: "von",
+    storeReplyLabel: "Antwort des Shops",
   },
   it: {
     basedOn: "Basato su", reviewsWord: "recensioni", writeReview: "Scrivi una recensione", close: "Chiudi",
@@ -110,6 +120,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Cancella ricerca", noResults: "Nessuna recensione corrisponde alla tua ricerca.",
     helpful: "Utile", share: "Condividi",
     requiredFieldsAlert: "Si prega di compilare tutti i campi obbligatori", reviewLinkCopiedAlert: "Link della recensione copiato!",
+    prev: "← Precedente", next: "Successivo →", page: "Pagina", of: "di",
+    storeReplyLabel: "Risposta del negozio",
   },
   pt: {
     basedOn: "Baseado em", reviewsWord: "avaliações", writeReview: "Escrever uma avaliação", close: "Fechar",
@@ -125,6 +137,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Limpar pesquisa", noResults: "Nenhuma avaliação corresponde à sua pesquisa.",
     helpful: "Útil", share: "Compartilhar",
     requiredFieldsAlert: "Por favor, preencha todos os campos obrigatórios", reviewLinkCopiedAlert: "Link da avaliação copiado!",
+    prev: "← Anterior", next: "Próximo →", page: "Página", of: "de",
+    storeReplyLabel: "Resposta da loja",
   },
   nl: {
     basedOn: "Gebaseerd op", reviewsWord: "reviews", writeReview: "Schrijf een review", close: "Sluiten",
@@ -140,6 +154,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Zoekopdracht wissen", noResults: "Geen reviews komen overeen met uw zoekopdracht.",
     helpful: "Behulpzaam", share: "Delen",
     requiredFieldsAlert: "Vul alle verplichte velden in", reviewLinkCopiedAlert: "Reviewlink gekopieerd!",
+    prev: "← Vorige", next: "Volgende →", page: "Pagina", of: "van",
+    storeReplyLabel: "Antwoord van de winkel",
   },
   ar: {
     basedOn: "بناءً على", reviewsWord: "تقييمات", writeReview: "كتابة تقييم", close: "إغلاق",
@@ -155,6 +171,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "مسح البحث", noResults: "لا توجد تقييمات مطابقة لبحثك.",
     helpful: "مفيد", share: "مشاركة",
     requiredFieldsAlert: "يرجى تعبئة جميع الحقول المطلوبة", reviewLinkCopiedAlert: "تم نسخ رابط التقييم!",
+    prev: "← السابق", next: "التالي →", page: "صفحة", of: "من",
+    storeReplyLabel: "رد المتجر",
   },
   zh: {
     basedOn: "基于", reviewsWord: "条评论", writeReview: "撰写评论", close: "关闭",
@@ -170,6 +188,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "清除搜索", noResults: "没有符合您搜索条件的评论。",
     helpful: "有帮助", share: "分享",
     requiredFieldsAlert: "请填写所有必填字段", reviewLinkCopiedAlert: "评论链接已复制！",
+    prev: "← 上一页", next: "下一页 →", page: "第", of: "/ 共",
+    storeReplyLabel: "店铺回复",
   },
   ja: {
     basedOn: "に基づく", reviewsWord: "レビュー", writeReview: "レビューを書く", close: "閉じる",
@@ -185,6 +205,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "検索をクリア", noResults: "検索条件に一致するレビューはありません。",
     helpful: "参考になった", share: "共有",
     requiredFieldsAlert: "必須項目をすべて入力してください", reviewLinkCopiedAlert: "レビューのリンクをコピーしました！",
+    prev: "← 前へ", next: "次へ →", page: "ページ", of: "/ 全",
+    storeReplyLabel: "店舗からの回答",
   },
   ru: {
     basedOn: "На основе", reviewsWord: "отзывов", writeReview: "Написать отзыв", close: "Закрыть",
@@ -200,6 +222,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Очистить поиск", noResults: "Нет отзывов, соответствующих вашему запросу.",
     helpful: "Полезно", share: "Поделиться",
     requiredFieldsAlert: "Пожалуйста, заполните все обязательные поля", reviewLinkCopiedAlert: "Ссылка на отзыв скопирована!",
+    prev: "← Назад", next: "Далее →", page: "Страница", of: "из",
+    storeReplyLabel: "Ответ магазина",
   },
   tr: {
     basedOn: "Şuna dayanarak", reviewsWord: "değerlendirme", writeReview: "Değerlendirme yaz", close: "Kapat",
@@ -215,6 +239,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Aramayı temizle", noResults: "Aramanızla eşleşen değerlendirme yok.",
     helpful: "Yararlı", share: "Paylaş",
     requiredFieldsAlert: "Lütfen tüm gerekli alanları doldurun", reviewLinkCopiedAlert: "Değerlendirme bağlantısı kopyalandı!",
+    prev: "← Önceki", next: "Sonraki →", page: "Sayfa", of: "/",
+    storeReplyLabel: "Mağaza yanıtı",
   },
   pl: {
     basedOn: "Na podstawie", reviewsWord: "opinii", writeReview: "Napisz opinię", close: "Zamknij",
@@ -230,6 +256,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "Wyczyść wyszukiwanie", noResults: "Brak opinii zgodnych z wyszukiwaniem.",
     helpful: "Pomocne", share: "Udostępnij",
     requiredFieldsAlert: "Proszę wypełnić wszystkie wymagane pola", reviewLinkCopiedAlert: "Link do opinii skopiowany!",
+    prev: "← Wstecz", next: "Dalej →", page: "Strona", of: "z",
+    storeReplyLabel: "Odpowiedź sklepu",
   },
   ko: {
     basedOn: "기준", reviewsWord: "리뷰", writeReview: "리뷰 작성", close: "닫기",
@@ -245,6 +273,8 @@ export const REVIEW_TRANSLATIONS = {
     searchClearAria: "검색 지우기", noResults: "검색 결과와 일치하는 리뷰가 없습니다.",
     helpful: "도움됨", share: "공유",
     requiredFieldsAlert: "필수 항목을 모두 입력해 주세요", reviewLinkCopiedAlert: "리뷰 링크가 복사되었습니다!",
+    prev: "← 이전", next: "다음 →", page: "페이지", of: "/",
+    storeReplyLabel: "스토어 답변",
   },
 };
 
@@ -267,19 +297,19 @@ export const QA_TRANSLATIONS = {
 };
 
 export const SLIDER_TRANSLATIONS = {
-  en: { verified: 'Verified', noReviews: 'No reviews yet.', couldNotLoad: 'Could not load reviews.', review: 'review', reviews: 'reviews', readReviews: 'Read reviews', reviewsBtn: 'Reviews', close: 'Close', customerReviews: 'Customer Reviews', previous: 'Previous', next: 'Next' },
-  hi: { verified: 'सत्यापित', noReviews: 'अभी तक कोई समीक्षा नहीं।', couldNotLoad: 'समीक्षाएं लोड नहीं हो सकीं।', review: 'समीक्षा', reviews: 'समीक्षाएं', readReviews: 'समीक्षाएं पढ़ें', reviewsBtn: 'समीक्षाएं', close: 'बंद करें', customerReviews: 'ग्राहक समीक्षाएं', previous: 'पिछला', next: 'अगला' },
-  es: { verified: 'Verificado', noReviews: 'Aún no hay reseñas.', couldNotLoad: 'No se pudieron cargar las reseñas.', review: 'reseña', reviews: 'reseñas', readReviews: 'Leer reseñas', reviewsBtn: 'Reseñas', close: 'Cerrar', customerReviews: 'Reseñas de clientes', previous: 'Anterior', next: 'Siguiente' },
-  fr: { verified: 'Vérifié', noReviews: 'Aucun avis pour le moment.', couldNotLoad: 'Impossible de charger les avis.', review: 'avis', reviews: 'avis', readReviews: 'Lire les avis', reviewsBtn: 'Avis', close: 'Fermer', customerReviews: 'Avis des clients', previous: 'Précédent', next: 'Suivant' },
-  de: { verified: 'Verifiziert', noReviews: 'Noch keine Bewertungen.', couldNotLoad: 'Bewertungen konnten nicht geladen werden.', review: 'Bewertung', reviews: 'Bewertungen', readReviews: 'Bewertungen lesen', reviewsBtn: 'Bewertungen', close: 'Schließen', customerReviews: 'Kundenbewertungen', previous: 'Zurück', next: 'Weiter' },
-  it: { verified: 'Verificato', noReviews: 'Ancora nessuna recensione.', couldNotLoad: 'Impossibile caricare le recensioni.', review: 'recensione', reviews: 'recensioni', readReviews: 'Leggi le recensioni', reviewsBtn: 'Recensioni', close: 'Chiudi', customerReviews: 'Recensioni dei clienti', previous: 'Precedente', next: 'Successivo' },
-  pt: { verified: 'Verificado', noReviews: 'Ainda não há avaliações.', couldNotLoad: 'Não foi possível carregar as avaliações.', review: 'avaliação', reviews: 'avaliações', readReviews: 'Ler avaliações', reviewsBtn: 'Avaliações', close: 'Fechar', customerReviews: 'Avaliações de clientes', previous: 'Anterior', next: 'Próximo' },
-  nl: { verified: 'Geverifieerd', noReviews: 'Nog geen reviews.', couldNotLoad: 'Reviews konden niet worden geladen.', review: 'review', reviews: 'reviews', readReviews: 'Lees reviews', reviewsBtn: 'Reviews', close: 'Sluiten', customerReviews: 'Klantreviews', previous: 'Vorige', next: 'Volgende' },
-  ar: { verified: 'موثّق', noReviews: 'لا توجد تقييمات حتى الآن.', couldNotLoad: 'تعذر تحميل التقييمات.', review: 'تقييم', reviews: 'تقييمات', readReviews: 'قراءة التقييمات', reviewsBtn: 'التقييمات', close: 'إغلاق', customerReviews: 'تقييمات العملاء', previous: 'السابق', next: 'التالي' },
-  zh: { verified: '已验证', noReviews: '暂无评论。', couldNotLoad: '无法加载评论。', review: '条评论', reviews: '条评论', readReviews: '查看评论', reviewsBtn: '评论', close: '关闭', customerReviews: '客户评论', previous: '上一页', next: '下一页' },
-  ja: { verified: '確認済み', noReviews: 'まだレビューがありません。', couldNotLoad: 'レビューを読み込めませんでした。', review: 'レビュー', reviews: 'レビュー', readReviews: 'レビューを見る', reviewsBtn: 'レビュー', close: '閉じる', customerReviews: 'カスタマーレビュー', previous: '前へ', next: '次へ' },
-  ru: { verified: 'Проверено', noReviews: 'Пока нет отзывов.', couldNotLoad: 'Не удалось загрузить отзывы.', review: 'отзыв', reviews: 'отзывов', readReviews: 'Читать отзывы', reviewsBtn: 'Отзывы', close: 'Закрыть', customerReviews: 'Отзывы клиентов', previous: 'Назад', next: 'Далее' },
-  tr: { verified: 'Onaylı', noReviews: 'Henüz değerlendirme yok.', couldNotLoad: 'Değerlendirmeler yüklenemedi.', review: 'değerlendirme', reviews: 'değerlendirme', readReviews: 'Değerlendirmeleri oku', reviewsBtn: 'Değerlendirmeler', close: 'Kapat', customerReviews: 'Müşteri değerlendirmeleri', previous: 'Önceki', next: 'Sonraki' },
-  pl: { verified: 'Zweryfikowano', noReviews: 'Brak jeszcze opinii.', couldNotLoad: 'Nie udało się wczytać opinii.', review: 'opinia', reviews: 'opinii', readReviews: 'Czytaj opinie', reviewsBtn: 'Opinie', close: 'Zamknij', customerReviews: 'Opinie klientów', previous: 'Poprzedni', next: 'Następny' },
-  ko: { verified: '인증됨', noReviews: '아직 리뷰가 없습니다.', couldNotLoad: '리뷰를 불러올 수 없습니다.', review: '리뷰', reviews: '리뷰', readReviews: '리뷰 보기', reviewsBtn: '리뷰', close: '닫기', customerReviews: '고객 리뷰', previous: '이전', next: '다음' },
+  en: { verified: 'Verified', noReviews: 'No reviews yet.', couldNotLoad: 'Could not load reviews.', review: 'review', reviews: 'reviews', readReviews: 'Read reviews', reviewsBtn: 'Reviews', close: 'Close', customerReviews: 'Customer Reviews', previous: 'Previous', next: 'Next', defaultHeading: 'What our customers say' },
+  hi: { verified: 'सत्यापित', noReviews: 'अभी तक कोई समीक्षा नहीं।', couldNotLoad: 'समीक्षाएं लोड नहीं हो सकीं।', review: 'समीक्षा', reviews: 'समीक्षाएं', readReviews: 'समीक्षाएं पढ़ें', reviewsBtn: 'समीक्षाएं', close: 'बंद करें', customerReviews: 'ग्राहक समीक्षाएं', previous: 'पिछला', next: 'अगला', defaultHeading: 'हमारे ग्राहक क्या कहते हैं' },
+  es: { verified: 'Verificado', noReviews: 'Aún no hay reseñas.', couldNotLoad: 'No se pudieron cargar las reseñas.', review: 'reseña', reviews: 'reseñas', readReviews: 'Leer reseñas', reviewsBtn: 'Reseñas', close: 'Cerrar', customerReviews: 'Reseñas de clientes', previous: 'Anterior', next: 'Siguiente', defaultHeading: 'Lo que dicen nuestros clientes' },
+  fr: { verified: 'Vérifié', noReviews: 'Aucun avis pour le moment.', couldNotLoad: 'Impossible de charger les avis.', review: 'avis', reviews: 'avis', readReviews: 'Lire les avis', reviewsBtn: 'Avis', close: 'Fermer', customerReviews: 'Avis des clients', previous: 'Précédent', next: 'Suivant', defaultHeading: 'Ce que disent nos clients' },
+  de: { verified: 'Verifiziert', noReviews: 'Noch keine Bewertungen.', couldNotLoad: 'Bewertungen konnten nicht geladen werden.', review: 'Bewertung', reviews: 'Bewertungen', readReviews: 'Bewertungen lesen', reviewsBtn: 'Bewertungen', close: 'Schließen', customerReviews: 'Kundenbewertungen', previous: 'Zurück', next: 'Weiter', defaultHeading: 'Was unsere Kunden sagen' },
+  it: { verified: 'Verificato', noReviews: 'Ancora nessuna recensione.', couldNotLoad: 'Impossibile caricare le recensioni.', review: 'recensione', reviews: 'recensioni', readReviews: 'Leggi le recensioni', reviewsBtn: 'Recensioni', close: 'Chiudi', customerReviews: 'Recensioni dei clienti', previous: 'Precedente', next: 'Successivo', defaultHeading: 'Cosa dicono i nostri clienti' },
+  pt: { verified: 'Verificado', noReviews: 'Ainda não há avaliações.', couldNotLoad: 'Não foi possível carregar as avaliações.', review: 'avaliação', reviews: 'avaliações', readReviews: 'Ler avaliações', reviewsBtn: 'Avaliações', close: 'Fechar', customerReviews: 'Avaliações de clientes', previous: 'Anterior', next: 'Próximo', defaultHeading: 'O que dizem nossos clientes' },
+  nl: { verified: 'Geverifieerd', noReviews: 'Nog geen reviews.', couldNotLoad: 'Reviews konden niet worden geladen.', review: 'review', reviews: 'reviews', readReviews: 'Lees reviews', reviewsBtn: 'Reviews', close: 'Sluiten', customerReviews: 'Klantreviews', previous: 'Vorige', next: 'Volgende', defaultHeading: 'Wat onze klanten zeggen' },
+  ar: { verified: 'موثّق', noReviews: 'لا توجد تقييمات حتى الآن.', couldNotLoad: 'تعذر تحميل التقييمات.', review: 'تقييم', reviews: 'تقييمات', readReviews: 'قراءة التقييمات', reviewsBtn: 'التقييمات', close: 'إغلاق', customerReviews: 'تقييمات العملاء', previous: 'السابق', next: 'التالي', defaultHeading: 'ما يقوله عملاؤنا' },
+  zh: { verified: '已验证', noReviews: '暂无评论。', couldNotLoad: '无法加载评论。', review: '条评论', reviews: '条评论', readReviews: '查看评论', reviewsBtn: '评论', close: '关闭', customerReviews: '客户评论', previous: '上一页', next: '下一页', defaultHeading: '顾客评价' },
+  ja: { verified: '確認済み', noReviews: 'まだレビューがありません。', couldNotLoad: 'レビューを読み込めませんでした。', review: 'レビュー', reviews: 'レビュー', readReviews: 'レビューを見る', reviewsBtn: 'レビュー', close: '閉じる', customerReviews: 'カスタマーレビュー', previous: '前へ', next: '次へ', defaultHeading: 'お客様の声' },
+  ru: { verified: 'Проверено', noReviews: 'Пока нет отзывов.', couldNotLoad: 'Не удалось загрузить отзывы.', review: 'отзыв', reviews: 'отзывов', readReviews: 'Читать отзывы', reviewsBtn: 'Отзывы', close: 'Закрыть', customerReviews: 'Отзывы клиентов', previous: 'Назад', next: 'Далее', defaultHeading: 'Что говорят наши клиенты' },
+  tr: { verified: 'Onaylı', noReviews: 'Henüz değerlendirme yok.', couldNotLoad: 'Değerlendirmeler yüklenemedi.', review: 'değerlendirme', reviews: 'değerlendirme', readReviews: 'Değerlendirmeleri oku', reviewsBtn: 'Değerlendirmeler', close: 'Kapat', customerReviews: 'Müşteri değerlendirmeleri', previous: 'Önceki', next: 'Sonraki', defaultHeading: 'Müşterilerimiz ne diyor' },
+  pl: { verified: 'Zweryfikowano', noReviews: 'Brak jeszcze opinii.', couldNotLoad: 'Nie udało się wczytać opinii.', review: 'opinia', reviews: 'opinii', readReviews: 'Czytaj opinie', reviewsBtn: 'Opinie', close: 'Zamknij', customerReviews: 'Opinie klientów', previous: 'Poprzedni', next: 'Następny', defaultHeading: 'Co mówią nasi klienci' },
+  ko: { verified: '인증됨', noReviews: '아직 리뷰가 없습니다.', couldNotLoad: '리뷰를 불러올 수 없습니다.', review: '리뷰', reviews: '리뷰', readReviews: '리뷰 보기', reviewsBtn: '리뷰', close: '닫기', customerReviews: '고객 리뷰', previous: '이전', next: '다음', defaultHeading: '고객님들의 후기' },
 };
