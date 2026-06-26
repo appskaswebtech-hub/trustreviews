@@ -6,7 +6,7 @@ var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
 // attribute is ever missing or empty, instead of silently sending no locale
 // at all to the server (which would fall back to the merchant's saved
 // default language instead of the customer's current one).
-var storeLocale = (reviewSection && reviewSection.dataset.locale) || (document.documentElement.lang || "").split("-")[0] || "";
+var storeLocale = (reviewSection && reviewSection.dataset.locale) || locale_language || (document.documentElement.lang || "").split("-")[0] || "";
 let rating = 0;
 let allReviews = [];
 let currentSort = "newest";

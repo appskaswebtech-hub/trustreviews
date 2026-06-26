@@ -124,6 +124,7 @@
 
 
 {{ 'review.css' | asset_url | stylesheet_tag }}
+<script>let locale_language = `{{ request.locale.iso_code }}`</script>
 <script src="{{ 'review.js' | asset_url }}" defer></script>
 
 {% schema %}
