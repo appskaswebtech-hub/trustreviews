@@ -76,7 +76,7 @@ export const REVIEW_TRANSLATIONS = {
     verified: "Verificado", outOf5: "sobre 5",
   },
   fr: {
-    basedOn: "Basé sur", reviewsWord: "avis", writeReview: "", close: "Fermer",
+    basedOn: "Basé sur", reviewsWord: "avis", writeReview: "Rédiger un avis", close: "Fermer",
     ratingQuestion: "Quelle note donneriez-vous à ce produit ?", reviewTitleLabel: "Titre de l'avis",
     reviewTitlePlaceholder: "Résumez votre expérience...",
     feedbackLabel: "Partagez votre avis sur le produit",
