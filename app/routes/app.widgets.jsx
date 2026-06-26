@@ -55,6 +55,15 @@ const WIDGETS = [
     icon: "★",
   },
   {
+    key: "reviews_summary",
+    title: "Reviews Summary",
+    description: "Heading, star rating breakdown, write-a-review button, trust badges, sort and pagination — all in one widget.",
+    href: "/app/widgets/reviews-summary",
+    blockHandle: "reviews-summary",
+    bg: "linear-gradient(135deg,#ede9fe,#ddd6fe)",
+    icon: "⭐",
+  },
+  {
     key: "write_review",
     title: "Write a Review",
     description: "Make it easy for customers to speak up — a clean, on-brand review form.",

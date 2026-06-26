@@ -15,21 +15,21 @@ export async function loader({ request }) {
 
   /* ── Translations ── */
   var TRANSLATIONS = {
-    en: { defaultTitle: 'What our customers say', basedOn: 'based on', review: 'review', reviews: 'reviews', verified: 'Verified', noReviews: 'No 5-star reviews yet.', loading: 'Loading reviews…' },
-    hi: { defaultTitle: 'हमारे ग्राहक क्या कहते हैं', basedOn: 'आधारित', review: 'समीक्षा', reviews: 'समीक्षाएं', verified: 'सत्यापित', noReviews: 'अभी तक कोई 5-स्टार समीक्षा नहीं।', loading: 'समीक्षाएं लोड हो रही हैं…' },
-    es: { defaultTitle: 'Lo que dicen nuestros clientes', basedOn: 'basado en', review: 'reseña', reviews: 'reseñas', verified: 'Verificado', noReviews: 'Aún no hay reseñas de 5 estrellas.', loading: 'Cargando reseñas…' },
-    fr: { defaultTitle: 'Ce qu’en disent ceux qui l’ont essayé.', basedOn: 'basé sur', review: 'avis', reviews: 'avis', verified: 'Vérifié', noReviews: 'Aucun avis 5 étoiles pour le moment.', loading: 'Chargement des avis…' },
-    de: { defaultTitle: 'Was unsere Kunden sagen', basedOn: 'basierend auf', review: 'Bewertung', reviews: 'Bewertungen', verified: 'Verifiziert', noReviews: 'Noch keine 5-Sterne-Bewertungen.', loading: 'Bewertungen werden geladen…' },
-    it: { defaultTitle: 'Cosa dicono i nostri clienti', basedOn: 'basato su', review: 'recensione', reviews: 'recensioni', verified: 'Verificato', noReviews: 'Ancora nessuna recensione a 5 stelle.', loading: 'Caricamento recensioni…' },
-    pt: { defaultTitle: 'O que dizem nossos clientes', basedOn: 'baseado em', review: 'avaliação', reviews: 'avaliações', verified: 'Verificado', noReviews: 'Ainda não há avaliações de 5 estrelas.', loading: 'Carregando avaliações…' },
-    nl: { defaultTitle: 'Wat onze klanten zeggen', basedOn: 'gebaseerd op', review: 'review', reviews: 'reviews', verified: 'Geverifieerd', noReviews: 'Nog geen 5-sterren reviews.', loading: 'Reviews laden…' },
-    ar: { defaultTitle: 'ما يقوله عملاؤنا', basedOn: 'بناءً على', review: 'تقييم', reviews: 'تقييمات', verified: 'موثّق', noReviews: 'لا توجد تقييمات 5 نجوم حتى الآن.', loading: 'جاري تحميل التقييمات…' },
-    zh: { defaultTitle: '顾客评价', basedOn: '基于', review: '条评论', reviews: '条评论', verified: '已验证', noReviews: '暂无五星评论。', loading: '正在加载评论…' },
-    ja: { defaultTitle: 'お客様の声', basedOn: 'に基づく', review: 'レビュー', reviews: 'レビュー', verified: '確認済み', noReviews: 'まだ5つ星のレビューはありません。', loading: 'レビューを読み込み中…' },
-    ru: { defaultTitle: 'Что говорят наши клиенты', basedOn: 'на основе', review: 'отзыв', reviews: 'отзывов', verified: 'Проверено', noReviews: 'Пока нет отзывов с 5 звёздами.', loading: 'Загрузка отзывов…' },
-    tr: { defaultTitle: 'Müşterilerimiz ne diyor', basedOn: 'şuna dayanarak', review: 'değerlendirme', reviews: 'değerlendirme', verified: 'Onaylı', noReviews: 'Henüz 5 yıldızlı değerlendirme yok.', loading: 'Değerlendirmeler yükleniyor…' },
-    pl: { defaultTitle: 'Co mówią nasi klienci', basedOn: 'na podstawie', review: 'opinia', reviews: 'opinii', verified: 'Zweryfikowano', noReviews: 'Brak jeszcze 5-gwiazdkowych opinii.', loading: 'Wczytywanie opinii…' },
-    ko: { defaultTitle: '고객님들의 후기', basedOn: '기준', review: '리뷰', reviews: '리뷰', verified: '인증됨', noReviews: '아직 5점 리뷰가 없습니다.', loading: '리뷰를 불러오는 중…' },
+    en: { defaultTitle: 'What our customers say', basedOn: 'based on', review: 'review', reviews: 'reviews', verified: 'Verified', noReviews: 'No reviews yet.', loading: 'Loading reviews…' },
+    hi: { defaultTitle: 'हमारे ग्राहक क्या कहते हैं', basedOn: 'आधारित', review: 'समीक्षा', reviews: 'समीक्षाएं', verified: 'सत्यापित', noReviews: 'अभी तक कोई समीक्षा नहीं।', loading: 'समीक्षाएं लोड हो रही हैं…' },
+    es: { defaultTitle: 'Lo que dicen nuestros clientes', basedOn: 'basado en', review: 'reseña', reviews: 'reseñas', verified: 'Verificado', noReviews: 'Aún no hay reseñas.', loading: 'Cargando reseñas…' },
+    fr: { defaultTitle: 'Ce qu'en disent ceux qui l'ont essayé.', basedOn: 'basé sur', review: 'avis', reviews: 'avis', verified: 'Vérifié', noReviews: 'Aucun avis pour le moment.', loading: 'Chargement des avis…' },
+    de: { defaultTitle: 'Was unsere Kunden sagen', basedOn: 'basierend auf', review: 'Bewertung', reviews: 'Bewertungen', verified: 'Verifiziert', noReviews: 'Noch keine Bewertungen.', loading: 'Bewertungen werden geladen…' },
+    it: { defaultTitle: 'Cosa dicono i nostri clienti', basedOn: 'basato su', review: 'recensione', reviews: 'recensioni', verified: 'Verificato', noReviews: 'Ancora nessuna recensione.', loading: 'Caricamento recensioni…' },
+    pt: { defaultTitle: 'O que dizem nossos clientes', basedOn: 'baseado em', review: 'avaliação', reviews: 'avaliações', verified: 'Verificado', noReviews: 'Ainda não há avaliações.', loading: 'Carregando avaliações…' },
+    nl: { defaultTitle: 'Wat onze klanten zeggen', basedOn: 'gebaseerd op', review: 'review', reviews: 'reviews', verified: 'Geverifieerd', noReviews: 'Nog geen reviews.', loading: 'Reviews laden…' },
+    ar: { defaultTitle: 'ما يقوله عملاؤنا', basedOn: 'بناءً على', review: 'تقييم', reviews: 'تقييمات', verified: 'موثّق', noReviews: 'لا توجد تقييمات حتى الآن.', loading: 'جاري تحميل التقييمات…' },
+    zh: { defaultTitle: '顾客评价', basedOn: '基于', review: '条评论', reviews: '条评论', verified: '已验证', noReviews: '暂无评论。', loading: '正在加载评论…' },
+    ja: { defaultTitle: 'お客様の声', basedOn: 'に基づく', review: 'レビュー', reviews: 'レビュー', verified: '確認済み', noReviews: 'まだレビューはありません。', loading: 'レビューを読み込み中…' },
+    ru: { defaultTitle: 'Что говорят наши клиенты', basedOn: 'на основе', review: 'отзыв', reviews: 'отзывов', verified: 'Проверено', noReviews: 'Пока нет отзывов.', loading: 'Загрузка отзывов…' },
+    tr: { defaultTitle: 'Müşterilerimiz ne diyor', basedOn: 'şuna dayanarak', review: 'değerlendirme', reviews: 'değerlendirme', verified: 'Onaylı', noReviews: 'Henüz değerlendirme yok.', loading: 'Değerlendirmeler yükleniyor…' },
+    pl: { defaultTitle: 'Co mówią nasi klienci', basedOn: 'na podstawie', review: 'opinia', reviews: 'opinii', verified: 'Zweryfikowano', noReviews: 'Brak jeszcze opinii.', loading: 'Wczytywanie opinii…' },
+    ko: { defaultTitle: '고객님들의 후기', basedOn: '기준', review: '리뷰', reviews: '리뷰', verified: '인증됨', noReviews: '아직 리뷰가 없습니다.', loading: '리뷰를 불러오는 중…' },
   };
   var T = TRANSLATIONS.en;
 

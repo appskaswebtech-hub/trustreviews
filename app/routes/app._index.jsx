@@ -1,8 +1,8 @@
-import { useLoaderData, useSubmit, useSearchParams, Link } from "react-router";
+import { useLoaderData, useSubmit, useSearchParams, useFetcher, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import { redirect } from "react-router";
 import db from "../db.server";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -55,37 +55,29 @@ const normalizeEmail = (value) => {
   return email || null;
 };
 
-async function ensureStoreAndProduct(shop, rawProductId) {
-  const shopifyProductId = normalizeProductId(rawProductId);
-  if (!shopifyProductId) return null;
-
-  const store = await db.store.upsert({
+async function ensureStore(shop) {
+  return db.store.upsert({
     where: { shop },
     update: {},
     create: { shop },
     select: { id: true },
   });
+}
+
+// Returns null when rawProductId is missing/unrecognized — callers decide
+// whether that means "skip this row" or "import with no product assigned".
+async function ensureProduct(storeId, rawProductId) {
+  const shopifyProductId = normalizeProductId(rawProductId);
+  if (!shopifyProductId) return null;
 
   const product = await db.product.upsert({
-    where: {
-      storeId_shopifyProductId: {
-        storeId: store.id,
-        shopifyProductId,
-      },
-    },
+    where: { storeId_shopifyProductId: { storeId, shopifyProductId } },
     update: {},
-    create: {
-      storeId: store.id,
-      shopifyProductId,
-    },
-    select: { id: true, shopifyProductId: true },
+    create: { storeId, shopifyProductId },
+    select: { id: true },
   });
 
-  return {
-    storeId: store.id,
-    productId: product.id,
-    shopifyProductId: product.shopifyProductId,
-  };
+  return product.id;
 }
 
 /* ─────────────────────────────────────────
@@ -174,8 +166,8 @@ export const loader = async ({ request }) => {
   const productIds = [
     ...new Set(
       reviews
-        .map((r) => r.product.shopifyProductId)
-        .filter((id) => /^\d+$/.test(id)),
+        .map((r) => r.product?.shopifyProductId)
+        .filter((id) => id && /^\d+$/.test(id)),
     ),
   ];
 
@@ -201,14 +193,28 @@ export const loader = async ({ request }) => {
     ).filter(([, value]) => value),
   );
 
-  const enriched = reviews.map((r) => ({
-    ...r,
-    storefrontProductId: r.product.shopifyProductId,
-    productTitle: products[r.product.shopifyProductId]?.title || "Unknown Product",
-    productImage: products[r.product.shopifyProductId]?.image,
-  }));
+  // Reviews imported without a product ID (or whose product was deleted)
+  // have no `product` row at all — group those under "Unassigned" so they're
+  // visible and can be assigned a product from the dashboard instead of
+  // disappearing.
+  const enriched = reviews.map((r) => {
+    const shopifyProductId = r.product?.shopifyProductId || null;
+    return {
+      ...r,
+      storefrontProductId: shopifyProductId || "unassigned",
+      productTitle: shopifyProductId ? (products[shopifyProductId]?.title || "Unknown Product") : "Unassigned",
+      productImage: shopifyProductId ? products[shopifyProductId]?.image : null,
+    };
+  });
 
   const grouped = {};
+  // Always show the Unassigned group first so it can't be missed.
+  grouped.unassigned = {
+    productId: "unassigned",
+    productTitle: "Unassigned",
+    productImage: null,
+    reviews: [],
+  };
   for (const r of enriched) {
     if (!grouped[r.storefrontProductId]) {
       grouped[r.storefrontProductId] = {
@@ -220,6 +226,7 @@ export const loader = async ({ request }) => {
     }
     grouped[r.storefrontProductId].reviews.push(r);
   }
+  if (grouped.unassigned.reviews.length === 0) delete grouped.unassigned;
 
   const [total, approvedCount, pendingCount, rejectedCount, allCount] = await Promise.all([
     db.review.count({ where }),
@@ -299,6 +306,16 @@ export const action = async ({ request }) => {
       }
     }
   }
+  // Assign one product to many reviews at once — same picker as the
+  // per-review "Assign/Change Product" button, just applied in bulk.
+  if (actionType === "bulkAssignProduct" && store) {
+    const ids = JSON.parse(String(formData.get("ids") || "[]")).map(Number).filter(Number.isFinite);
+    const shopifyProductId = normalizeProductId(formData.get("shopifyProductId"));
+    if (ids.length && shopifyProductId) {
+      const newProductId = await ensureProduct(store.id, shopifyProductId);
+      await db.review.updateMany({ where: { id: { in: ids }, storeId: store.id }, data: { productId: newProductId } });
+    }
+  }
   if (actionType === "toggleAutoPublish") {
     const autoPublish = formData.get("autoPublish") === "true";
     await db.store.upsert({
@@ -307,15 +324,28 @@ export const action = async ({ request }) => {
       create: { shop: session.shop, autoPublish },
     });
   }
+  // Assign or change which product a review belongs to — used both for
+  // reviews imported without a product ID, and to re-point any review to a
+  // different product later.
+  if (actionType === "assignProduct" && store) {
+    const shopifyProductId = normalizeProductId(formData.get("shopifyProductId"));
+    if (shopifyProductId) {
+      const newProductId = await ensureProduct(store.id, shopifyProductId);
+      await db.review.updateMany({ where: { id, storeId: store.id }, data: { productId: newProductId } });
+    }
+  }
   if (actionType === "import") {
     const rows = JSON.parse(String(formData.get("rows") || "[]"));
+    const importStore = await ensureStore(session.shop);
     for (const row of rows) {
-      const scopedProduct = await ensureStoreAndProduct(session.shop, row.productid || row.productId);
-      if (!scopedProduct) continue;
+      // No product ID? Import anyway with productId left unassigned — it'll
+      // show up under "Unassigned" in the dashboard for the merchant to pick
+      // a product for later, instead of silently dropping the review.
+      const productId = await ensureProduct(importStore.id, row.productid || row.productId);
       await db.review.create({
         data: {
-          storeId:  scopedProduct.storeId,
-          productId: scopedProduct.productId,
+          storeId:  importStore.id,
+          productId,
           customer: normalizeCustomer(row.customer),
           email:    normalizeEmail(row.email),
           rating:   normalizeRating(row.rating),
@@ -1162,18 +1192,19 @@ function ImportModal({ onClose, onImport, t }) {
     if (set.has("author") && (set.has("photourls") || set.has("videourls"))) return "stamped";
     if (set.has("author") && (set.has("product_id") || set.has("productid"))) return "zeppo";
     if (set.has("customer") && (set.has("productid") || set.has("product_id"))) return "native";
-    if (FIELD_ALIASES.productId.some((a) => set.has(a))) return "generic";
-    return "unknown";
+    // No stronger signal matched — still importable (checked separately via
+    // isImportable), just shown under a generic label instead of a named platform.
+    return "generic";
   };
 
-  // A CSV is importable as long as we can locate a product reference and
-  // some kind of review text — everything else (name, email, rating, status,
-  // media) has a sane fallback.
+  // A CSV is importable as long as it has some kind of review text —
+  // a product column is no longer required: rows without one import as
+  // "Unassigned" and the merchant picks a product for them afterward from
+  // the dashboard. Everything else (name, email, rating, status, media)
+  // already has a sane fallback.
   const isImportable = (headers) => {
     const set = new Set(headers);
-    const hasProduct = FIELD_ALIASES.productId.some((a) => set.has(a));
-    const hasText = [...FIELD_ALIASES.comment, ...FIELD_ALIASES.title].some((a) => set.has(a));
-    return hasProduct && hasText;
+    return [...FIELD_ALIASES.comment, ...FIELD_ALIASES.title].some((a) => set.has(a));
   };
 
   const normalizeRow = (row) => {
@@ -1201,7 +1232,7 @@ function ImportModal({ onClose, onImport, t }) {
       try {
         const { headers, rows } = parseCSV(ev.target.result);
         if (!isImportable(headers)) {
-          setError("Could not find a product and review-text column in this CSV. Make sure the export includes a product ID/SKU and a review body/content column.");
+          setError("Could not find a review-text column in this CSV. Make sure the export includes a review title or body/content column.");
           setPreview([]); setDetected(""); setTotalRows(0);
           return;
         }
@@ -1385,6 +1416,7 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
   const [tagDraft, setTagDraft]   = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [sentiment, setSentiment] = useState(review.sentiment || null);
+  const [pickingProduct, setPickingProduct] = useState(false);
   const tags = (review.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
 
   const saveReply = () => {
@@ -1549,10 +1581,23 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
               ))}
             </select>
             <button onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>💬 Reply</button>
+            <button onClick={() => setPickingProduct((v) => !v)} style={ABT("neutral")}>
+              🔗 {review.productId ? "Change" : "Assign"} Product
+            </button>
             <button onClick={() => onAction("delete", review)} style={ABT("delete")} title="Delete">🗑</button>
           </div>
         </td>
       </tr>
+      {pickingProduct && (
+        <tr>
+          <td colSpan={8} style={{ padding: "0 16px 14px", borderTop: "none" }}>
+            <ProductPicker
+              onSelect={(shopifyProductId) => onAction("assignProduct", review, { shopifyProductId })}
+              onClose={() => setPickingProduct(false)}
+            />
+          </td>
+        </tr>
+      )}
       {replying && (
         <tr>
           <td colSpan={8} style={{ padding: "0 16px 14px", borderTop: "none" }}>
@@ -1575,6 +1620,78 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
         </tr>
       )}
     </>
+  );
+}
+
+/* ─────────────────────────────────────────
+   PRODUCT PICKER — small fetcher-backed search,
+   used to assign/change which product a review belongs to.
+───────────────────────────────────────── */
+function ProductPicker({ onSelect, onClose }) {
+  const fetcher = useFetcher();
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (!query.trim()) return;
+    const timer = setTimeout(() => {
+      fetcher.load(`/app/product-search?q=${encodeURIComponent(query)}`);
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const results = fetcher.data?.products || [];
+
+  const handleSelect = (shopifyProductId) => {
+    onSelect(shopifyProductId);
+    onClose();
+  };
+
+  return (
+    <div style={{ background: "#f9fafb", borderRadius: 8, padding: 12, maxWidth: 360 }}>
+      <input
+        autoFocus
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search products by name…"
+        style={{
+          width: "100%", border: `1px solid ${C.border}`, borderRadius: 8,
+          padding: "7px 10px", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+        }}
+      />
+      {fetcher.state === "loading" && (
+        <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6 }}>Searching…</div>
+      )}
+      {results.length > 0 && (
+        <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+          {results.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => handleSelect(p.id)}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, border: `1px solid ${C.border}`,
+                borderRadius: 6, padding: "6px 10px", background: "#fff", cursor: "pointer", textAlign: "left",
+              }}
+            >
+              <img
+                src={p.image || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png"}
+                alt="" style={{ width: 24, height: 24, objectFit: "cover", borderRadius: 4, flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 12.5, color: C.text }}>{p.title}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {query.trim() && fetcher.state !== "loading" && results.length === 0 && (
+        <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6 }}>No products found.</div>
+      )}
+      <button
+        onClick={onClose}
+        style={{ marginTop: 8, border: "none", background: "none", color: C.muted, fontSize: 11.5, cursor: "pointer", textDecoration: "underline", padding: 0, display: "block" }}
+      >
+        Cancel
+      </button>
+    </div>
   );
 }
 
@@ -1671,6 +1788,7 @@ export default function ReviewsPage() {
   const [showImport, setShowImport] = useState(false);
   const [searchVal,  setSearchVal]  = useState(search);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkAssigning, setBulkAssigning] = useState(false);
   const lang = shopLocale || "en"; // ← persisted store language, switcher lives in Settings
 
   const [installing, setInstalling]     = useState(false);
@@ -1708,6 +1826,17 @@ export default function ReviewsPage() {
     fd.append("ids", JSON.stringify(selectedIds));
     submit(fd, { method: "post" });
     setSelectedIds([]);
+  };
+
+  const handleBulkAssignProduct = (shopifyProductId) => {
+    if (!selectedIds.length) return;
+    const fd = new FormData();
+    fd.append("actionType", "bulkAssignProduct");
+    fd.append("shopifyProductId", shopifyProductId);
+    fd.append("ids", JSON.stringify(selectedIds));
+    submit(fd, { method: "post" });
+    setSelectedIds([]);
+    setBulkAssigning(false);
   };
 
   const handleToggleAutoPublish = () => {
@@ -1921,21 +2050,29 @@ export default function ReviewsPage() {
 
       {/* ── Bulk Selection Bar ── */}
       {grouped.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, fontSize: 12.5, color: C.muted }}>
-          {selectedIds.length > 0 ? (
-            <>
-              <span style={{ fontWeight: 700, color: C.text }}>{selectedIds.length} selected</span>
-              <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve selected</button>
-              <button onClick={() => handleBulkAction("reject")} style={ABT("reject")}>✕ Reject selected</button>
-              <button onClick={() => handleBulkAction("delete")} style={ABT("delete")}>🗑 Delete selected</button>
-              <button onClick={() => setSelectedIds([])} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12.5, textDecoration: "underline" }}>
-                Clear
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12.5, color: C.muted }}>
+            {selectedIds.length > 0 ? (
+              <>
+                <span style={{ fontWeight: 700, color: C.text }}>{selectedIds.length} selected</span>
+                <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve selected</button>
+                <button onClick={() => handleBulkAction("reject")} style={ABT("reject")}>✕ Reject selected</button>
+                <button onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>🔗 Assign Product</button>
+                <button onClick={() => handleBulkAction("delete")} style={ABT("delete")}>🗑 Delete selected</button>
+                <button onClick={() => { setSelectedIds([]); setBulkAssigning(false); }} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12.5, textDecoration: "underline" }}>
+                  Clear
+                </button>
+              </>
+            ) : (
+              <button onClick={toggleSelectAll} style={{ border: "none", background: "none", color: C.accent, cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}>
+                Select all {allVisibleIds.length} visible
               </button>
-            </>
-          ) : (
-            <button onClick={toggleSelectAll} style={{ border: "none", background: "none", color: C.accent, cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}>
-              Select all {allVisibleIds.length} visible
-            </button>
+            )}
+          </div>
+          {bulkAssigning && selectedIds.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <ProductPicker onSelect={handleBulkAssignProduct} onClose={() => setBulkAssigning(false)} />
+            </div>
           )}
         </div>
       )}

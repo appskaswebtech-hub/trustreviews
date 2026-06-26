@@ -84,9 +84,9 @@ enum ReviewStatus {
 model Review {
   id          Int          @id @default(autoincrement())
   storeId     Int
-  productId   Int
+  productId   Int?
   store       Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product     Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
   email       String?
   title       String?
   rating      Int

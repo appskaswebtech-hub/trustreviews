@@ -1,0 +1,137 @@
+{{ 'reviews-summary.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="rs-section"
+  data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-show-verified="{{ block.settings.show_verified_badge }}"
+>
+  <h2 class="rs-heading">{{ block.settings.heading | default: "Customer Reviews" }}</h2>
+
+  <div class="rs-summary-row">
+    <div class="rs-summary-left">
+      <div class="rs-avg-stars" id="rs-avg-stars"></div>
+      <div class="rs-avg-line"><span id="rs-avg-rating">0.0</span> <span id="rs-out-of">out of 5</span></div>
+      <div class="rs-total"><span id="rs-based-on-label">Based on</span> <span id="rs-total-reviews">0</span> <span id="rs-reviews-word">reviews</span></div>
+    </div>
+
+    <div class="rs-breakdown" id="rs-breakdown"></div>
+
+    {% if block.settings.show_write_review %}
+      <button id="rs-open-review" class="rs-write-btn"><span id="rs-write-label">Write a Review</span></button>
+    {% endif %}
+  </div>
+
+  {% if block.settings.badge_image_1 or block.settings.badge_image_2 or block.settings.badge_image_3 %}
+    <div class="rs-badges">
+      {% if block.settings.badge_image_1 %}
+        <div class="rs-badge">
+          <img src="{{ block.settings.badge_image_1 | image_url: width: 90 }}" width="90" height="90" alt="{{ block.settings.badge_label_1 | escape }}" loading="lazy">
+          {% if block.settings.badge_label_1 != blank %}<span>{{ block.settings.badge_label_1 }}</span>{% endif %}
+        </div>
+      {% endif %}
+      {% if block.settings.badge_image_2 %}
+        <div class="rs-badge">
+          <img src="{{ block.settings.badge_image_2 | image_url: width: 90 }}" width="90" height="90" alt="{{ block.settings.badge_label_2 | escape }}" loading="lazy">
+          {% if block.settings.badge_label_2 != blank %}<span>{{ block.settings.badge_label_2 }}</span>{% endif %}
+        </div>
+      {% endif %}
+      {% if block.settings.badge_image_3 %}
+        <div class="rs-badge">
+          <img src="{{ block.settings.badge_image_3 | image_url: width: 90 }}" width="90" height="90" alt="{{ block.settings.badge_label_3 | escape }}" loading="lazy">
+          {% if block.settings.badge_label_3 != blank %}<span>{{ block.settings.badge_label_3 }}</span>{% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if block.settings.show_write_review %}
+    <div id="rs-review-form" class="rs-review-form" style="display:none">
+      <div class="rs-form-header">
+        <h3 id="rs-form-title">Write a Review</h3>
+        <button class="rs-form-close" id="rs-form-close-btn" aria-label="Close" onclick="rsCloseReview()">✕</button>
+      </div>
+      <div class="rs-form-field">
+        <label><span id="rs-rating-question">What would you rate this product?</span> <span class="rs-required">*</span></label>
+        <div class="rs-star-rating" id="rs-star-rating">
+          <span data-value="1">★</span>
+          <span data-value="2">★</span>
+          <span data-value="3">★</span>
+          <span data-value="4">★</span>
+          <span data-value="5">★</span>
+        </div>
+      </div>
+      <div class="rs-form-field">
+        <label id="rs-review-title-label">Review title</label>
+        <input type="text" id="rs-review-title" placeholder="Summarize your experience...">
+      </div>
+      <div class="rs-form-field">
+        <label><span id="rs-feedback-label">Tell us your feedback about the product</span> <span class="rs-required">*</span></label>
+        <textarea id="rs-comment" placeholder="Share your experience with this product..." required></textarea>
+      </div>
+      <div class="rs-form-field">
+        <label id="rs-upload-label">Upload image/video</label>
+        <input type="file" id="rs-review-file" accept="image/*,video/*" onchange="rsPreviewFile(event)">
+        <div id="rs-file-preview" class="rs-file-preview"></div>
+      </div>
+      <div class="rs-dubble-field">
+        <div class="rs-form-field">
+          <label><span id="rs-name-label">Your name</span> <span class="rs-required">*</span></label>
+          <input type="text" id="rs-name" placeholder="Name" required>
+        </div>
+        <div class="rs-form-field">
+          <label><span id="rs-email-label">Your email address</span> <span class="rs-required">*</span></label>
+          <input type="email" id="rs-email" placeholder="Email" required>
+        </div>
+      </div>
+      <div class="rs-form-actions">
+        <button onclick="rsCloseReview()" id="rs-cancel-btn" class="rs-cancel-btn">Cancel</button>
+        <button onclick="rsSubmitReview()" id="rs-submit-btn" class="rs-submit-btn">Submit</button>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="rs-toolbar">
+    <div class="rs-sort-wrap">
+      <button class="rs-sort-btn" id="rs-sort-btn" onclick="rsToggleSortMenu()">Most Recent ▾</button>
+      <div class="rs-sort-menu" id="rs-sort-menu" style="display:none">
+        <div class="rs-sort-option active" data-sort="newest" onclick="rsSelectSort(this)">Most Recent</div>
+        <div class="rs-sort-option" data-sort="oldest" onclick="rsSelectSort(this)">Oldest First</div>
+        <div class="rs-sort-option" data-sort="highest" onclick="rsSelectSort(this)">Highest Rated</div>
+        <div class="rs-sort-option" data-sort="lowest" onclick="rsSelectSort(this)">Lowest Rated</div>
+        <div class="rs-sort-option" data-sort="helpful" onclick="rsSelectSort(this)">Most Helpful</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="rs-no-results" style="display:none" class="rs-no-results">No reviews yet.</div>
+  <div id="rs-review-list"></div>
+  <div id="rs-pagination" class="rs-pagination" style="display:none"></div>
+  <div id="rs-toast-container" class="rs-toast-container"></div>
+</div>
+
+
+<script src="{{ 'reviews-summary.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Reviews Summary",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Customer Reviews" },
+    { "type": "checkbox", "id": "show_write_review", "label": "Show \"Write a Review\" button and form", "default": true },
+    { "type": "checkbox", "id": "show_verified_badge", "label": "Show \"Verified\" badge on every review", "default": true },
+    { "type": "header", "content": "Trust badges (optional)" },
+    { "type": "image_picker", "id": "badge_image_1", "label": "Badge 1 image" },
+    { "type": "text", "id": "badge_label_1", "label": "Badge 1 label" },
+    { "type": "image_picker", "id": "badge_image_2", "label": "Badge 2 image" },
+    { "type": "text", "id": "badge_label_2", "label": "Badge 2 label" },
+    { "type": "image_picker", "id": "badge_image_3", "label": "Badge 3 image" },
+    { "type": "text", "id": "badge_label_3", "label": "Badge 3 label" }
+  ]
+}
+{% endschema %}
