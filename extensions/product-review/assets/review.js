@@ -1,7 +1,12 @@
 var reviewSection = document.querySelector(".review-section");
 var productId = reviewSection ? reviewSection.dataset.productId : "";
 var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
-var storeLocale = reviewSection ? reviewSection.dataset.locale : "";
+// Fall back to <html lang> (same mechanism the other widgets use, proven to
+// follow the storefront's language switcher) if the block's own data-locale
+// attribute is ever missing or empty, instead of silently sending no locale
+// at all to the server (which would fall back to the merchant's saved
+// default language instead of the customer's current one).
+var storeLocale = (reviewSection && reviewSection.dataset.locale) || (document.documentElement.lang || "").split("-")[0] || "";
 let rating = 0;
 let allReviews = [];
 let currentSort = "newest";
