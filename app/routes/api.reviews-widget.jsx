@@ -18,7 +18,7 @@ export async function loader({ request }) {
     en: { defaultTitle: 'What our customers say', basedOn: 'based on', review: 'review', reviews: 'reviews', verified: 'Verified', noReviews: 'No reviews yet.', loading: 'Loading reviews…' },
     hi: { defaultTitle: 'हमारे ग्राहक क्या कहते हैं', basedOn: 'आधारित', review: 'समीक्षा', reviews: 'समीक्षाएं', verified: 'सत्यापित', noReviews: 'अभी तक कोई समीक्षा नहीं।', loading: 'समीक्षाएं लोड हो रही हैं…' },
     es: { defaultTitle: 'Lo que dicen nuestros clientes', basedOn: 'basado en', review: 'reseña', reviews: 'reseñas', verified: 'Verificado', noReviews: 'Aún no hay reseñas.', loading: 'Cargando reseñas…' },
-    fr: { defaultTitle: 'Ce qu'en disent ceux qui l'ont essayé.', basedOn: 'basé sur', review: 'avis', reviews: 'avis', verified: 'Vérifié', noReviews: 'Aucun avis pour le moment.', loading: 'Chargement des avis…' },
+    fr: { defaultTitle: 'Ce qu’en disent ceux qui l’ont essayé.', basedOn: 'basé sur', review: 'avis', reviews: 'avis', verified: 'Vérifié', noReviews: 'Aucun avis pour le moment.', loading: 'Chargement des avis…' },
     de: { defaultTitle: 'Was unsere Kunden sagen', basedOn: 'basierend auf', review: 'Bewertung', reviews: 'Bewertungen', verified: 'Verifiziert', noReviews: 'Noch keine Bewertungen.', loading: 'Bewertungen werden geladen…' },
     it: { defaultTitle: 'Cosa dicono i nostri clienti', basedOn: 'basato su', review: 'recensione', reviews: 'recensioni', verified: 'Verificato', noReviews: 'Ancora nessuna recensione.', loading: 'Caricamento recensioni…' },
     pt: { defaultTitle: 'O que dizem nossos clientes', basedOn: 'baseado em', review: 'avaliação', reviews: 'avaliações', verified: 'Verificado', noReviews: 'Ainda não há avaliações.', loading: 'Carregando avaliações…' },
