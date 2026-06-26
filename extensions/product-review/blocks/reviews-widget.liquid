@@ -292,6 +292,7 @@
   var loadingEl = widget.querySelector('.trust-reviews__loading');
   var container = widget.querySelector('.trust-reviews__container');
   var headingEl = widget.querySelector('.trust-reviews__heading');
+  var resolvedT = null; // set once translations arrive; read by the fetch .catch() below
 
   // Fallback only — the full set of languages is served by /apps/review (see
   // app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
@@ -626,7 +627,7 @@
     loadingEl.style.display = 'none';
     var reviews = apiData.reviews || [];
     if (!reviews.length) {
-      container.innerHTML = '<p style="color:#888;font-size:0.9rem">No reviews yet.</p>';
+      container.innerHTML = '<p style="color:#888;font-size:0.9rem">' + (s.t ? s.t.noReviews : 'No reviews yet.') + '</p>';
       return;
     }
 
@@ -669,6 +670,7 @@
     .then(function(resp) {
       var d = resp.settings || {};
       var t = resp.translations || TRANSLATIONS.en;
+      resolvedT = t;
 
       var accentColor = (blockColor && blockColor !== D_COLOR) ? blockColor : (d.accentColor || D_COLOR);
       var style       = (blockStyle && blockStyle !== D_STYLE) ? blockStyle : (d.defaultStyle || D_STYLE);
@@ -722,7 +724,7 @@
         .then(function(apiData){ renderReviews(apiData, s); });
     })
     .catch(function() {
-      loadingEl.textContent = 'Could not load reviews.';
+      loadingEl.textContent = (resolvedT || TRANSLATIONS.en).couldNotLoad;
     });
 })();
 </script>

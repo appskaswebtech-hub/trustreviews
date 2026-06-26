@@ -37,6 +37,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
     prev: "← Prev", next: "Next →", page: "Page", of: "of",
     storeReplyLabel: "Store reply",
+    verified: "Verified", outOf5: "out of 5",
   },
   hi: {
     basedOn: "आधारित", reviewsWord: "समीक्षाएँ", writeReview: "रिव्यू लिखें", close: "बंद करें",
@@ -54,6 +55,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "कृपया सभी आवश्यक फ़ील्ड भरें", reviewLinkCopiedAlert: "समीक्षा लिंक कॉपी हो गया!",
     prev: "← पिछला", next: "अगला →", page: "पृष्ठ", of: "में से",
     storeReplyLabel: "स्टोर का जवाब",
+    verified: "सत्यापित", outOf5: "में से 5",
   },
   es: {
     basedOn: "Basado en", reviewsWord: "reseñas", writeReview: "Escribir una reseña", close: "Cerrar",
@@ -71,6 +73,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Por favor completa todos los campos obligatorios", reviewLinkCopiedAlert: "¡Enlace de la reseña copiado!",
     prev: "← Anterior", next: "Siguiente →", page: "Página", of: "de",
     storeReplyLabel: "Respuesta de la tienda",
+    verified: "Verificado", outOf5: "sobre 5",
   },
   fr: {
     basedOn: "Basé sur", reviewsWord: "avis", writeReview: "Écrire un avis", close: "Fermer",
@@ -88,6 +91,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Veuillez remplir tous les champs obligatoires", reviewLinkCopiedAlert: "Lien de l'avis copié !",
     prev: "← Précédent", next: "Suivant →", page: "Page", of: "sur",
     storeReplyLabel: "Réponse du magasin",
+    verified: "Vérifié", outOf5: "sur 5",
   },
   de: {
     basedOn: "Basierend auf", reviewsWord: "Bewertungen", writeReview: "Bewertung schreiben", close: "Schließen",
@@ -105,6 +109,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Bitte füllen Sie alle Pflichtfelder aus", reviewLinkCopiedAlert: "Bewertungslink kopiert!",
     prev: "← Zurück", next: "Weiter →", page: "Seite", of: "von",
     storeReplyLabel: "Antwort des Shops",
+    verified: "Verifiziert", outOf5: "von 5",
   },
   it: {
     basedOn: "Basato su", reviewsWord: "recensioni", writeReview: "Scrivi una recensione", close: "Chiudi",
@@ -122,6 +127,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Si prega di compilare tutti i campi obbligatori", reviewLinkCopiedAlert: "Link della recensione copiato!",
     prev: "← Precedente", next: "Successivo →", page: "Pagina", of: "di",
     storeReplyLabel: "Risposta del negozio",
+    verified: "Verificato", outOf5: "su 5",
   },
   pt: {
     basedOn: "Baseado em", reviewsWord: "avaliações", writeReview: "Escrever uma avaliação", close: "Fechar",
@@ -139,6 +145,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Por favor, preencha todos os campos obrigatórios", reviewLinkCopiedAlert: "Link da avaliação copiado!",
     prev: "← Anterior", next: "Próximo →", page: "Página", of: "de",
     storeReplyLabel: "Resposta da loja",
+    verified: "Verificado", outOf5: "de 5",
   },
   nl: {
     basedOn: "Gebaseerd op", reviewsWord: "reviews", writeReview: "Schrijf een review", close: "Sluiten",
@@ -156,6 +163,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Vul alle verplichte velden in", reviewLinkCopiedAlert: "Reviewlink gekopieerd!",
     prev: "← Vorige", next: "Volgende →", page: "Pagina", of: "van",
     storeReplyLabel: "Antwoord van de winkel",
+    verified: "Geverifieerd", outOf5: "van 5",
   },
   ar: {
     basedOn: "بناءً على", reviewsWord: "تقييمات", writeReview: "كتابة تقييم", close: "إغلاق",
@@ -173,6 +181,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "يرجى تعبئة جميع الحقول المطلوبة", reviewLinkCopiedAlert: "تم نسخ رابط التقييم!",
     prev: "← السابق", next: "التالي →", page: "صفحة", of: "من",
     storeReplyLabel: "رد المتجر",
+    verified: "موثّق", outOf5: "من 5",
   },
   zh: {
     basedOn: "基于", reviewsWord: "条评论", writeReview: "撰写评论", close: "关闭",
@@ -190,6 +199,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "请填写所有必填字段", reviewLinkCopiedAlert: "评论链接已复制！",
     prev: "← 上一页", next: "下一页 →", page: "第", of: "/ 共",
     storeReplyLabel: "店铺回复",
+    verified: "已验证", outOf5: "（满分5分）",
   },
   ja: {
     basedOn: "に基づく", reviewsWord: "レビュー", writeReview: "レビューを書く", close: "閉じる",
@@ -207,6 +217,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "必須項目をすべて入力してください", reviewLinkCopiedAlert: "レビューのリンクをコピーしました！",
     prev: "← 前へ", next: "次へ →", page: "ページ", of: "/ 全",
     storeReplyLabel: "店舗からの回答",
+    verified: "確認済み", outOf5: "5点中",
   },
   ru: {
     basedOn: "На основе", reviewsWord: "отзывов", writeReview: "Написать отзыв", close: "Закрыть",
@@ -224,6 +235,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Пожалуйста, заполните все обязательные поля", reviewLinkCopiedAlert: "Ссылка на отзыв скопирована!",
     prev: "← Назад", next: "Далее →", page: "Страница", of: "из",
     storeReplyLabel: "Ответ магазина",
+    verified: "Проверено", outOf5: "из 5",
   },
   tr: {
     basedOn: "Şuna dayanarak", reviewsWord: "değerlendirme", writeReview: "Değerlendirme yaz", close: "Kapat",
@@ -241,6 +253,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Lütfen tüm gerekli alanları doldurun", reviewLinkCopiedAlert: "Değerlendirme bağlantısı kopyalandı!",
     prev: "← Önceki", next: "Sonraki →", page: "Sayfa", of: "/",
     storeReplyLabel: "Mağaza yanıtı",
+    verified: "Onaylı", outOf5: "5 üzerinden",
   },
   pl: {
     basedOn: "Na podstawie", reviewsWord: "opinii", writeReview: "Napisz opinię", close: "Zamknij",
@@ -258,6 +271,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "Proszę wypełnić wszystkie wymagane pola", reviewLinkCopiedAlert: "Link do opinii skopiowany!",
     prev: "← Wstecz", next: "Dalej →", page: "Strona", of: "z",
     storeReplyLabel: "Odpowiedź sklepu",
+    verified: "Zweryfikowano", outOf5: "z 5",
   },
   ko: {
     basedOn: "기준", reviewsWord: "리뷰", writeReview: "리뷰 작성", close: "닫기",
@@ -275,6 +289,7 @@ export const REVIEW_TRANSLATIONS = {
     requiredFieldsAlert: "필수 항목을 모두 입력해 주세요", reviewLinkCopiedAlert: "리뷰 링크가 복사되었습니다!",
     prev: "← 이전", next: "다음 →", page: "페이지", of: "/",
     storeReplyLabel: "스토어 답변",
+    verified: "인증됨", outOf5: "5점 중",
   },
 };
 

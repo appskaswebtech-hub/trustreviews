@@ -23,6 +23,8 @@
     emailLabel: "Your email address", emailPlaceholder: "Email", cancel: "Cancel", submit: "Submit",
     requiredFieldsAlert: "Please fill all required fields",
     prev: "← Prev", next: "Next →", page: "Page", of: "of",
+    verified: "Verified", outOf5: "out of 5", noResults: "No reviews yet.",
+    sortOptions: { newest: "Most Recent", oldest: "Oldest First", highest: "Highest Rated", lowest: "Lowest Rated", helpful: "Most Helpful" },
   };
 
   function setText(id, text){ var el = document.getElementById(id); if(el) el.textContent = text; }
@@ -32,6 +34,8 @@
     T = remoteT || T;
     setText("rs-based-on-label", T.basedOn);
     setText("rs-reviews-word", T.reviewsWord);
+    setText("rs-out-of", T.outOf5);
+    setText("rs-no-results", T.noResults);
     setText("rs-write-label", T.writeReview);
     setText("rs-form-title", T.writeReview);
     setText("rs-rating-question", T.ratingQuestion);
@@ -46,6 +50,14 @@
     setPlaceholder("rs-email", T.emailPlaceholder);
     setText("rs-cancel-btn", T.cancel);
     setText("rs-submit-btn", T.submit);
+    if (T.sortOptions) {
+      document.querySelectorAll(".rs-sort-option").forEach(function(el){
+        var key = el.dataset.sort;
+        if (T.sortOptions[key]) el.textContent = T.sortOptions[key];
+      });
+      var activeOpt = document.querySelector(".rs-sort-option.active");
+      setText("rs-sort-btn", (activeOpt ? activeOpt.textContent : T.sortOptions.newest) + " ▾");
+    }
   }
 
   function showToast(message, type){
@@ -145,7 +157,7 @@
   /* ── CARD MARKUP ── */
   function buildCardHTML(r){
     var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString(storeLocale || undefined, { year: "numeric", month: "2-digit", day: "2-digit" }) : "";
-    var verifiedHTML = showVerified ? '<span class="rs-verified-badge">Verified</span>' : "";
+    var verifiedHTML = showVerified ? '<span class="rs-verified-badge">' + escapeHTML(T.verified || "Verified") + '</span>' : "";
     var titleHTML = r.title ? '<div class="rs-card-title">' + escapeHTML(r.title) + '</div>' : "";
     var mediaHTML = "";
     if(r.mediaUrl){
