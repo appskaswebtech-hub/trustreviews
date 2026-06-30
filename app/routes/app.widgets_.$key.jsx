@@ -15,12 +15,14 @@ import ReviewWidgetPreview from "../components/ReviewWidgetPreview";
 const KEY_DEFAULTS = {
   review_widget:         { label: "Review Widget",         defaultStyle: "dark_grid",       contentFilter: "all",   blockHandle: "reviews-widget" },
   cards_carousel:        { label: "Cards Carousel",        defaultStyle: "slider",          contentFilter: "all",   blockHandle: "reviews-widget" },
+  single_review:         { label: "Single Review",         defaultStyle: "slider",          contentFilter: "all",   blockHandle: "reviews-widget", columns: 1 },
   testimonial_carousel:  { label: "Testimonial Carousel",  defaultStyle: "editorial",       contentFilter: "all",   blockHandle: "reviews-widget" },
   videos_carousel:       { label: "Videos Carousel",       defaultStyle: "scroll_strip",    contentFilter: "video", blockHandle: "reviews-widget" },
   popup_reviews:         { label: "Pop-up Reviews",        defaultStyle: "popup",           contentFilter: "all",   blockHandle: "reviews-widget" },
   reviews_grid:          { label: "Reviews Grid",          defaultStyle: "minimal_grid",    contentFilter: "all",   blockHandle: "reviews-widget" },
   happy_customers:       { label: "Happy Customers widget",defaultStyle: "badge_strip",     contentFilter: "photo", blockHandle: "reviews-widget" },
   review_snippets:       { label: "Review Snippets",       defaultStyle: "snippet_rotator", contentFilter: "all",   blockHandle: "reviews-widget" },
+  classic_list:          { label: "Classic Reviews List",  defaultStyle: "classic_list",    contentFilter: "all",   blockHandle: "reviews-widget" },
   floating_reviews_tab:  { label: "Floating Reviews Tab",  defaultStyle: "floating_tab",    contentFilter: "all",   blockHandle: "reviews-widget" },
   trust_medals:          { label: "Trust Medals",          defaultStyle: "trust_medals",    contentFilter: "all",   blockHandle: "trust-medals" },
   verified_counter:      { label: "Verified Reviews Counter", defaultStyle: "verified_counter", contentFilter: "all", blockHandle: "verified-counter" },
@@ -45,7 +47,11 @@ export async function loader({ request, params }) {
   if (!settings) {
     const d = defaultsFor(key);
     settings = await db.widget.create({
-      data: { shop: session.shop, widgetKey: key, defaultStyle: d.defaultStyle, contentFilter: d.contentFilter },
+      data: {
+        shop: session.shop, widgetKey: key,
+        defaultStyle: d.defaultStyle, contentFilter: d.contentFilter,
+        ...(d.columns ? { columns: d.columns } : {}),
+      },
     });
   }
 
@@ -122,6 +128,9 @@ const STYLE_OPTIONS = [
   { label: "Horizontal Scroll",     value: "scroll_strip" },
   { label: "Popup Widget",          value: "popup"        },
   { label: "Badge Strip",           value: "badge_strip"  },
+  { label: "Quote Fade",            value: "quote_fade"   },
+  { label: "Masonry Wall",          value: "masonry_wall" },
+  { label: "Classic List",          value: "classic_list" },
   { label: "Snippet Rotator",       value: "snippet_rotator" },
   { label: "Floating Tab",          value: "floating_tab" },
   { label: "Trust Medals",          value: "trust_medals" },
@@ -190,7 +199,7 @@ export default function WidgetCustomizePage() {
 
   const [saved, setSaved] = useState(false);
 
-  const isSlider = ["slider", "scroll_strip"].includes(style);
+  const isSlider = ["slider", "scroll_strip", "quote_fade"].includes(style);
   const isPopup  = style === "popup";
 
   const handleSave = () => {

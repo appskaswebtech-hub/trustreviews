@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import fs from "fs";
 import path from "path";
 import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage } from "../utils/widgetTranslations.server";
+import { notifyIntegrations } from "../utils/events.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -445,6 +446,17 @@ export async function action({ request }) {
     },
     select: { id: true, status: true, createdAt: true, mediaUrl: true, mediaType: true },
   });
+
+  notifyIntegrations(shop, {
+    metricName: "Review Submitted",
+    email: normalizeEmail(data.email),
+    properties: {
+      rating: normalizeRating(data.rating),
+      comment,
+      customer: normalizeCustomer(data.customer),
+      status: review.status,
+    },
+  }).catch((error) => console.error("notifyIntegrations failed:", error.message));
 
   return Response.json({ success: true, review }, { status: 201 });
 }

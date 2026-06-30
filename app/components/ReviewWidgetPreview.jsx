@@ -191,6 +191,46 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
     );
   }
 
+  if (style === "quote_fade") {
+    const r = items[0];
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ textAlign: "center", padding: "12px 0" }}>
+          <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 10 }}>{stars(r.rating, s.accentColor)}</div>
+          <p style={{
+            fontSize: s.reviewSize * 1.3, fontStyle: "italic", color: s.textColor,
+            maxWidth: 520, margin: "0 auto 14px", lineHeight: 1.6,
+          }}>“{r.comment}”</p>
+          <div style={{ fontWeight: 700, color: s.accentColor, fontSize: s.metaSize }}>{r.customer}</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 14 }}>
+            {items.map((it, i) => (
+              <span key={it.id} style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: i === 0 ? s.accentColor : "#ddd",
+              }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "masonry_wall") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ columnCount: s.columns, columnGap: s.cardGap }}>
+          {items.map((r) => (
+            <div key={r.id} style={{ marginBottom: s.cardGap, breakInside: "avoid" }}>
+              <Card r={r} s={s} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (style === "badge_strip") {
     return (
       <div style={wrapStyle}>
@@ -201,6 +241,52 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
             <div key={r.id} style={{ background: s.accentColor, color: "#fff", borderRadius: 24, padding: "6px 14px", fontSize: 12.5, fontWeight: 600 }}>
               {r.rating}/5 {r.customer}
             </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "classic_list") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <span style={{ fontSize: s.metaSize, color: "#888" }}>Sort:</span>
+          <select style={{ border: `1px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, background: "#fff" }}>
+            <option>Newest</option>
+          </select>
+        </div>
+        {items.map((r, i) => (
+          <div key={r.id} style={{
+            padding: "16px 0",
+            borderTop: `1px solid ${s.borderColor}`,
+            borderBottom: i === items.length - 1 ? `1px solid ${s.borderColor}` : "none",
+          }}>
+            <div style={{ fontSize: s.reviewSize * 0.75, marginBottom: 6 }}>{stars(r.rating, s.accentColor)}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              {s.showAvatar && (
+                <span style={{
+                  width: 28, height: 28, borderRadius: "50%", background: s.accentColor, color: "#fff",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0,
+                }}>{initials(r.customer)}</span>
+              )}
+              <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+              {s.showVerified && <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: "1px 6px", background: "#e6f4ea", color: "#1a7a3a" }}>Verified</span>}
+              {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888", marginLeft: "auto" }}>{r.createdAt}</span>}
+            </div>
+            <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, marginBottom: 4, color: s.textColor }}>{r.title}</div>
+            <p style={{ fontSize: s.reviewSize, margin: 0, lineHeight: 1.5, color: s.textColor }}>{r.comment}</p>
+          </div>
+        ))}
+        <div style={{ display: "flex", justifyContent: "center", gap: 4, marginTop: 20 }}>
+          {["‹", "1", "2", "3", "›", "»"].map((label, i) => (
+            <button key={i} style={{
+              border: `1px solid ${i === 1 ? s.accentColor : s.borderColor}`,
+              background: i === 1 ? s.accentColor : "#fff",
+              color: i === 1 ? "#fff" : s.textColor,
+              borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, cursor: "pointer", minWidth: 32,
+            }}>{label}</button>
           ))}
         </div>
       </div>

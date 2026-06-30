@@ -2,6 +2,7 @@ import { Link, useLoaderData, useSubmit, useSearchParams } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useState } from "react";
+import { notifyIntegrations } from "../utils/events.server";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
@@ -82,8 +83,63 @@ export const loader = async ({ request }) => {
   return { grouped: Object.values(grouped), allCount, pendingCount, answeredCount, rejectedCount, tab };
 };
 
+// Fires the "Question Answered" Flow trigger so merchants can wire it to a
+// Flow email action (e.g. FlowMail/Flow Transactional Email) that supports a
+// dynamic recipient — Shopify's own built-in "Send internal email" action
+// can't target a variable address, so we can't notify the customer with it.
+async function notifyQuestionAnswered(admin, shop, id) {
+  const answered = await db.question.findUnique({
+    where: { id },
+    include: { product: { select: { shopifyProductId: true } } },
+  });
+
+  if (!answered?.email) return;
+
+  notifyIntegrations(shop, {
+    metricName: "Question Answered",
+    email: answered.email,
+    properties: { customer: answered.customer || "", question: answered.question, answer: answered.answer },
+  }).catch((error) => console.error("notifyIntegrations failed:", error.message));
+
+  let productTitle = "your product";
+  try {
+    const response = await admin.graphql(
+      `{ product(id:"gid://shopify/Product/${answered.product.shopifyProductId}"){title} }`,
+    );
+    const data = await response.json();
+    productTitle = data?.data?.product?.title || productTitle;
+  } catch {
+    // Product lookup is best-effort; fall back to the generic title.
+  }
+
+  try {
+    await admin.graphql(
+      `#graphql
+      mutation TriggerQuestionAnswered($handle: String!, $payload: JSON!) {
+        flowTriggerReceive(handle: $handle, payload: $payload) {
+          userErrors { field message }
+        }
+      }`,
+      {
+        variables: {
+          handle: "question-answered",
+          payload: {
+            "Customer Email": answered.email,
+            "Customer Name": answered.customer || "",
+            "Product Title": productTitle,
+            "Question": answered.question,
+            "Answer": answered.answer,
+          },
+        },
+      },
+    );
+  } catch (error) {
+    console.error("flowTriggerReceive failed", error);
+  }
+}
+
 export const action = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
   const actionType = formData.get("actionType");
   const id = Number(formData.get("id"));
@@ -96,6 +152,8 @@ export const action = async ({ request }) => {
       where: { id, storeId: store.id },
       data: { answer: String(answer || "").trim(), status: "answered", answeredAt: new Date() },
     });
+
+    await notifyQuestionAnswered(admin, session.shop, id);
   }
   if (actionType === "reject" && store) {
     await db.question.updateMany({ where: { id, storeId: store.id }, data: { status: "rejected" } });

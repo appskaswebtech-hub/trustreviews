@@ -204,6 +204,40 @@
 }
 .trust-reviews__dot.active { background: var(--tr-accent, #6B1A2C); transform: scale(1.25); }
 
+.trust-reviews__quote-fade { display: grid; }
+.trust-reviews__quote-fade-item {
+  grid-area: 1 / 1;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.5s ease;
+  text-align: center; padding: 12px 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.trust-reviews__quote-fade-item.active { opacity: 1; visibility: visible; pointer-events: auto; }
+.trust-reviews__quote-fade-text {
+  font-size: calc(var(--tr-rev-size, 16px) * 1.3);
+  font-style: italic;
+  color: var(--tr-text, #333);
+  max-width: 560px; margin: 0 0 14px; line-height: 1.6;
+}
+.trust-reviews__quote-fade-name { font-weight: 700; color: var(--tr-accent, #6B1A2C); font-size: var(--tr-meta-size, 13px); }
+
+.trust-reviews-widget[data-style="masonry_wall"] .trust-reviews__grid {
+  display: block;
+  column-count: var(--tr-cols, 3);
+  column-gap: var(--tr-gap, 16px);
+}
+.trust-reviews-widget[data-style="masonry_wall"] .trust-reviews__card {
+  display: inline-block; width: 100%;
+  margin-bottom: var(--tr-gap, 16px);
+  break-inside: avoid;
+}
+@media (max-width: 768px) {
+  .trust-reviews-widget[data-style="masonry_wall"] .trust-reviews__grid { column-count: var(--tr-cols-tablet, 2); }
+}
+@media (max-width: 480px) {
+  .trust-reviews-widget[data-style="masonry_wall"] .trust-reviews__grid { column-count: var(--tr-cols-mobile, 1); }
+}
+
 .trust-reviews__scroll-strip {
   display: flex; gap: var(--tr-gap, 16px);
   overflow-x: auto; padding-bottom: 8px;
@@ -270,6 +304,47 @@
   font-size: 1.2rem; cursor: pointer; color: #888;
 }
 .trust-reviews__floating-panel .trust-reviews__grid { grid-template-columns: 1fr !important; margin-top: 36px; }
+
+/* Classic List */
+.trust-reviews__classic-sortbar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.trust-reviews__classic-sortlabel { font-size: var(--tr-meta-size, 13px); color: #888; }
+.trust-reviews__classic-select {
+  border: 1px solid var(--tr-border, #e4e4e4); border-radius: 6px;
+  padding: 5px 10px; font-size: var(--tr-meta-size, 13px);
+  background: #fff; cursor: pointer;
+}
+.trust-reviews__classic-row {
+  padding: 16px 0;
+  border-top: 1px solid var(--tr-border, #e4e4e4);
+}
+.trust-reviews__classic-rows .trust-reviews__classic-row:last-child {
+  border-bottom: 1px solid var(--tr-border, #e4e4e4);
+}
+.trust-reviews__classic-stars { font-size: 0.9rem; margin-bottom: 6px; }
+.trust-reviews__classic-meta-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;
+}
+.trust-reviews__classic-avatar { width: 28px !important; height: 28px !important; font-size: 10px !important; }
+.trust-reviews__classic-name { font-size: var(--tr-meta-size, 13px); color: var(--tr-text, #333); }
+.trust-reviews__classic-date { font-size: var(--tr-meta-size, 13px); color: #888; margin-left: auto; }
+.trust-reviews__classic-title {
+  font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700;
+  color: var(--tr-text, #333); margin: 0 0 6px;
+}
+.trust-reviews__classic-comment { font-size: var(--tr-rev-size, 16px); color: var(--tr-text, #333); line-height: 1.6; margin: 0; }
+.trust-reviews__classic-pagination {
+  display: flex; align-items: center; gap: 4px; margin-top: 20px; justify-content: center; flex-wrap: wrap;
+}
+.trust-reviews__classic-pg-btn {
+  border: 1px solid var(--tr-border, #e4e4e4); background: #fff; color: var(--tr-text, #333);
+  border-radius: 6px; padding: 5px 12px; font-size: var(--tr-meta-size, 13px);
+  cursor: pointer; transition: background 0.15s; min-width: 36px;
+}
+.trust-reviews__classic-pg-btn:hover { background: #f5f5f5; }
+.trust-reviews__classic-pg-btn.tr-active { background: var(--tr-accent, #6B1A2C); color: #fff; border-color: var(--tr-accent, #6B1A2C); }
+.trust-reviews__classic-pg-btn:disabled { opacity: 0.4; cursor: default; background: #fff; }
 </style>
 
 <script>
@@ -540,6 +615,171 @@
     return wrap;
   }
 
+  function buildQuoteFade(reviews, s) {
+    var items = reviews.slice(0, s.maxRev);
+    var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__quote-fade-wrap';
+    var stage = document.createElement('div'); stage.className = 'trust-reviews__quote-fade';
+    wrap.appendChild(stage);
+
+    var slides = [];
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var item = document.createElement('div');
+      item.className = 'trust-reviews__quote-fade-item' + (i === 0 ? ' active' : '');
+      item.innerHTML =
+        '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+        '<p class="trust-reviews__quote-fade-text">&ldquo;' + r.comment + '&rdquo;</p>' +
+        '<div class="trust-reviews__quote-fade-name">' + r.customer + '</div>';
+      stage.appendChild(item);
+      slides.push(item);
+    }
+
+    var current = 0;
+    var total   = slides.length;
+    var dotBtns = [];
+
+    function goTo(idx) {
+      current = ((idx % total) + total) % total;
+      for (var k = 0; k < slides.length; k++) { slides[k].classList.toggle('active', k === current); }
+      for (var d = 0; d < dotBtns.length; d++) { dotBtns[d].classList.toggle('active', d === current); }
+    }
+
+    if (s.showDots && total > 1) {
+      var dotsEl = document.createElement('div');
+      dotsEl.className = 'trust-reviews__slider-dots';
+      for (var j = 0; j < total; j++) {
+        (function(idx) {
+          var d = document.createElement('button');
+          d.className = 'trust-reviews__dot' + (idx === 0 ? ' active' : '');
+          d.addEventListener('click', function(){ goTo(idx); });
+          dotsEl.appendChild(d);
+          dotBtns.push(d);
+        })(j);
+      }
+      wrap.appendChild(dotsEl);
+    }
+
+    if (s.showArrows && total > 1) {
+      var arrowRow = document.createElement('div');
+      arrowRow.className = 'trust-reviews__slider-arrows';
+      var prevBtn = document.createElement('button');
+      var nextBtn = document.createElement('button');
+      prevBtn.className = nextBtn.className = 'trust-reviews__slider-btn';
+      prevBtn.innerHTML = '&#8249;';
+      nextBtn.innerHTML = '&#8250;';
+      prevBtn.setAttribute('aria-label', s.t.previous);
+      nextBtn.setAttribute('aria-label', s.t.next);
+      prevBtn.addEventListener('click', function(){ goTo(current - 1); });
+      nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+      arrowRow.appendChild(prevBtn);
+      arrowRow.appendChild(nextBtn);
+      wrap.appendChild(arrowRow);
+    }
+
+    if (s.autoplay && total > 1) {
+      var timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed);
+      wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+      wrap.addEventListener('mouseleave', function(){
+        timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed);
+      });
+    }
+
+    return wrap;
+  }
+
+  function buildClassicList(reviews, s) {
+    var perPage = Math.max(1, s.maxRev);
+    var sorted  = reviews.slice();
+    var current = 0;
+
+    var wrap    = document.createElement('div');
+    wrap.className = 'trust-reviews__classic-list';
+
+    var sortBar = document.createElement('div');
+    sortBar.className = 'trust-reviews__classic-sortbar';
+    var sortLabel = document.createElement('span');
+    sortLabel.className   = 'trust-reviews__classic-sortlabel';
+    sortLabel.textContent = 'Sort:';
+    var sortSel = document.createElement('select');
+    sortSel.className = 'trust-reviews__classic-select';
+    [['newest','Newest'],['highest','Highest Rated'],['lowest','Lowest Rated']].forEach(function(o){
+      var opt = document.createElement('option');
+      opt.value = o[0]; opt.textContent = o[1];
+      sortSel.appendChild(opt);
+    });
+    sortBar.appendChild(sortLabel);
+    sortBar.appendChild(sortSel);
+    wrap.appendChild(sortBar);
+
+    var listEl  = document.createElement('div'); listEl.className  = 'trust-reviews__classic-rows';
+    var pagEl   = document.createElement('div'); pagEl.className   = 'trust-reviews__classic-pagination';
+    wrap.appendChild(listEl);
+    wrap.appendChild(pagEl);
+
+    function doSort(mode) {
+      sorted = reviews.slice();
+      if (mode === 'highest')     sorted.sort(function(a,b){ return b.rating - a.rating; });
+      else if (mode === 'lowest') sorted.sort(function(a,b){ return a.rating - b.rating; });
+      else                        sorted.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    }
+
+    function renderPage(page) {
+      var totalPages = Math.ceil(sorted.length / perPage);
+      var pageItems  = sorted.slice(page * perPage, page * perPage + perPage);
+
+      listEl.innerHTML = '';
+      pageItems.forEach(function(r) {
+        var row = document.createElement('div');
+        row.className = 'trust-reviews__classic-row';
+        var avatarHTML   = s.showAvatar ? '<span class="trust-reviews__avatar trust-reviews__classic-avatar" style="background:' + s.accentColor + '">' + initials(r.customer) + '</span>' : '';
+        var verifiedHTML = s.showVerified ? '<span class="trust-reviews__verified">' + (s.t ? s.t.verified : 'Verified') + '</span>' : '';
+        var dateHTML     = (s.showDate && r.createdAt) ? '<span class="trust-reviews__classic-date">' + fmtDate(r.createdAt) + '</span>' : '';
+        var titleHTML    = r.title ? '<p class="trust-reviews__classic-title">' + r.title + '</p>' : '';
+        row.innerHTML =
+          '<div class="trust-reviews__classic-stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+          '<div class="trust-reviews__classic-meta-row">' + avatarHTML + '<strong class="trust-reviews__classic-name">' + r.customer + '</strong>' + verifiedHTML + dateHTML + '</div>' +
+          titleHTML +
+          '<p class="trust-reviews__classic-comment">' + r.comment + '</p>';
+        listEl.appendChild(row);
+      });
+
+      pagEl.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      function mkBtn(label, page, isActive, isDisabled) {
+        var btn = document.createElement('button');
+        btn.className = 'trust-reviews__classic-pg-btn' + (isActive ? ' tr-active' : '');
+        btn.textContent = label;
+        btn.disabled    = isDisabled;
+        if (!isDisabled) btn.addEventListener('click', function(){ current = page; renderPage(current); });
+        return btn;
+      }
+
+      pagEl.appendChild(mkBtn('‹', current - 1, false, current === 0));
+
+      var startP = Math.max(0, current - 2);
+      var endP   = Math.min(totalPages - 1, startP + 4);
+      if (endP - startP < 4) startP = Math.max(0, endP - 4);
+      for (var p = startP; p <= endP; p++) {
+        pagEl.appendChild(mkBtn(p + 1, p, p === current, false));
+      }
+
+      pagEl.appendChild(mkBtn('›', current + 1, false, current === totalPages - 1));
+      pagEl.appendChild(mkBtn('»', totalPages - 1, false, current === totalPages - 1));
+    }
+
+    doSort('newest');
+    renderPage(0);
+
+    sortSel.addEventListener('change', function(){
+      current = 0;
+      doSort(sortSel.value);
+      renderPage(0);
+    });
+
+    return wrap;
+  }
+
   function buildFloatingTab(reviews, s) {
     var tab = document.createElement('div');
     tab.className = 'trust-reviews__floating-tab';
@@ -644,6 +884,10 @@
       el = buildBadgeStrip(reviews, s, apiData.averageRating || 0);
     } else if (s.style === 'star_summary') {
       el = buildStarSummary(reviews, s, apiData.total || reviews.length, apiData.averageRating || 0);
+    } else if (s.style === 'quote_fade') {
+      el = buildQuoteFade(reviews, s);
+    } else if (s.style === 'classic_list') {
+      el = buildClassicList(reviews, s);
     } else if (s.style === 'popup') {
       el = document.createElement('div');
       el.className = 'trust-reviews__grid';
@@ -747,9 +991,11 @@
         { "value": "testimonial_carousel",  "label": "Testimonial Carousel"   },
         { "value": "videos_carousel",       "label": "Videos Carousel"        },
         { "value": "popup_reviews",         "label": "Pop-up Reviews"         },
+        { "value": "single_review",         "label": "Single Review"          },
         { "value": "reviews_grid",          "label": "Reviews Grid"           },
         { "value": "happy_customers",       "label": "Happy Customers widget" },
-        { "value": "review_snippets",       "label": "Review Snippets"        }
+        { "value": "review_snippets",       "label": "Review Snippets"        },
+        { "value": "classic_list",           "label": "Classic Reviews List"   }
       ]
     },
     {
@@ -767,7 +1013,10 @@
         { "value": "editorial",    "label": "Editorial Magazine"   },
         { "value": "scroll_strip", "label": "Horizontal Scroll"    },
         { "value": "popup",        "label": "Popup Widget"         },
-        { "value": "badge_strip",  "label": "Badge Strip"          }
+        { "value": "badge_strip",  "label": "Badge Strip"          },
+        { "value": "quote_fade",    "label": "Quote Fade"           },
+        { "value": "masonry_wall",  "label": "Masonry Wall"         },
+        { "value": "classic_list",  "label": "Classic List"         }
       ]
     },
     { "type": "header",   "content": "Appearance" },

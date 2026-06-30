@@ -3,7 +3,7 @@ import { authenticate } from "../shopify.server";
 import { redirect } from "react-router";
 import db from "../db.server";
 import { useState, useRef, useEffect } from "react";
-import { syncSubscriptionStatus, isDevStore } from "../billing.server";
+//import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -96,7 +96,7 @@ function mapLocale(shopifyLocale = "en") {
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
 
-  try {
+  /*try {
     const dev = await isDevStore(admin);
     if (!dev) {
       const activePlan = await syncSubscriptionStatus(admin, session.shop);
@@ -109,7 +109,7 @@ export const loader = async ({ request }) => {
   } catch (err) {
     if (err instanceof Response) throw err;
     console.error("[billing gate] error, skipping:", err.message);
-  }
+  }*/
 
   // ── Fetch shop's primary locale ──────────────────────────────────────────────
   let shopLocale = "en";

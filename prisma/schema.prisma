@@ -90,7 +90,7 @@ model Review {
   email       String?
   title       String?
   rating      Int
-  comment     String
+  comment     String   @db.Text
   customer    String
   likes       Int          @default(0)
   status      ReviewStatus @default(pending)
@@ -211,6 +211,20 @@ model WidgetSettings {
   secondaryStat String?                        // ← NEW — optional stat shown after a divider in the Text style
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Integration {
+  id            String    @id @default(cuid())
+  shop          String
+  provider      String    // "klaviyo" | "mailchimp" | ...
+  apiKey        String
+  connected     Boolean   @default(false)
+  lastError     String?
+  lastCheckedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([shop, provider])
 }
 
 model Widget {
