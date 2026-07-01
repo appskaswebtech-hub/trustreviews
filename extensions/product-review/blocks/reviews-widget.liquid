@@ -306,8 +306,10 @@
 .trust-reviews__floating-panel .trust-reviews__grid { grid-template-columns: 1fr !important; margin-top: 36px; }
 
 /* Classic List */
+.trust-reviews__classic-list { text-align: var(--tr-text-align, left); }
 .trust-reviews__classic-sortbar {
   display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  justify-content: var(--tr-list-justify, flex-start);
 }
 .trust-reviews__classic-sortlabel { font-size: var(--tr-meta-size, 13px); color: #888; }
 .trust-reviews__classic-select {
@@ -322,12 +324,13 @@
 .trust-reviews__classic-rows .trust-reviews__classic-row:last-child {
   border-bottom: 1px solid var(--tr-border, #e4e4e4);
 }
-.trust-reviews__classic-stars { font-size: 0.9rem; margin-bottom: 6px; }
 .trust-reviews__classic-meta-row {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
+  justify-content: var(--tr-list-justify, flex-start);
 }
-.trust-reviews__classic-avatar { width: 28px !important; height: 28px !important; font-size: 10px !important; }
-.trust-reviews__classic-name { font-size: var(--tr-meta-size, 13px); color: var(--tr-text, #333); }
+.trust-reviews__classic-avatar { width: 30px !important; height: 30px !important; font-size: 10px !important; }
+.trust-reviews__classic-name { font-size: var(--tr-meta-size, 13px); color: var(--tr-text, #333); font-weight: 700; }
+.trust-reviews__classic-stars-inline { font-size: 0.9rem; }
 .trust-reviews__classic-date { font-size: var(--tr-meta-size, 13px); color: #888; margin-left: auto; }
 .trust-reviews__classic-title {
   font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700;
@@ -688,9 +691,13 @@
   }
 
   function buildClassicList(reviews, s) {
-    var perPage = Math.max(1, s.maxRev);
-    var sorted  = reviews.slice();
-    var current = 0;
+    var perPage  = Math.max(1, s.maxRev);
+    var sorted   = reviews.slice();
+    var current  = 0;
+    var starCol  = s.starColor || '#F59E0B';
+    var tAlign   = s.textAlign || 'left';
+    var justify  = tAlign === 'center' ? 'center' : tAlign === 'right' ? 'flex-end' : 'flex-start';
+    widget.style.setProperty('--tr-list-justify', justify);
 
     var wrap    = document.createElement('div');
     wrap.className = 'trust-reviews__classic-list';
@@ -736,8 +743,13 @@
         var dateHTML     = (s.showDate && r.createdAt) ? '<span class="trust-reviews__classic-date">' + fmtDate(r.createdAt) + '</span>' : '';
         var titleHTML    = r.title ? '<p class="trust-reviews__classic-title">' + r.title + '</p>' : '';
         row.innerHTML =
-          '<div class="trust-reviews__classic-stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
-          '<div class="trust-reviews__classic-meta-row">' + avatarHTML + '<strong class="trust-reviews__classic-name">' + r.customer + '</strong>' + verifiedHTML + dateHTML + '</div>' +
+          '<div class="trust-reviews__classic-meta-row">' +
+            avatarHTML +
+            '<strong class="trust-reviews__classic-name">' + r.customer + '</strong>' +
+            '<span class="trust-reviews__classic-stars-inline">' + starHTML(r.rating, starCol) + '</span>' +
+            verifiedHTML +
+            dateHTML +
+          '</div>' +
           titleHTML +
           '<p class="trust-reviews__classic-comment">' + r.comment + '</p>';
         listEl.appendChild(row);
@@ -856,6 +868,8 @@
     widget.style.setProperty('--tr-gap',         s.cardGap       + 'px');
     widget.style.setProperty('--tr-radius',      s.borderRadius  + 'px');
     widget.style.setProperty('--tr-shadow',      s.showShadow ? '0 2px 12px rgba(0,0,0,.08)' : 'none');
+    widget.style.setProperty('--tr-star-color',  s.starColor || '#F59E0B');
+    widget.style.setProperty('--tr-text-align',  s.textAlign || 'left');
     widget.style.setProperty('--tr-cols',        String(s.columns));
     widget.style.setProperty('--tr-cols-tablet', String(s.tabletColumns));
     widget.style.setProperty('--tr-cols-mobile', String(s.mobileColumns));
@@ -933,6 +947,8 @@
       var s = {
         t:               t,
         accentColor:     accentColor,
+        starColor:       d.starColor || '#F59E0B',
+        textAlign:       d.textAlign || 'left',
         style:           style,
         columns:         columns,
         maxRev:          maxRev,

@@ -69,6 +69,8 @@ export async function action({ request, params }) {
   const payload = {
     defaultStyle:    form.get("defaultStyle"),
     accentColor:     form.get("accentColor"),
+    starColor:       form.get("starColor") || "#F59E0B",
+    textAlign:       form.get("textAlign") || "left",
     heading:         form.get("heading"),
     contentFilter:   form.get("contentFilter") || "all",
 
@@ -165,6 +167,8 @@ export default function WidgetCustomizePage() {
 
   const [style, setStyle]               = useState(settings.defaultStyle ?? "dark_grid");
   const [accentColor, setAccentColor]   = useState(settings.accentColor ?? "#6B1A2C");
+  const [starColor, setStarColor]       = useState(settings.starColor ?? "#F59E0B");
+  const [textAlign, setTextAlign]       = useState(settings.textAlign ?? "left");
   const [heading, setHeading]           = useState(settings.heading ?? "");
   const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
 
@@ -199,13 +203,16 @@ export default function WidgetCustomizePage() {
 
   const [saved, setSaved] = useState(false);
 
-  const isSlider = ["slider", "scroll_strip", "quote_fade"].includes(style);
-  const isPopup  = style === "popup";
+  const isSlider      = ["slider", "scroll_strip", "quote_fade"].includes(style);
+  const isPopup       = style === "popup";
+  const isClassicList = style === "classic_list";
 
   const handleSave = () => {
     const fd = new FormData();
     fd.set("defaultStyle", style);
     fd.set("accentColor", accentColor);
+    fd.set("starColor", starColor);
+    fd.set("textAlign", textAlign);
     fd.set("heading", heading);
     fd.set("contentFilter", contentFilter);
     fd.set("fontFamily", fontFamily);
@@ -241,7 +248,8 @@ export default function WidgetCustomizePage() {
   };
 
   const previewSettings = {
-    accentColor, backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
+    accentColor, starColor, textAlign,
+    backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
     maxReviews: maxRev, columns: Number(columns),
@@ -274,6 +282,7 @@ export default function WidgetCustomizePage() {
             <>
               <SelectField label="Widget Design" value={style} onChange={setStyle} options={STYLE_OPTIONS} />
               <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
+              <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
               <ColorField label="Widget Background" value={bgColor} onChange={setBgColor} />
               <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />
               <ColorField label="Text Color" value={textColor} onChange={setTextColor} />
@@ -311,6 +320,32 @@ export default function WidgetCustomizePage() {
             </>
           ),
         },
+        ...(isClassicList ? [{
+          key: "classiclist", label: "Classic List Options",
+          content: (
+            <>
+              <SelectField
+                label="Text Alignment"
+                value={textAlign}
+                onChange={setTextAlign}
+                options={[
+                  { label: "Left",   value: "left"   },
+                  { label: "Center", value: "center" },
+                  { label: "Right",  value: "right"  },
+                ]}
+              />
+              <RangeField label="Review Font Size"  value={reviewSize}    onChange={setReviewSize}    min={12} max={24} unit="px" />
+              <RangeField label="Name / Meta Size"  value={metaSize}      onChange={setMetaSize}      min={10} max={20} unit="px" />
+              <RangeField label="Reviews per Page"  value={maxRev}        onChange={setMaxRev}        min={2}  max={20} />
+              <RangeField label="Row Spacing"       value={cardGap}       onChange={setCardGap}       min={0}  max={48} step={4} unit="px" />
+              <RangeField label="Section Top Padding"    value={paddingTop}    onChange={setPaddingTop}    min={0} max={120} step={4} unit="px" />
+              <RangeField label="Section Bottom Padding" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
+              <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
+              <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
+              <ToggleField label="Show review date"     checked={date}     onChange={setDate} />
+            </>
+          ),
+        }] : []),
         {
           key: "advanced", label: "Advanced",
           content: (

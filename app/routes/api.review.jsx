@@ -208,6 +208,8 @@ export async function loader({ request }) {
       select: {
         defaultStyle:    true,
         accentColor:     true,
+        starColor:       true,
+        textAlign:       true,
         heading:         true,
         contentFilter:   true,
 

@@ -248,10 +248,13 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
   }
 
   if (style === "classic_list") {
+    const starCol  = s.starColor || "#F59E0B";
+    const tAlign   = s.textAlign || "left";
+    const jContent = tAlign === "center" ? "center" : tAlign === "right" ? "flex-end" : "flex-start";
     return (
       <div style={wrapStyle}>
-        <h2 style={headingStyle}>{heading}</h2>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+        <h2 style={{ ...headingStyle, textAlign: tAlign }}>{heading}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, justifyContent: jContent }}>
           <span style={{ fontSize: s.metaSize, color: "#888" }}>Sort:</span>
           <select style={{ border: `1px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, background: "#fff" }}>
             <option>Newest</option>
@@ -262,18 +265,19 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
             padding: "16px 0",
             borderTop: `1px solid ${s.borderColor}`,
             borderBottom: i === items.length - 1 ? `1px solid ${s.borderColor}` : "none",
+            textAlign: tAlign,
           }}>
-            <div style={{ fontSize: s.reviewSize * 0.75, marginBottom: 6 }}>{stars(r.rating, s.accentColor)}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, justifyContent: jContent, flexWrap: "wrap" }}>
               {s.showAvatar && (
                 <span style={{
-                  width: 28, height: 28, borderRadius: "50%", background: s.accentColor, color: "#fff",
+                  width: 30, height: 30, borderRadius: "50%", background: s.accentColor, color: "#fff",
                   display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0,
                 }}>{initials(r.customer)}</span>
               )}
               <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+              <span style={{ fontSize: s.reviewSize * 0.75 }}>{stars(r.rating, starCol)}</span>
               {s.showVerified && <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: "1px 6px", background: "#e6f4ea", color: "#1a7a3a" }}>Verified</span>}
-              {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888", marginLeft: "auto" }}>{r.createdAt}</span>}
+              {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888", marginLeft: tAlign === "left" ? "auto" : 0 }}>{r.createdAt}</span>}
             </div>
             <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, marginBottom: 4, color: s.textColor }}>{r.title}</div>
             <p style={{ fontSize: s.reviewSize, margin: 0, lineHeight: 1.5, color: s.textColor }}>{r.comment}</p>
