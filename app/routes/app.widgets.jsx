@@ -46,6 +46,15 @@ const WIDGETS = [
     icon: "💬",
   },
   {
+    key: "inline_rating",
+    title: "Inline Star Rating",
+    description: "A compact ★★★★★ 4.6 out of 5 based on 1,634 reviews badge — embed anywhere via a single div snippet.",
+    href: "/app/widgets/inline_rating",
+    blockHandle: "inline-rating",
+    bg: "linear-gradient(135deg,#fffbe6,#fef08a)",
+    icon: "⭐",
+  },
+  {
     key: "star_rating_badge",
     title: "Star Rating Badge",
     description: "Show off your product ratings and review count with a compact badge.",

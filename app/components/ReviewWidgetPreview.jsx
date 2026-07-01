@@ -9,9 +9,9 @@ const MOCK_REVIEWS = [
   { id: 4, customer: "Daniel P.", rating: 3, title: "Good but runs small", comment: "Nice design but I'd recommend sizing up.", createdAt: "2025-05-30", likes: 1 },
 ];
 
-function stars(rating, accent) {
+function stars(rating, accent, gap) {
   return Array.from({ length: 5 }, (_, i) => (
-    <span key={i} style={{ color: i < rating ? accent : "#ddd" }}>★</span>
+    <span key={i} style={{ color: i < rating ? accent : "#ddd", marginRight: i < 4 ? (gap ?? 2) : 0 }}>★</span>
   ));
 }
 
@@ -37,7 +37,7 @@ function Card({ r, s, editorial }) {
     <div style={cardStyle}>
       {editorial && avatar}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: s.reviewSize * 0.7, marginBottom: 4 }}>{stars(r.rating, s.accentColor)}</div>
+        <div style={{ fontSize: s.reviewSize * 0.7, marginBottom: 4 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
         <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, marginBottom: 4 }}>{r.title}</div>
         <p style={{ fontSize: s.reviewSize, margin: "0 0 8px", lineHeight: 1.5 }}>{r.comment}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: s.metaSize, color: "#888", flexWrap: "wrap" }}>
@@ -91,7 +91,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
           display: "inline-flex", alignItems: "center", gap: 10, padding: "12px 18px",
           border: `2px solid ${s.accentColor}`, borderRadius: 12, color: s.textColor,
         }}>
-          <div style={{ fontSize: 20 }}>{stars(Math.round(avg), s.accentColor)}</div>
+          <div style={{ fontSize: 20 }}>{stars(Math.round(avg), s.accentColor, s.starGap)}</div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 13 }}>{avg.toFixed(1)} / 5</div>
             <div style={{ fontSize: 11, color: "#888" }}>{items.length * 41} reviews · Verified</div>
@@ -155,7 +155,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
         }}>
           <div>
             <div style={{ fontSize: 38, fontWeight: 800, color: s.accentColor, lineHeight: 1 }}>{avg.toFixed(1)}</div>
-            <div style={{ fontSize: 16 }}>{stars(Math.round(avg), s.accentColor)}</div>
+            <div style={{ fontSize: 16 }}>{stars(Math.round(avg), s.accentColor, s.starGap)}</div>
             <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{items.length} reviews</div>
           </div>
           <div style={{ flex: 1 }}>
@@ -197,7 +197,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
       <div style={wrapStyle}>
         <h2 style={headingStyle}>{heading}</h2>
         <div style={{ textAlign: "center", padding: "12px 0" }}>
-          <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 10 }}>{stars(r.rating, s.accentColor)}</div>
+          <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 10 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
           <p style={{
             fontSize: s.reviewSize * 1.3, fontStyle: "italic", color: s.textColor,
             maxWidth: 520, margin: "0 auto 14px", lineHeight: 1.6,
@@ -275,7 +275,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
                 }}>{initials(r.customer)}</span>
               )}
               <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
-              <span style={{ fontSize: s.reviewSize * 0.75 }}>{stars(r.rating, starCol)}</span>
+              <span style={{ fontSize: s.reviewSize * 0.75 }}>{stars(r.rating, starCol, s.starGap)}</span>
               {s.showVerified && <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 4, padding: "1px 6px", background: "#e6f4ea", color: "#1a7a3a" }}>Verified</span>}
               {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888", marginLeft: tAlign === "left" ? "auto" : 0 }}>{r.createdAt}</span>}
             </div>

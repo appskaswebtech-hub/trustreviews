@@ -69,7 +69,7 @@
   box-sizing: border-box;
 }
 .trust-reviews__card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
-.trust-reviews__stars { font-size: 1rem; margin-bottom: 6px; }
+.trust-reviews__stars { font-size: 1rem; margin-bottom: 6px; display: inline-flex; align-items: center; gap: var(--tr-star-gap, 2px); }
 .trust-reviews__title { font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700; margin-bottom: 4px; color: var(--tr-text, #333); }
 .trust-reviews__comment { font-size: var(--tr-rev-size, 16px); color: var(--tr-text, #333); margin-bottom: 10px; line-height: 1.6; }
 .trust-reviews__meta { font-size: var(--tr-meta-size, 13px); color: #888; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -330,7 +330,7 @@
 }
 .trust-reviews__classic-avatar { width: 30px !important; height: 30px !important; font-size: 10px !important; }
 .trust-reviews__classic-name { font-size: var(--tr-meta-size, 13px); color: var(--tr-text, #333); font-weight: 700; }
-.trust-reviews__classic-stars-inline { font-size: var(--tr-star-size, 1rem); }
+.trust-reviews__classic-stars-inline { font-size: var(--tr-star-size, 1rem); display: inline-flex; align-items: center; gap: var(--tr-star-gap, 2px); }
 .trust-reviews__classic-date { font-size: var(--tr-meta-size, 13px); color: #888; margin-left: auto; }
 .trust-reviews__classic-title {
   font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700;
@@ -870,6 +870,7 @@
     widget.style.setProperty('--tr-shadow',      s.showShadow ? '0 2px 12px rgba(0,0,0,.08)' : 'none');
     widget.style.setProperty('--tr-star-color',  s.starColor || '#F59E0B');
     widget.style.setProperty('--tr-star-size',   (s.reviewSize || 16) + 'px');
+    widget.style.setProperty('--tr-star-gap',    (s.starGap != null ? s.starGap : 2) + 'px');
     widget.style.setProperty('--tr-text-align',  s.textAlign || 'left');
     widget.style.setProperty('--tr-cols',        String(s.columns));
     widget.style.setProperty('--tr-cols-tablet', String(s.tabletColumns));
@@ -949,6 +950,7 @@
         t:               t,
         accentColor:     accentColor,
         starColor:       d.starColor || '#F59E0B',
+        starGap:         d.starGap != null ? d.starGap : 2,
         textAlign:       d.textAlign || 'left',
         style:           style,
         columns:         columns,

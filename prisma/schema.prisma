@@ -237,6 +237,7 @@ model Widget {
   defaultStyle String   @default("dark_grid")
   accentColor  String   @default("#6B1A2C")
   starColor    String   @default("#F59E0B")
+  starGap      Int      @default(2)
   textAlign    String   @default("left")
   heading      String   @default("Ce qu'en disent ceux qui l'ont essayé.")
 

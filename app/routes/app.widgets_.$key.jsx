@@ -70,6 +70,7 @@ export async function action({ request, params }) {
     defaultStyle:    form.get("defaultStyle"),
     accentColor:     form.get("accentColor"),
     starColor:       form.get("starColor") || "#F59E0B",
+    starGap:         parseInt(form.get("starGap")) || 2,
     textAlign:       form.get("textAlign") || "left",
     heading:         form.get("heading"),
     contentFilter:   form.get("contentFilter") || "all",
@@ -168,6 +169,7 @@ export default function WidgetCustomizePage() {
   const [style, setStyle]               = useState(settings.defaultStyle ?? "dark_grid");
   const [accentColor, setAccentColor]   = useState(settings.accentColor ?? "#6B1A2C");
   const [starColor, setStarColor]       = useState(settings.starColor ?? "#F59E0B");
+  const [starGap, setStarGap]           = useState(settings.starGap ?? 2);
   const [textAlign, setTextAlign]       = useState(settings.textAlign ?? "left");
   const [heading, setHeading]           = useState(settings.heading ?? "");
   const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
@@ -212,6 +214,7 @@ export default function WidgetCustomizePage() {
     fd.set("defaultStyle", style);
     fd.set("accentColor", accentColor);
     fd.set("starColor", starColor);
+    fd.set("starGap", String(starGap));
     fd.set("textAlign", textAlign);
     fd.set("heading", heading);
     fd.set("contentFilter", contentFilter);
@@ -248,7 +251,7 @@ export default function WidgetCustomizePage() {
   };
 
   const previewSettings = {
-    accentColor, starColor, textAlign,
+    accentColor, starColor, starGap, textAlign,
     backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
@@ -283,6 +286,7 @@ export default function WidgetCustomizePage() {
               <SelectField label="Widget Design" value={style} onChange={setStyle} options={STYLE_OPTIONS} />
               <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
               <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
+              <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
               <ColorField label="Widget Background" value={bgColor} onChange={setBgColor} />
               <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />
               <ColorField label="Text Color" value={textColor} onChange={setTextColor} />

@@ -209,6 +209,7 @@ export async function loader({ request }) {
         defaultStyle:    true,
         accentColor:     true,
         starColor:       true,
+        starGap:         true,
         textAlign:       true,
         heading:         true,
         contentFilter:   true,

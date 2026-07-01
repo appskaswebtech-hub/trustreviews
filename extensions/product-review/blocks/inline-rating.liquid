@@ -1,0 +1,121 @@
+{% comment %}
+  Trust Reviews — Inline Star Rating block
+  • Renders an inline "★★★★★ 4.6 out of 5 based on 1,634 reviews" badge for the current product.
+  • ALSO auto-initialises any <div data-trust-product-id="{{ product.id }}"></div>
+    elements found anywhere on the page, so merchants can embed the snippet in their
+    own theme code without adding another block.
+{% endcomment %}
+
+<span
+  id="trust-ir-{{ block.id }}"
+  class="trust-inline-rating"
+  data-product-id="{{ product.id }}"
+  data-shop="{{ shop.permanent_domain }}"
+  style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1;"
+>
+  <span class="trust-ir__stars" style="display:inline-flex;align-items:center;gap:{{ block.settings.star_gap }}px;font-size:{{ block.settings.star_size }}px;">
+    {% for i in (1..5) %}<span style="color:#ddd;">&#9733;</span>{% endfor %}
+  </span>
+  {% if block.settings.show_text %}
+  <span class="trust-ir__text" style="font-size:{{ block.settings.star_size | times: 0.8 | round }}px;color:{{ block.settings.text_color }};"></span>
+  {% endif %}
+</span>
+
+<script>
+(function () {
+  var SHOP       = {{ shop.permanent_domain | json }};
+  var STAR_COLOR = {{ block.settings.star_color | json }};
+  var TEXT_COLOR = {{ block.settings.text_color | json }};
+  var STAR_SIZE  = {{ block.settings.star_size }};
+  var STAR_GAP   = {{ block.settings.star_gap }};
+  var SHOW_TEXT  = {{ block.settings.show_text | json }};
+  var FORMAT     = {{ block.settings.text_format | json }};
+
+  function starsHTML(avg) {
+    var out = '';
+    for (var i = 0; i < 5; i++) {
+      var color = i < Math.round(avg) ? STAR_COLOR : '#ddd';
+      out += '<span style="color:' + color + '">&#9733;</span>';
+    }
+    return out;
+  }
+
+  function formatText(avg, total) {
+    var n = total.toLocaleString();
+    if (FORMAT === 'short') return avg.toFixed(1) + ' (' + n + ' reviews)';
+    if (FORMAT === 'count') return n + ' reviews';
+    return avg.toFixed(1) + ' out of 5 based on ' + n + ' reviews';
+  }
+
+  function populate(el, productId) {
+    if (el.dataset.trDone) return;
+    el.dataset.trDone = '1';
+
+    fetch('/apps/review?shop=' + SHOP + '&productId=' + productId)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var avg   = d.averageRating || 0;
+        var total = d.total || 0;
+        if (!avg) { el.style.display = 'none'; return; }
+
+        var starsEl = el.querySelector('.trust-ir__stars');
+        var textEl  = el.querySelector('.trust-ir__text');
+
+        if (starsEl) {
+          starsEl.style.display     = 'inline-flex';
+          starsEl.style.alignItems  = 'center';
+          starsEl.style.gap         = STAR_GAP + 'px';
+          starsEl.style.fontSize    = STAR_SIZE + 'px';
+          starsEl.innerHTML         = starsHTML(avg);
+        }
+        if (textEl && SHOW_TEXT) {
+          textEl.textContent = formatText(avg, total);
+        }
+      })
+      .catch(function () {});
+  }
+
+  // Initialise the block element itself
+  var blockEl = document.getElementById('trust-ir-{{ block.id }}');
+  if (blockEl) populate(blockEl, blockEl.dataset.productId);
+
+  // Auto-initialise any <div data-trust-product-id="..."> on the page
+  document.querySelectorAll('[data-trust-product-id]:not([data-tr-done])').forEach(function (el) {
+    var pid = el.dataset.trustProductId;
+    el.innerHTML =
+      '<span class="trust-ir__stars" style="display:inline-flex;align-items:center;gap:' + STAR_GAP + 'px;font-size:' + STAR_SIZE + 'px;">' +
+        '<span style="color:#ddd">&#9733;</span>'.repeat(5) +
+      '</span>' +
+      (SHOW_TEXT ? '<span class="trust-ir__text" style="font-size:' + Math.round(STAR_SIZE * 0.8) + 'px;color:' + TEXT_COLOR + ';margin-left:6px;"></span>' : '');
+    el.style.cssText += ';display:inline-flex!important;align-items:center;gap:6px;flex-wrap:wrap;';
+    populate(el, pid);
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Inline Star Rating",
+  "target": "section",
+  "settings": [
+    { "type": "header",   "content": "Stars" },
+    { "type": "color",    "id": "star_color", "label": "Star Color",         "default": "#F59E0B" },
+    { "type": "range",    "id": "star_size",  "label": "Star Size",          "min": 12, "max": 40, "step": 1,  "default": 18 },
+    { "type": "range",    "id": "star_gap",   "label": "Gap Between Stars",  "min": 0,  "max": 12, "step": 1,  "default": 2  },
+    { "type": "header",   "content": "Rating Text" },
+    { "type": "checkbox", "id": "show_text",  "label": "Show rating text",   "default": true },
+    { "type": "color",    "id": "text_color", "label": "Text Color",         "default": "#555555" },
+    {
+      "type": "select",
+      "id": "text_format",
+      "label": "Text Format",
+      "default": "full",
+      "options": [
+        { "value": "full",  "label": "4.6 out of 5 based on 1,634 reviews" },
+        { "value": "short", "label": "4.6  (1,634 reviews)"               },
+        { "value": "count", "label": "1,634 reviews"                       }
+      ]
+    }
+  ]
+}
+{% endschema %}
