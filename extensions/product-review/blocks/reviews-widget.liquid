@@ -318,7 +318,7 @@
   background: #fff; cursor: pointer;
 }
 .trust-reviews__classic-row {
-  padding: 16px 0;
+  padding: var(--tr-gap, 16px) 0;
   border-top: 1px solid var(--tr-border, #e4e4e4);
 }
 .trust-reviews__classic-rows .trust-reviews__classic-row:last-child {
@@ -330,7 +330,7 @@
 }
 .trust-reviews__classic-avatar { width: 30px !important; height: 30px !important; font-size: 10px !important; }
 .trust-reviews__classic-name { font-size: var(--tr-meta-size, 13px); color: var(--tr-text, #333); font-weight: 700; }
-.trust-reviews__classic-stars-inline { font-size: 0.9rem; }
+.trust-reviews__classic-stars-inline { font-size: var(--tr-star-size, 1rem); }
 .trust-reviews__classic-date { font-size: var(--tr-meta-size, 13px); color: #888; margin-left: auto; }
 .trust-reviews__classic-title {
   font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700;
@@ -869,6 +869,7 @@
     widget.style.setProperty('--tr-radius',      s.borderRadius  + 'px');
     widget.style.setProperty('--tr-shadow',      s.showShadow ? '0 2px 12px rgba(0,0,0,.08)' : 'none');
     widget.style.setProperty('--tr-star-color',  s.starColor || '#F59E0B');
+    widget.style.setProperty('--tr-star-size',   (s.reviewSize || 16) + 'px');
     widget.style.setProperty('--tr-text-align',  s.textAlign || 'left');
     widget.style.setProperty('--tr-cols',        String(s.columns));
     widget.style.setProperty('--tr-cols-tablet', String(s.tabletColumns));
@@ -992,7 +993,6 @@
 {% schema %}
 {
   "name": "Trust Reviews",
-  "target": "section",
   "settings": [
     { "type": "header", "content": "Widget Style" },
     {
