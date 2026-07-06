@@ -36,6 +36,10 @@ export default function App() {
             Settings
           </Link>
 
+          <Link to="/app/review-groups">
+            Product Groups
+          </Link>
+
           <Link to="/app/integrations">
             Integrations
           </Link>
