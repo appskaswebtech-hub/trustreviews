@@ -248,69 +248,72 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
   }
 
   if (style === "summary_side") {
-    const starCol   = s.starColor || "#F59E0B";
-    const pos       = s.summaryPosition || "left";
-    const isRow     = pos === "left" || pos === "right";
-    const flexDir   = pos === "right" ? "row-reverse" : pos === "bottom" ? "column-reverse" : pos === "top" ? "column" : "row";
-
-    const SummaryPanel = () => (
-      <div style={{ minWidth: isRow ? 200 : "100%", maxWidth: isRow ? 220 : "100%", flexShrink: 0 }}>
-        <div style={{ fontSize: s.metaSize, fontWeight: 700, color: s.accentColor, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Customer reviews</div>
-        <h2 style={{ ...headingStyle, fontSize: Math.min(s.headingSize, 22), margin: "0 0 14px" }}>{heading}</h2>
-        <div style={{ fontSize: 52, fontWeight: 900, color: s.accentColor, lineHeight: 1, marginBottom: 4 }}>{avg.toFixed(1)}</div>
-        <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 4 }}>{stars(Math.round(avg), starCol, s.starGap)}</div>
-        <div style={{ fontSize: s.metaSize, color: s.muted || "#888", marginBottom: 16 }}>Based on {items.length * 41} reviews</div>
-        {[5,4,3,2,1].map((n) => {
-          const cnt = items.filter((r) => r.rating === n).length;
-          const pct = Math.round((cnt / items.length) * 100) || (n === 5 ? 85 : n === 4 ? 10 : n === 3 ? 3 : 1);
-          return (
-            <div key={n} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
-              <span style={{ fontSize: 11, color: "#555", width: 12 }}>{n}</span>
-              <span style={{ fontSize: 12, color: starCol }}>★</span>
-              <div style={{ flex: 1, height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${pct}%`, height: "100%", background: s.accentColor, borderRadius: 3 }} />
-              </div>
-              <span style={{ fontSize: 11, color: "#888", width: 24, textAlign: "right" }}>{cnt * 20 || pct}</span>
-            </div>
-          );
-        })}
-        {s.showWriteReviewBtn && (
-          <button style={{ marginTop: 14, padding: "8px 18px", background: s.textColor || "#333", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-            Write a review
-          </button>
-        )}
-      </div>
-    );
-
-    const ReviewList = () => (
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {items.map((r, i) => (
-          <div key={r.id} style={{ padding: "14px 0", borderBottom: i < items.length - 1 ? `1px solid ${s.borderColor}` : "none" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <div style={{ fontSize: s.reviewSize * 0.75 }}>{stars(r.rating, starCol, s.starGap)}</div>
-              {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888" }}>2 weeks ago</span>}
-            </div>
-            <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, color: s.textColor, marginBottom: 4 }}>{r.title}</div>
-            <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: "0 0 8px", lineHeight: 1.5 }}>{r.comment}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {s.showAvatar && (
-                <span style={{ width: 26, height: 26, borderRadius: "50%", background: s.accentColor, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>
-                  {initials(r.customer)}
-                </span>
-              )}
-              <span style={{ fontSize: s.metaSize, fontWeight: 600, color: s.textColor }}>{r.customer}</span>
-              {s.showVerified && <span style={{ fontSize: 10, color: "#1a7a3a" }}>✓ Verified purchase</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    const starCol = s.starColor || "#F59E0B";
+    const pos     = s.summaryPosition || "left";
+    const isRow   = pos === "left" || pos === "right";
+    const flexDir = pos === "right" ? "row-reverse" : pos === "bottom" ? "column-reverse" : pos === "top" ? "column" : "row";
+    const totalMock = items.length * 41;
 
     return (
       <div style={wrapStyle}>
+        {/* Header row: label+heading left, Write a review button right */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: s.metaSize, fontWeight: 700, color: s.accentColor, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+              Customer reviews
+            </div>
+            <h2 style={{ ...headingStyle, fontSize: Math.min(s.headingSize, 22), margin: 0 }}>{heading}</h2>
+          </div>
+          <button style={{ flexShrink: 0, padding: "9px 20px", background: s.textColor || "#333", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+            Write a review
+          </button>
+        </div>
+
+        {/* Two-panel layout */}
         <div style={{ display: "flex", flexDirection: flexDir, gap: 28, alignItems: "flex-start" }}>
-          <SummaryPanel />
-          <ReviewList />
+          {/* Summary panel: score + bars */}
+          <div style={{ minWidth: isRow ? 190 : "100%", maxWidth: isRow ? 210 : "100%", flexShrink: 0 }}>
+            <div style={{ fontSize: 48, fontWeight: 900, color: s.accentColor, lineHeight: 1, marginBottom: 4 }}>{avg.toFixed(1)}</div>
+            <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 4 }}>{stars(Math.round(avg), starCol, s.starGap)}</div>
+            <div style={{ fontSize: s.metaSize, color: "#888", marginBottom: 14 }}>Based on {totalMock} reviews</div>
+            {[5,4,3,2,1].map((n) => {
+              const cnt = items.filter((r) => r.rating === n).length;
+              const pct = Math.round((cnt / items.length) * 100) || (n === 5 ? 85 : n === 4 ? 10 : n === 3 ? 3 : 1);
+              return (
+                <div key={n} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "#555", width: 12 }}>{n}</span>
+                  <span style={{ fontSize: 12, color: starCol }}>★</span>
+                  <div style={{ flex: 1, height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: s.accentColor, borderRadius: 3 }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: "#888", width: 24, textAlign: "right" }}>{cnt * 20 || pct}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Review list */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {items.map((r, i) => (
+              <div key={r.id} style={{ padding: "14px 0", borderTop: `1px solid ${s.borderColor}`, ...(i === items.length - 1 ? { borderBottom: `1px solid ${s.borderColor}` } : {}) }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ fontSize: s.reviewSize * 0.85 }}>{stars(r.rating, starCol, s.starGap)}</div>
+                  {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888" }}>2 weeks ago</span>}
+                </div>
+                <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, color: s.textColor, marginBottom: 4 }}>{r.title}</div>
+                <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: "0 0 8px", lineHeight: 1.5 }}>{r.comment}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {s.showAvatar && (
+                    <span style={{ width: 26, height: 26, borderRadius: "50%", background: s.accentColor, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>
+                      {initials(r.customer)}
+                    </span>
+                  )}
+                  <span style={{ fontSize: s.metaSize, fontWeight: 600, color: s.textColor }}>{r.customer}</span>
+                  {s.showVerified && <span style={{ fontSize: 10, color: "#1a7a3a" }}>✓ Verified purchase</span>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
