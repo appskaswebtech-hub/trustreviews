@@ -22,6 +22,7 @@ const KEY_DEFAULTS = {
   reviews_grid:          { label: "Reviews Grid",          defaultStyle: "minimal_grid",    contentFilter: "all",   blockHandle: "reviews-widget" },
   happy_customers:       { label: "Happy Customers widget",defaultStyle: "badge_strip",     contentFilter: "photo", blockHandle: "reviews-widget" },
   review_snippets:       { label: "Review Snippets",       defaultStyle: "snippet_rotator", contentFilter: "all",   blockHandle: "reviews-widget" },
+  summary_list:          { label: "Summary + List",         defaultStyle: "summary_side",    contentFilter: "all",   blockHandle: "reviews-widget" },
   classic_list:          { label: "Classic Reviews List",  defaultStyle: "classic_list",    contentFilter: "all",   blockHandle: "reviews-widget" },
   floating_reviews_tab:  { label: "Floating Reviews Tab",  defaultStyle: "floating_tab",    contentFilter: "all",   blockHandle: "reviews-widget" },
   trust_medals:          { label: "Trust Medals",          defaultStyle: "trust_medals",    contentFilter: "all",   blockHandle: "trust-medals" },
@@ -69,9 +70,11 @@ export async function action({ request, params }) {
   const payload = {
     defaultStyle:    form.get("defaultStyle"),
     accentColor:     form.get("accentColor"),
-    starColor:       form.get("starColor") || "#F59E0B",
-    starGap:         parseInt(form.get("starGap")) || 2,
-    textAlign:       form.get("textAlign") || "left",
+    starColor:          form.get("starColor") || "#F59E0B",
+    starGap:            parseInt(form.get("starGap")) || 2,
+    textAlign:          form.get("textAlign") || "left",
+    summaryPosition:    form.get("summaryPosition") || "left",
+    showWriteReviewBtn: form.get("showWriteReviewBtn") === "true",
     heading:         form.get("heading"),
     contentFilter:   form.get("contentFilter") || "all",
 
@@ -133,7 +136,8 @@ const STYLE_OPTIONS = [
   { label: "Badge Strip",           value: "badge_strip"  },
   { label: "Quote Fade",            value: "quote_fade"   },
   { label: "Masonry Wall",          value: "masonry_wall" },
-  { label: "Classic List",          value: "classic_list" },
+  { label: "Classic List",          value: "classic_list"  },
+  { label: "Summary + List",        value: "summary_side"  },
   { label: "Snippet Rotator",       value: "snippet_rotator" },
   { label: "Floating Tab",          value: "floating_tab" },
   { label: "Trust Medals",          value: "trust_medals" },
@@ -168,9 +172,11 @@ export default function WidgetCustomizePage() {
 
   const [style, setStyle]               = useState(settings.defaultStyle ?? "dark_grid");
   const [accentColor, setAccentColor]   = useState(settings.accentColor ?? "#6B1A2C");
-  const [starColor, setStarColor]       = useState(settings.starColor ?? "#F59E0B");
-  const [starGap, setStarGap]           = useState(settings.starGap ?? 2);
-  const [textAlign, setTextAlign]       = useState(settings.textAlign ?? "left");
+  const [starColor, setStarColor]           = useState(settings.starColor ?? "#F59E0B");
+  const [starGap, setStarGap]               = useState(settings.starGap ?? 2);
+  const [textAlign, setTextAlign]           = useState(settings.textAlign ?? "left");
+  const [summaryPosition, setSummaryPosition] = useState(settings.summaryPosition ?? "left");
+  const [showWriteReviewBtn, setShowWriteReviewBtn] = useState(settings.showWriteReviewBtn ?? false);
   const [heading, setHeading]           = useState(settings.heading ?? "");
   const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
 
@@ -205,9 +211,10 @@ export default function WidgetCustomizePage() {
 
   const [saved, setSaved] = useState(false);
 
-  const isSlider      = ["slider", "scroll_strip", "quote_fade"].includes(style);
-  const isPopup       = style === "popup";
-  const isClassicList = style === "classic_list";
+  const isSlider       = ["slider", "scroll_strip", "quote_fade"].includes(style);
+  const isPopup        = style === "popup";
+  const isClassicList  = style === "classic_list";
+  const isSummarySide  = style === "summary_side";
 
   const handleSave = () => {
     const fd = new FormData();
@@ -216,6 +223,8 @@ export default function WidgetCustomizePage() {
     fd.set("starColor", starColor);
     fd.set("starGap", String(starGap));
     fd.set("textAlign", textAlign);
+    fd.set("summaryPosition", summaryPosition);
+    fd.set("showWriteReviewBtn", String(showWriteReviewBtn));
     fd.set("heading", heading);
     fd.set("contentFilter", contentFilter);
     fd.set("fontFamily", fontFamily);
@@ -251,7 +260,7 @@ export default function WidgetCustomizePage() {
   };
 
   const previewSettings = {
-    accentColor, starColor, starGap, textAlign,
+    accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn,
     backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
@@ -324,6 +333,35 @@ export default function WidgetCustomizePage() {
             </>
           ),
         },
+        ...(isSummarySide ? [{
+          key: "summarylayout", label: "Summary Layout",
+          content: (
+            <>
+              <SelectField
+                label="Summary Panel Position"
+                value={summaryPosition}
+                onChange={setSummaryPosition}
+                options={[
+                  { label: "Left  — summary beside reviews",   value: "left"   },
+                  { label: "Right — summary beside reviews",   value: "right"  },
+                  { label: "Top   — summary above reviews",    value: "top"    },
+                  { label: "Bottom — summary below reviews",   value: "bottom" },
+                ]}
+              />
+              <ColorField label="Star Color"   value={starColor} onChange={setStarColor} />
+              <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
+              <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
+              <RangeField label="Max Reviews Shown" value={maxRev} onChange={setMaxRev} min={2} max={20} />
+              <ToggleField label="Show 'Write a Review' button" checked={showWriteReviewBtn} onChange={setShowWriteReviewBtn}
+                helpText="Adds a button that scrolls to the write-review form on the same page" />
+              <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
+              <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
+              <ToggleField label="Show review date"     checked={date}     onChange={setDate} />
+              <RangeField label="Section Top Padding"    value={paddingTop}    onChange={setPaddingTop}    min={0} max={120} step={4} unit="px" />
+              <RangeField label="Section Bottom Padding" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
+            </>
+          ),
+        }] : []),
         ...(isClassicList ? [{
           key: "classiclist", label: "Classic List Options",
           content: (

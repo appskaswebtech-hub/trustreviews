@@ -348,6 +348,97 @@
 .trust-reviews__classic-pg-btn:hover { background: #f5f5f5; }
 .trust-reviews__classic-pg-btn.tr-active { background: var(--tr-accent, #6B1A2C); color: #fff; border-color: var(--tr-accent, #6B1A2C); }
 .trust-reviews__classic-pg-btn:disabled { opacity: 0.4; cursor: default; background: #fff; }
+
+/* Summary + List */
+.trust-reviews__sl-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+.trust-reviews__sl-layout[data-pos="right"]  { flex-direction: row-reverse; }
+.trust-reviews__sl-layout[data-pos="top"]    { flex-direction: column; }
+.trust-reviews__sl-layout[data-pos="bottom"] { flex-direction: column-reverse; }
+.trust-reviews__sl-panel {
+  flex-shrink: 0;
+  min-width: 200px;
+  max-width: 240px;
+}
+.trust-reviews__sl-layout[data-pos="top"] .trust-reviews__sl-panel,
+.trust-reviews__sl-layout[data-pos="bottom"] .trust-reviews__sl-panel {
+  max-width: 100%;
+  min-width: unset;
+  width: 100%;
+}
+.trust-reviews__sl-reviews { flex: 1; min-width: 0; }
+.trust-reviews__sl-label {
+  font-size: var(--tr-meta-size, 13px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--tr-accent, #6B1A2C);
+  margin-bottom: 6px;
+}
+.trust-reviews__sl-heading {
+  font-size: min(calc(var(--tr-h-size, 32px) * 0.7), 22px);
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--tr-text, #333);
+}
+.trust-reviews__sl-big-score {
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--tr-accent, #6B1A2C);
+  margin-bottom: 4px;
+}
+.trust-reviews__sl-stars-row {
+  font-size: var(--tr-star-size, 16px);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-star-gap, 2px);
+  margin-bottom: 4px;
+}
+.trust-reviews__sl-count { font-size: var(--tr-meta-size, 13px); color: #888; margin-bottom: 16px; }
+.trust-reviews__sl-bar-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+}
+.trust-reviews__sl-bar-n { font-size: 11px; color: #555; width: 12px; }
+.trust-reviews__sl-bar-star { font-size: 12px; color: var(--tr-star-color, #F59E0B); }
+.trust-reviews__sl-bar-track { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+.trust-reviews__sl-bar-fill  { height: 100%; background: var(--tr-accent, #6B1A2C); border-radius: 3px; }
+.trust-reviews__sl-bar-ct    { font-size: 11px; color: #888; width: 28px; text-align: right; }
+.trust-reviews__sl-write-btn {
+  margin-top: 16px;
+  padding: 9px 20px;
+  background: var(--tr-text, #333);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.trust-reviews__sl-write-btn:hover { opacity: 0.85; }
+.trust-reviews__sl-review-row {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--tr-border, #e4e4e4);
+}
+.trust-reviews__sl-review-row:first-child { border-top: 1px solid var(--tr-border, #e4e4e4); }
+.trust-reviews__sl-row-head {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+}
+.trust-reviews__sl-row-stars { font-size: var(--tr-star-size, 16px); display: inline-flex; align-items: center; gap: var(--tr-star-gap, 2px); }
+.trust-reviews__sl-row-date  { font-size: var(--tr-meta-size, 13px); color: #888; }
+.trust-reviews__sl-row-title { font-size: calc(var(--tr-rev-size, 16px) * 1.05); font-weight: 700; color: var(--tr-text, #333); margin: 0 0 5px; }
+.trust-reviews__sl-row-comment { font-size: var(--tr-rev-size, 16px); color: var(--tr-text, #333); line-height: 1.6; margin: 0 0 8px; }
+.trust-reviews__sl-row-meta { display: flex; align-items: center; gap: 8px; }
+.trust-reviews__sl-row-avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; flex-shrink: 0; background: var(--tr-accent, #6B1A2C); }
+.trust-reviews__sl-row-name { font-size: var(--tr-meta-size, 13px); font-weight: 600; color: var(--tr-text, #333); }
+@media (max-width: 640px) {
+  .trust-reviews__sl-layout { flex-direction: column !important; }
+  .trust-reviews__sl-panel { max-width: 100%; min-width: unset; width: 100%; }
+}
 </style>
 
 <script>
@@ -792,6 +883,116 @@
     return wrap;
   }
 
+  function buildSummaryList(reviews, s, total, avgRating) {
+    var pos     = s.summaryPosition || 'left';
+    var starCol = s.starColor || '#F59E0B';
+
+    var layout = document.createElement('div');
+    layout.className = 'trust-reviews__sl-layout';
+    layout.setAttribute('data-pos', pos);
+
+    // --- Summary panel ---
+    var panel = document.createElement('div');
+    panel.className = 'trust-reviews__sl-panel';
+
+    var labelEl = document.createElement('div');
+    labelEl.className = 'trust-reviews__sl-label';
+    labelEl.textContent = 'Customer reviews';
+
+    var headEl = document.createElement('div');
+    headEl.className = 'trust-reviews__sl-heading';
+    headEl.textContent = s.heading || 'What our customers say';
+
+    var scoreEl = document.createElement('div');
+    scoreEl.className = 'trust-reviews__sl-big-score';
+    scoreEl.textContent = avgRating.toFixed(1);
+
+    var starsRowEl = document.createElement('div');
+    starsRowEl.className = 'trust-reviews__sl-stars-row';
+    starsRowEl.innerHTML = starHTML(Math.round(avgRating), starCol);
+
+    var countEl = document.createElement('div');
+    countEl.className = 'trust-reviews__sl-count';
+    countEl.textContent = 'Based on ' + total + ' ' + (total === 1 ? (s.t ? s.t.review : 'review') : (s.t ? s.t.reviews : 'reviews'));
+
+    panel.appendChild(labelEl);
+    panel.appendChild(headEl);
+    panel.appendChild(scoreEl);
+    panel.appendChild(starsRowEl);
+    panel.appendChild(countEl);
+
+    // Breakdown bars
+    var ns = [5, 4, 3, 2, 1];
+    for (var ni = 0; ni < ns.length; ni++) {
+      var n = ns[ni];
+      var cnt = 0;
+      for (var ri = 0; ri < reviews.length; ri++) { if (reviews[ri].rating === n) cnt++; }
+      var pct = total ? Math.round(cnt / total * 100) : 0;
+      var barRow = document.createElement('div');
+      barRow.className = 'trust-reviews__sl-bar-row';
+      barRow.innerHTML =
+        '<span class="trust-reviews__sl-bar-n">' + n + '</span>' +
+        '<span class="trust-reviews__sl-bar-star">&#9733;</span>' +
+        '<div class="trust-reviews__sl-bar-track"><div class="trust-reviews__sl-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="trust-reviews__sl-bar-ct">' + cnt + '</span>';
+      panel.appendChild(barRow);
+    }
+
+    if (s.showWriteReviewBtn) {
+      var writeBtn = document.createElement('button');
+      writeBtn.className = 'trust-reviews__sl-write-btn';
+      writeBtn.textContent = 'Write a review';
+      writeBtn.addEventListener('click', function() {
+        var form = document.querySelector('[data-trust-write-review], .trust-review-form, #trust-write-review');
+        if (form) form.scrollIntoView({ behavior: 'smooth' });
+      });
+      panel.appendChild(writeBtn);
+    }
+
+    // --- Review list panel ---
+    var listDiv = document.createElement('div');
+    listDiv.className = 'trust-reviews__sl-reviews';
+
+    var items = reviews.slice(0, s.maxRev);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var row = document.createElement('div');
+      row.className = 'trust-reviews__sl-review-row';
+
+      var avatarHTML2 = s.showAvatar
+        ? '<span class="trust-reviews__sl-row-avatar" style="background:' + s.accentColor + '">' + initials(r.customer) + '</span>'
+        : '';
+      var verifiedHTML2 = s.showVerified
+        ? '<span class="trust-reviews__verified">' + (s.t ? s.t.verified : 'Verified') + '</span>'
+        : '';
+      var dateHTML2 = (s.showDate && r.createdAt)
+        ? '<span class="trust-reviews__sl-row-date">' + fmtDate(r.createdAt) + '</span>'
+        : '';
+      var titleHTML2 = r.title
+        ? '<p class="trust-reviews__sl-row-title">' + r.title + '</p>'
+        : '';
+
+      row.innerHTML =
+        '<div class="trust-reviews__sl-row-head">' +
+          '<span class="trust-reviews__sl-row-stars">' + starHTML(r.rating, starCol) + '</span>' +
+          dateHTML2 +
+        '</div>' +
+        titleHTML2 +
+        '<p class="trust-reviews__sl-row-comment">' + r.comment + '</p>' +
+        '<div class="trust-reviews__sl-row-meta">' +
+          avatarHTML2 +
+          '<span class="trust-reviews__sl-row-name">' + r.customer + '</span>' +
+          verifiedHTML2 +
+        '</div>';
+
+      listDiv.appendChild(row);
+    }
+
+    layout.appendChild(panel);
+    layout.appendChild(listDiv);
+    return layout;
+  }
+
   function buildFloatingTab(reviews, s) {
     var tab = document.createElement('div');
     tab.className = 'trust-reviews__floating-tab';
@@ -904,6 +1105,8 @@
       el = buildQuoteFade(reviews, s);
     } else if (s.style === 'classic_list') {
       el = buildClassicList(reviews, s);
+    } else if (s.style === 'summary_side') {
+      el = buildSummaryList(reviews, s, apiData.total || reviews.length, apiData.averageRating || 0);
     } else if (s.style === 'popup') {
       el = document.createElement('div');
       el.className = 'trust-reviews__grid';
@@ -978,8 +1181,11 @@
         autoplaySpeed:   d.autoplaySpeed   || 3000,
         showArrows:      d.showArrows      !== false,
         showDots:        d.showDots        !== false,
-        popupEnabled:    d.popupEnabled    || false,
-        popupDelay:      d.popupDelay      != null ? d.popupDelay : 5000
+        popupEnabled:       d.popupEnabled    || false,
+        popupDelay:         d.popupDelay      != null ? d.popupDelay : 5000,
+        summaryPosition:    d.summaryPosition || 'left',
+        showWriteReviewBtn: d.showWriteReviewBtn || false,
+        heading:            d.heading || D_HEADING
       };
 
       return fetch('/apps/review?shop=' + shop + '&productId=' + productId + '&widgetKey=' + widgetKey)
@@ -1014,7 +1220,8 @@
         { "value": "reviews_grid",          "label": "Reviews Grid"           },
         { "value": "happy_customers",       "label": "Happy Customers widget" },
         { "value": "review_snippets",       "label": "Review Snippets"        },
-        { "value": "classic_list",           "label": "Classic Reviews List"   }
+        { "value": "classic_list",           "label": "Classic Reviews List"   },
+        { "value": "summary_list",           "label": "Summary + List"         }
       ]
     },
     {
@@ -1035,7 +1242,8 @@
         { "value": "badge_strip",  "label": "Badge Strip"          },
         { "value": "quote_fade",    "label": "Quote Fade"           },
         { "value": "masonry_wall",  "label": "Masonry Wall"         },
-        { "value": "classic_list",  "label": "Classic List"         }
+        { "value": "classic_list",  "label": "Classic List"         },
+        { "value": "summary_side",  "label": "Summary + List"       }
       ]
     },
     { "type": "header",   "content": "Appearance" },

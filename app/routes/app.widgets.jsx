@@ -145,6 +145,15 @@ const WIDGETS = [
     icon: "🔂",
   },
   {
+    key: "summary_list",
+    title: "Summary + List",
+    description: "Rating breakdown panel beside a full review list — position the summary left, right, top, or bottom.",
+    href: "/app/widgets/summary_list",
+    blockHandle: "reviews-widget",
+    bg: "linear-gradient(135deg,#e8fef0,#b8f5ce)",
+    icon: "📊",
+  },
+  {
     key: "classic_list",
     title: "Classic Reviews List",
     description: "Clean paginated list with sort dropdown — the most readable layout for long, detailed reviews.",

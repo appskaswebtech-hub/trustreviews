@@ -208,9 +208,11 @@ export async function loader({ request }) {
       select: {
         defaultStyle:    true,
         accentColor:     true,
-        starColor:       true,
-        starGap:         true,
-        textAlign:       true,
+        starColor:          true,
+        starGap:            true,
+        textAlign:          true,
+        summaryPosition:    true,
+        showWriteReviewBtn: true,
         heading:         true,
         contentFilter:   true,
 
