@@ -306,6 +306,30 @@ export const action = async ({ request }) => {
       }
     }
   }
+  // Bulk action across ALL pages matching the current tab/search filter
+  if (actionType === "bulkAll" && store) {
+    const bulkAction = formData.get("bulkAction");
+    const filterTab    = formData.get("filterTab")    || "all";
+    const filterSearch = formData.get("filterSearch") || "";
+    const where = { storeId: store.id };
+    if (filterTab === "approved") where.status = "approved";
+    if (filterTab === "pending")  where.status = "pending";
+    if (filterTab === "rejected") where.status = "rejected";
+    if (filterSearch) {
+      where.OR = [
+        { customer: { contains: filterSearch } },
+        { email:    { contains: filterSearch } },
+        { comment:  { contains: filterSearch } },
+      ];
+    }
+    if (bulkAction === "approve") {
+      await db.review.updateMany({ where, data: { status: "approved", hideReason: null } });
+    } else if (bulkAction === "reject") {
+      await db.review.updateMany({ where, data: { status: "rejected" } });
+    } else if (bulkAction === "delete") {
+      await db.review.deleteMany({ where });
+    }
+  }
   // Assign one product to many reviews at once — same picker as the
   // per-review "Assign/Change Product" button, just applied in bulk.
   if (actionType === "bulkAssignProduct" && store) {
@@ -1709,10 +1733,29 @@ const ABT = (v) => ({
 });
 
 /* ─────────────────────────────────────────
+   SELECT-ALL CHECKBOX (supports indeterminate)
+───────────────────────────────────────── */
+function SelectAllCheckbox({ checked, indeterminate, onChange, accent }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = !!indeterminate;
+  }, [indeterminate]);
+  return (
+    <input
+      ref={ref} type="checkbox" checked={checked} onChange={onChange}
+      style={{ cursor: "pointer", width: 15, height: 15, accentColor: accent, flexShrink: 0 }}
+    />
+  );
+}
+
+/* ─────────────────────────────────────────
    PRODUCT GROUP
 ───────────────────────────────────────── */
-function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect }) {
+function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggleGroupSelect }) {
   const [open, setOpen] = useState(true);
+  const groupIds     = group.reviews.map((r) => r.id);
+  const allSelected  = groupIds.length > 0 && groupIds.every((id) => selectedIds.includes(id));
+  const someSelected = groupIds.some((id) => selectedIds.includes(id));
 
   return (
     <div style={{
@@ -1750,7 +1793,18 @@ function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              {["", t.customer, t.rating, "🖼", t.comment, t.status, t.date, t.actions].map((h, i) => (
+              <th style={{
+                textAlign: "left", fontSize: 10, fontWeight: 700, color: C.muted,
+                letterSpacing: ".07em", padding: "9px 16px", background: "#f8f9fc", width: 30,
+              }}>
+                <SelectAllCheckbox
+                  checked={allSelected}
+                  indeterminate={someSelected && !allSelected}
+                  onChange={(e) => { e.stopPropagation(); onToggleGroupSelect(groupIds, allSelected); }}
+                  accent={C.accent}
+                />
+              </th>
+              {[t.customer, t.rating, "🖼", t.comment, t.status, t.date, t.actions].map((h, i) => (
                 <th key={i} style={{
                   textAlign: "left", fontSize: 10, fontWeight: 700, color: C.muted,
                   letterSpacing: ".07em", textTransform: "uppercase",
@@ -1788,6 +1842,7 @@ export default function ReviewsPage() {
   const [showImport, setShowImport] = useState(false);
   const [searchVal,  setSearchVal]  = useState(search);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const lang = shopLocale || "en"; // ← persisted store language, switcher lives in Settings
 
@@ -1810,22 +1865,54 @@ export default function ReviewsPage() {
   };
 
   const toggleSelect = (id) => {
+    setSelectAllPages(false);
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
 
+  const toggleGroupSelect = (groupIds, allSelected) => {
+    setSelectAllPages(false);
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !groupIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
+    }
+  };
+
   const allVisibleIds = grouped.flatMap((g) => g.reviews.map((r) => r.id));
+  const allPageSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
+  const somePageSelected = allVisibleIds.some((id) => selectedIds.includes(id));
   const toggleSelectAll = () => {
+    setSelectAllPages(false);
     setSelectedIds((prev) => prev.length === allVisibleIds.length ? [] : allVisibleIds);
+  };
+  const handleSelectAllPages = () => {
+    setSelectAllPages(true);
+    setSelectedIds(allVisibleIds);
+  };
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setSelectAllPages(false);
+    setBulkAssigning(false);
   };
 
   const handleBulkAction = (bulkAction) => {
+    if (selectAllPages) {
+      const fd = new FormData();
+      fd.append("actionType", "bulkAll");
+      fd.append("bulkAction", bulkAction);
+      fd.append("filterTab", tab);
+      fd.append("filterSearch", search);
+      submit(fd, { method: "post" });
+      clearSelection();
+      return;
+    }
     if (!selectedIds.length) return;
     const fd = new FormData();
     fd.append("actionType", "bulk");
     fd.append("bulkAction", bulkAction);
     fd.append("ids", JSON.stringify(selectedIds));
     submit(fd, { method: "post" });
-    setSelectedIds([]);
+    clearSelection();
   };
 
   const handleBulkAssignProduct = (shopifyProductId) => {
@@ -1835,8 +1922,7 @@ export default function ReviewsPage() {
     fd.append("shopifyProductId", shopifyProductId);
     fd.append("ids", JSON.stringify(selectedIds));
     submit(fd, { method: "post" });
-    setSelectedIds([]);
-    setBulkAssigning(false);
+    clearSelection();
   };
 
   const handleToggleAutoPublish = () => {
@@ -2051,25 +2137,99 @@ export default function ReviewsPage() {
       {/* ── Bulk Selection Bar ── */}
       {grouped.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12.5, color: C.muted }}>
-            {selectedIds.length > 0 ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, fontSize: 12.5, color: C.muted,
+            background: selectedIds.length > 0 ? "#f0f4ff" : "transparent",
+            border: selectedIds.length > 0 ? `1px solid #c7d7fd` : "1px solid transparent",
+            borderRadius: 10, padding: selectedIds.length > 0 ? "8px 14px" : "4px 0",
+            transition: "all .15s",
+          }}>
+            {/* Global select-all checkbox */}
+            <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", userSelect: "none" }}>
+              <SelectAllCheckbox
+                checked={allPageSelected || selectAllPages}
+                indeterminate={somePageSelected && !allPageSelected && !selectAllPages}
+                onChange={toggleSelectAll}
+                accent={C.accent}
+              />
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>
+                {selectAllPages
+                  ? `All ${total} reviews selected`
+                  : allPageSelected
+                    ? `All ${allVisibleIds.length} on this page selected`
+                    : somePageSelected
+                      ? `${selectedIds.length} of ${allVisibleIds.length} selected`
+                      : `Select all (${allVisibleIds.length})`}
+              </span>
+            </label>
+
+            {selectedIds.length > 0 && (
               <>
-                <span style={{ fontWeight: 700, color: C.text }}>{selectedIds.length} selected</span>
-                <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve selected</button>
-                <button onClick={() => handleBulkAction("reject")} style={ABT("reject")}>✕ Reject selected</button>
-                <button onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>🔗 Assign Product</button>
-                <button onClick={() => handleBulkAction("delete")} style={ABT("delete")}>🗑 Delete selected</button>
-                <button onClick={() => { setSelectedIds([]); setBulkAssigning(false); }} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12.5, textDecoration: "underline" }}>
+                <span style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
+                <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve</button>
+                <button onClick={() => handleBulkAction("reject")}  style={ABT("reject")}>✕ Reject</button>
+                {!selectAllPages && <button onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>🔗 Assign Product</button>}
+                <button
+                  onClick={() => {
+                    const count = selectAllPages ? total : selectedIds.length;
+                    if (window.confirm(`Delete ${count} review${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
+                      handleBulkAction("delete");
+                    }
+                  }}
+                  style={{ ...ABT("reject"), background: "#fee2e2", color: "#b91c1c" }}
+                >
+                  🗑 Delete
+                </button>
+                <button onClick={clearSelection} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12, textDecoration: "underline", marginLeft: "auto" }}>
                   Clear
                 </button>
               </>
-            ) : (
-              <button onClick={toggleSelectAll} style={{ border: "none", background: "none", color: C.accent, cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}>
-                Select all {allVisibleIds.length} visible
-              </button>
             )}
           </div>
-          {bulkAssigning && selectedIds.length > 0 && (
+
+          {/* "Select all X reviews across all pages" banner */}
+          {allPageSelected && !selectAllPages && total > allVisibleIds.length && (
+            <div style={{
+              marginTop: 8, padding: "10px 14px", background: "#eff6ff",
+              border: "1px solid #bfdbfe", borderRadius: 9,
+              display: "flex", alignItems: "center", gap: 12, fontSize: 13,
+            }}>
+              <span style={{ color: "#1e40af" }}>
+                All <strong>{allVisibleIds.length}</strong> reviews on this page are selected.
+              </span>
+              <button
+                onClick={handleSelectAllPages}
+                style={{
+                  border: "none", background: "none", color: "#1d4ed8",
+                  fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
+                }}
+              >
+                Select all {total} reviews
+              </button>
+            </div>
+          )}
+          {selectAllPages && (
+            <div style={{
+              marginTop: 8, padding: "10px 14px", background: "#eff6ff",
+              border: "1px solid #bfdbfe", borderRadius: 9,
+              display: "flex", alignItems: "center", gap: 12, fontSize: 13,
+            }}>
+              <span style={{ color: "#1e40af" }}>
+                All <strong>{total}</strong> reviews are selected.
+              </span>
+              <button
+                onClick={clearSelection}
+                style={{
+                  border: "none", background: "none", color: "#1d4ed8",
+                  fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
+                }}
+              >
+                Clear selection
+              </button>
+            </div>
+          )}
+
+          {bulkAssigning && selectedIds.length > 0 && !selectAllPages && (
             <div style={{ marginTop: 10 }}>
               <ProductPicker onSelect={handleBulkAssignProduct} onClose={() => setBulkAssigning(false)} />
             </div>
@@ -2091,6 +2251,7 @@ export default function ReviewsPage() {
           <ProductGroup
             key={g.productId} group={g} onAction={handleAction} t={t}
             selectedIds={selectedIds} onToggleSelect={toggleSelect}
+            onToggleGroupSelect={toggleGroupSelect}
           />
         ))
       )}
