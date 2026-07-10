@@ -1,14 +1,11 @@
 var reviewSection = document.querySelector(".review-section");
-var productId = reviewSection ? String(reviewSection.dataset.productId || "").trim() : "";
+var productId = reviewSection ? reviewSection.dataset.productId : "";
 var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
-
-// Fail loudly in the console if productId is missing — this is almost
-// always a Liquid/context issue (block rendered outside a real product page,
-// or {{ product.id }} not resolving) rather than a JS bug.
-if (!productId) {
-  console.warn("[review widget] Missing data-product-id on .review-section — review submissions will fail until this is fixed.");
-}
-
+// Fall back to <html lang> (same mechanism the other widgets use, proven to
+// follow the storefront's language switcher) if the block's own data-locale
+// attribute is ever missing or empty, instead of silently sending no locale
+// at all to the server (which would fall back to the merchant's saved
+// default language instead of the customer's current one).
 var storeLocale = (reviewSection && reviewSection.dataset.locale) || locale_language || (document.documentElement.lang || "").split("-")[0] || "";
 let rating = 0;
 let allReviews = [];
@@ -21,6 +18,9 @@ let listSettings = {
 };
 
 /* ============ TRANSLATIONS ============ */
+// Fallback only — the full set of languages is served by /apps/review (see
+// app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
+// Liquid-content cap per theme app extension.
 const REVIEW_TRANSLATIONS_EN = {
   basedOn: "Based on", reviewsWord: "reviews", writeReview: "Write a Review", close: "Close",
   ratingQuestion: "What would you rate this product?", reviewTitleLabel: "Review title",
@@ -34,14 +34,15 @@ const REVIEW_TRANSLATIONS_EN = {
   search: "Search", searchAria: "Search reviews", searchPlaceholder: "Search reviews...",
   searchClearAria: "Clear search", noResults: "No reviews match your search.",
   helpful: "Helpful", share: "Share",
-  requiredFieldsAlert: "Please fill all required fields",
-  missingProductAlert: "Unable to submit review: product could not be identified. Please refresh the page and try again.",
-  reviewLinkCopiedAlert: "Review link copied!",
+  requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
   prev: "← Prev", next: "Next →", page: "Page", of: "of",
   storeReplyLabel: "Store reply",
 };
 let T = REVIEW_TRANSLATIONS_EN;
 
+// The "Write a Review" button/form can be turned off per-block (see
+// show_write_review setting), so every element it touches may not exist —
+// these helpers no-op instead of throwing when an id isn't on the page.
 function setText(id, text){ var el = document.getElementById(id); if(el) el.textContent = text; }
 function setPlaceholder(id, text){ var el = document.getElementById(id); if(el) el.placeholder = text; }
 function setAria(id, text){ var el = document.getElementById(id); if(el) el.setAttribute("aria-label", text); }
@@ -101,7 +102,7 @@ function removeToast(toast) {
   setTimeout(function() { if (toast.parentElement) toast.remove(); }, 250);
 }
 
-/* ============ LIST DESIGN ============ */
+/* ============ LIST DESIGN (layout/colors/pagination from admin) ============ */
 function applyListSettings(remoteSettings){
   listSettings = remoteSettings || listSettings;
   var section = document.querySelector(".reviews-section");
@@ -155,6 +156,12 @@ function previewReviewFile(event) {
   preview.innerHTML = "";
 
   if (!file) return;
+
+  // if (file.size > 5 * 1024 * 1024) {
+  //   alert("File size must be under 5MB");
+  //   event.target.value = "";
+  //   return;
+  // }
 
   const url = URL.createObjectURL(file);
 
@@ -231,6 +238,11 @@ function escapeHTML(text){
   });
 }
 
+// Uploads from the live review form are stored as relative paths (e.g.
+// "/uploads/x.jpg") served from our own app, so they need the app domain
+// prefixed. Imported reviews (Judge.me, Loox, etc.) store the original
+// absolute CDN URL — those must be left untouched or the prefix would
+// double up into a broken URL.
 function resolveMediaUrl(url, base){
   if (/^https?:\/\//i.test(url)) return url;
   return base + url;
@@ -244,7 +256,7 @@ function highlight(text, query){
   return safeText.replace(new RegExp("(" + escaped + ")", "gi"), '<span class="highlight">$1</span>');
 }
 
-/* ============ CARD MARKUP ============ */
+/* ============ CARD MARKUP (per layout design) ============ */
 function buildCardHTML(r, q, style){
   var stars = "";
   for(var i = 1; i <= 5; i++){
@@ -253,6 +265,8 @@ function buildCardHTML(r, q, style){
   var initials     = getInitials(r.customer);
   var customerHTML = highlight(r.customer || "", q);
   var commentHTML  = highlight(r.comment  || "", q);
+  // When showing reviews from every product, the page's own product title
+  // would be wrong for reviews that belong to other products — hide it instead.
   var productLabelHTML = listSettings.showAllProducts
     ? ""
     : `<div class="review-product-label">${escapeHTML(productTitle)}</div>`;
@@ -369,6 +383,9 @@ function buildCardHTML(r, q, style){
 }
 
 /* ============ PAGINATION ============ */
+// Builds [1, "…", currentPage-1, currentPage, currentPage+1, "…", totalPages]
+// (collapsing the ellipses away when there's nothing to skip) so large
+// review counts don't render a button for every single page.
 function buildPageList(current, total){
   var pages = [];
   var push = function(p){ if(pages[pages.length - 1] !== p) pages.push(p); };
@@ -508,13 +525,6 @@ async function submitReview() {
   var file = document.getElementById("review-file")?.files[0];
   var title = document.getElementById("review-title").value.trim();
 
-  // Fail fast, with a clear message, instead of letting the server 400.
-  if (!productId) {
-    console.warn("[review widget] submitReview blocked: productId is missing.");
-    showToast(T.missingProductAlert || "Unable to submit review: product could not be identified.", "error");
-    return;
-  }
-
   if (!name || !email || !comment || rating == 0) {
     showToast(T.requiredFieldsAlert, "error");
     return;
@@ -560,10 +570,7 @@ async function submitReview() {
     });
 
     if (!response.ok) {
-      // Surface the server's actual reason instead of a generic message,
-      // so future payload issues show up clearly in the toast, not just devtools.
-      var errBody = await response.json().catch(function(){ return {}; });
-      throw new Error(errBody.message || "Review submit failed");
+      throw new Error("Review submit failed");
     }
 
     showToast("Review submitted and sent for approval.", "success");
@@ -608,7 +615,7 @@ function shareReview(id){
   });
 }
 
-/* ============ FORM STYLE ============ */
+/* ============ FORM STYLE (color/font/size/background) ============ */
 async function applyFormStyle(){
   try {
     const res = await fetch("/apps/review?type=form-settings");
@@ -623,6 +630,10 @@ async function applyFormStyle(){
     section.style.setProperty("--rf-font",     s.fontFamily      || "inherit");
     section.style.setProperty("--rf-radius",   (s.borderRadius ?? 3) + "px");
 
+    // Admin-level visibility toggle — hides via CSS rather than removing the
+    // elements, so re-enabling in Settings brings them straight back with no
+    // theme re-save needed. (Separate from the block's own "show_write_review"
+    // setting, which controls whether these elements render at all.)
     if (s.showWriteReview === false) {
       var openBtn = document.getElementById("open-review");
       var formEl  = document.getElementById("review-form");
