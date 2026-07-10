@@ -440,6 +440,200 @@
       widget.setAttribute('data-style',s.style);
     }
 
+    function buildPMCard(r,s){
+      var card=document.createElement('div');
+      card.className='trust-reviews__pm-card';
+      var starsHtml='';
+      for(var si=0;si<5;si++) starsHtml+='<span style="color:'+(si<(r.rating||0)?s.accentColor:'#ddd')+'">&#9733;</span>';
+      var ini=(r.customer||'A').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      var imgHtml=r.mediaUrl&&(r.mediaType||'').indexOf('video')!==0
+        ?'<img class="trust-reviews__pm-card-img" src="'+r.mediaUrl+'" alt="review photo" loading="lazy">'
+        :'';
+      card.innerHTML=
+        imgHtml+
+        '<div class="trust-reviews__pm-card-body">'+
+          '<div class="trust-reviews__pm-card-stars">'+starsHtml+'</div>'+
+          '<div class="trust-reviews__pm-card-meta">'+
+            '<div class="trust-reviews__pm-avatar">'+
+              '<div class="trust-reviews__pm-avatar-circle">'+ini+'</div>'+
+              '<div class="trust-reviews__pm-avatar-dot"></div>'+
+            '</div>'+
+            '<span class="trust-reviews__pm-card-name">'+(r.customer||'Customer')+'</span>'+
+          '</div>'+
+          '<div class="trust-reviews__pm-card-text pm-clamped">'+(r.comment||'')+'</div>'+
+          '<button class="trust-reviews__pm-show-more">Show full review</button>'+
+        '</div>';
+      var showMore=card.querySelector('.trust-reviews__pm-show-more');
+      var textEl=card.querySelector('.trust-reviews__pm-card-text');
+      showMore.addEventListener('click',function(){
+        var clamped=textEl.classList.toggle('pm-clamped');
+        showMore.textContent=clamped?'Show full review':'Show less';
+      });
+      return card;
+    }
+
+    function buildPhotoMasonry(reviews,s,total,avgRating){
+      var dist=[0,0,0,0,0];
+      for(var ri=0;ri<reviews.length;ri++){ var rv=Math.round(reviews[ri].rating||0); if(rv>=1&&rv<=5) dist[rv-1]++; }
+      var photos=[];
+      for(var ri=0;ri<reviews.length;ri++){ if(reviews[ri].mediaUrl&&(reviews[ri].mediaType||'').indexOf('video')!==0) photos.push(reviews[ri].mediaUrl); }
+      var wrap=document.createElement('div');
+
+      /* ── Write-review modal ── */
+      var pmRating=0;
+      var pmOverlay=document.createElement('div');
+      pmOverlay.style.cssText='display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px';
+      var pmModal=document.createElement('div');
+      pmModal.style.cssText='background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)';
+      pmModal.innerHTML=
+        '<button id="tr-pm-close-'+bid+'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">&times;</button>'+
+        '<h3 style="margin:0 0 20px;font-size:1.2rem;font-weight:700;color:'+s.accentColor+'">Write a Review</h3>'+
+        '<div style="margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Your Rating <span style="color:red">*</span></label>'+
+        '<div id="tr-pm-stars-'+bid+'" style="display:flex;gap:6px;cursor:pointer"><span data-v="1" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="2" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="3" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="4" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="5" style="font-size:28px;color:#ddd">&#9733;</span></div></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Review title</label><input id="tr-pm-title-'+bid+'" type="text" placeholder="Summarize your experience..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your review <span style="color:red">*</span></label><textarea id="tr-pm-comment-'+bid+'" placeholder="Share your experience..." rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Upload image/video <span style="font-weight:400;color:#888">(optional)</span></label>'+
+        '<div id="tr-pm-dropzone-'+bid+'" style="border:2px dashed #d1d5db;border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;background:#fafafa;position:relative">'+
+        '<input id="tr-pm-file-'+bid+'" type="file" accept="image/*,video/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">'+
+        '<div id="tr-pm-dz-content-'+bid+'"><p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#374151">Click to upload or drag &amp; drop</p><p style="margin:0;font-size:12px;color:#9ca3af">Images or videos &mdash; max 20 MB</p></div>'+
+        '<div id="tr-pm-preview-'+bid+'" style="display:none;position:relative"><button id="tr-pm-remove-'+bid+'" type="button" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:14px;cursor:pointer;z-index:1">&times;</button><div id="tr-pm-preview-media-'+bid+'"></div><p id="tr-pm-preview-name-'+bid+'" style="margin:8px 0 0;font-size:12px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p></div></div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your name <span style="color:red">*</span></label><input id="tr-pm-name-'+bid+'" type="text" placeholder="Name" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Email <span style="color:red">*</span></label><input id="tr-pm-email-'+bid+'" type="email" placeholder="Email" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div></div>'+
+        '<div id="tr-pm-msg-'+bid+'" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>'+
+        '<div style="display:flex;gap:10px;justify-content:flex-end"><button id="tr-pm-cancel-'+bid+'" style="padding:10px 20px;background:#f5f5f5;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Cancel</button><button id="tr-pm-submit-'+bid+'" style="padding:10px 24px;background:'+s.accentColor+';color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Submit Review</button></div>';
+      pmOverlay.appendChild(pmModal);
+      document.body.appendChild(pmOverlay);
+
+      var pmFileInput=pmModal.querySelector('#tr-pm-file-'+bid);
+      var pmDzContent=pmModal.querySelector('#tr-pm-dz-content-'+bid);
+      var pmPreview=pmModal.querySelector('#tr-pm-preview-'+bid);
+      var pmPreviewMedia=pmModal.querySelector('#tr-pm-preview-media-'+bid);
+      var pmPreviewName=pmModal.querySelector('#tr-pm-preview-name-'+bid);
+      var pmDropzone=pmModal.querySelector('#tr-pm-dropzone-'+bid);
+      var pmRemoveBtn=pmModal.querySelector('#tr-pm-remove-'+bid);
+
+      function pmShowPreview(file){ var url=URL.createObjectURL(file); pmPreviewMedia.innerHTML=''; var el; if(file.type.indexOf('video')===0){el=document.createElement('video');el.src=url;el.controls=true;el.style.cssText='max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto';}else{el=document.createElement('img');el.src=url;el.alt='preview';el.style.cssText='max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;object-fit:cover';} pmPreviewMedia.appendChild(el); pmPreviewName.textContent=file.name; pmDzContent.style.display='none'; pmPreview.style.display='block'; pmDropzone.style.borderColor=s.accentColor; pmDropzone.style.background='#f0fdf4'; }
+      function pmClearPreview(){ pmPreviewMedia.innerHTML=''; pmPreviewName.textContent=''; pmPreview.style.display='none'; pmDzContent.style.display='block'; pmDropzone.style.borderColor='#d1d5db'; pmDropzone.style.background='#fafafa'; pmFileInput.value=''; }
+      function pmOpen(){ pmOverlay.style.display='flex'; document.body.style.overflow='hidden'; }
+      function pmClose(){ pmOverlay.style.display='none'; document.body.style.overflow=''; pmClearPreview(); }
+
+      pmFileInput.addEventListener('change',function(){ if(pmFileInput.files[0]) pmShowPreview(pmFileInput.files[0]); });
+      pmDropzone.addEventListener('dragover',function(e){ e.preventDefault(); pmDropzone.style.borderColor=s.accentColor; pmDropzone.style.background='#f5f3ff'; });
+      pmDropzone.addEventListener('dragleave',function(){ if(!pmFileInput.files[0]){pmDropzone.style.borderColor='#d1d5db';pmDropzone.style.background='#fafafa';} });
+      pmDropzone.addEventListener('drop',function(e){ e.preventDefault(); var file=e.dataTransfer.files[0]; if(!file) return; try{var dt=new DataTransfer();dt.items.add(file);pmFileInput.files=dt.files;}catch(err){} pmShowPreview(file); });
+      pmRemoveBtn.addEventListener('click',function(e){ e.stopPropagation(); pmClearPreview(); });
+      pmModal.querySelector('#tr-pm-close-'+bid).addEventListener('click',pmClose);
+      pmModal.querySelector('#tr-pm-cancel-'+bid).addEventListener('click',pmClose);
+      pmOverlay.addEventListener('click',function(e){ if(e.target===pmOverlay) pmClose(); });
+
+      var pmStarSpans=pmModal.querySelectorAll('#tr-pm-stars-'+bid+' span');
+      function pmPaintStars(n){ pmStarSpans.forEach(function(sp,i){ sp.style.color=i<n?(s.starColor||'#F59E0B'):'#ddd'; }); }
+      pmStarSpans.forEach(function(sp){
+        sp.addEventListener('mouseover',function(){ pmPaintStars(parseInt(sp.dataset.v)); });
+        sp.addEventListener('mouseout', function(){ pmPaintStars(pmRating); });
+        sp.addEventListener('click',    function(){ pmRating=parseInt(sp.dataset.v); pmPaintStars(pmRating); });
+      });
+
+      function pmMsg(text,ok){ var el=pmModal.querySelector('#tr-pm-msg-'+bid); el.textContent=text; el.style.display='block'; el.style.background=ok?'#dcfce7':'#fee2e2'; el.style.color=ok?'#166534':'#991b1b'; }
+
+      pmModal.querySelector('#tr-pm-submit-'+bid).addEventListener('click',function(){
+        var name=pmModal.querySelector('#tr-pm-name-'+bid).value.trim();
+        var email=pmModal.querySelector('#tr-pm-email-'+bid).value.trim();
+        var comment=pmModal.querySelector('#tr-pm-comment-'+bid).value.trim();
+        var title=pmModal.querySelector('#tr-pm-title-'+bid).value.trim();
+        var submitBtn=this;
+        if(!name||!email||!comment||pmRating===0){ pmMsg('Please fill in all required fields and select a star rating.',false); return; }
+        submitBtn.disabled=true; submitBtn.textContent='Submitting…';
+        var file=pmFileInput.files[0], uploadPromise;
+        if(file){ submitBtn.textContent='Uploading…'; var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
+        else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
+        uploadPromise.then(function(media){ submitBtn.textContent='Submitting…'; return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();}); })
+        .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg('Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; setTimeout(pmClose,2500); })
+        .catch(function(err){ pmMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; });
+      });
+
+      /* ── Summary bar ── */
+      var bar=document.createElement('div'); bar.className='trust-reviews__pm-summary';
+
+      var starsHtml='';
+      for(var si=0;si<5;si++) starsHtml+='<span style="color:'+(si<Math.round(avgRating)?s.accentColor:'#ddd')+'">&#9733;</span>';
+      var scoreDiv=document.createElement('div'); scoreDiv.className='trust-reviews__pm-score';
+      scoreDiv.innerHTML='<div class="trust-reviews__pm-score-num">'+avgRating.toFixed(1)+'</div><div class="trust-reviews__pm-score-stars">'+starsHtml+'</div><div class="trust-reviews__pm-score-count">'+total+' reviews</div>';
+      bar.appendChild(scoreDiv);
+
+      var d1=document.createElement('div'); d1.className='trust-reviews__pm-divider'; bar.appendChild(d1);
+
+      var barsDiv=document.createElement('div'); barsDiv.className='trust-reviews__pm-bars';
+      for(var bi=4;bi>=0;bi--){
+        var pct=total>0?Math.round(dist[bi]/total*100):0;
+        var barRow=document.createElement('div'); barRow.className='trust-reviews__pm-bar-row';
+        barRow.innerHTML='<span class="trust-reviews__pm-bar-label">'+(bi+1)+'</span><div class="trust-reviews__pm-bar-track"><div class="trust-reviews__pm-bar-fill" style="width:'+pct+'%"></div></div><span class="trust-reviews__pm-bar-count">'+dist[bi]+'</span>';
+        barsDiv.appendChild(barRow);
+      }
+      bar.appendChild(barsDiv);
+
+      if(photos.length){
+        var d2=document.createElement('div'); d2.className='trust-reviews__pm-divider'; bar.appendChild(d2);
+        var thumbsDiv=document.createElement('div'); thumbsDiv.className='trust-reviews__pm-thumbs';
+        var maxT=Math.min(8,photos.length);
+        for(var ti=0;ti<maxT;ti++){
+          var img=document.createElement('img'); img.className='trust-reviews__pm-thumb';
+          img.src=photos[ti]; img.alt='review photo'; img.loading='lazy';
+          thumbsDiv.appendChild(img);
+        }
+        bar.appendChild(thumbsDiv);
+      }
+
+      var d3=document.createElement('div'); d3.className='trust-reviews__pm-divider'; bar.appendChild(d3);
+
+      /* ── Action buttons ── */
+      var actDiv=document.createElement('div'); actDiv.className='trust-reviews__pm-actions';
+      var writeBtn=document.createElement('button'); writeBtn.className='trust-reviews__pm-btn-write';
+      writeBtn.textContent='Write a Review';
+      writeBtn.addEventListener('click', pmOpen);
+
+      /* Filter button + dropdown */
+      var filterWrap=document.createElement('div'); filterWrap.style.cssText='position:relative;display:inline-block';
+      var filterBtn=document.createElement('button'); filterBtn.className='trust-reviews__pm-btn-filter';
+      filterBtn.innerHTML='&#9776; Filter';
+      var filterMenu=document.createElement('div');
+      filterMenu.style.cssText='display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e4e4e4;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;z-index:100;overflow:hidden';
+      var filterOptions=[['all','All reviews'],['5','5 Stars'],['4','4 Stars'],['3','3 Stars'],['2','2 Stars'],['1','1 Star']];
+      var activeFilter='all';
+      filterOptions.forEach(function(opt){
+        var item=document.createElement('button');
+        item.dataset.fv=opt[0];
+        item.style.cssText='display:block;width:100%;text-align:left;padding:10px 16px;background:none;border:none;font-size:.84rem;cursor:pointer;color:#333;transition:background .12s';
+        item.textContent=opt[1];
+        item.addEventListener('mouseenter',function(){ item.style.background='#f5f5f5'; });
+        item.addEventListener('mouseleave',function(){ item.style.background=item.dataset.fv===activeFilter?'#f0f0f0':'none'; });
+        item.addEventListener('click',function(){
+          activeFilter=opt[0]; filterMenu.style.display='none';
+          filterBtn.innerHTML='&#9776; '+(opt[0]==='all'?'Filter':opt[1]);
+          var filtered=opt[0]==='all'?reviews:reviews.filter(function(r){ return Math.round(r.rating||0)===parseInt(opt[0]); });
+          pmRenderGrid(filtered);
+        });
+        filterMenu.appendChild(item);
+      });
+      filterBtn.addEventListener('click',function(e){ e.stopPropagation(); filterMenu.style.display=filterMenu.style.display==='none'?'block':'none'; });
+      document.addEventListener('click',function(){ filterMenu.style.display='none'; });
+      filterWrap.appendChild(filterBtn); filterWrap.appendChild(filterMenu);
+
+      actDiv.appendChild(writeBtn); actDiv.appendChild(filterWrap);
+      bar.appendChild(actDiv);
+      wrap.appendChild(bar);
+
+      /* ── Masonry grid ── */
+      var grid=document.createElement('div'); grid.className='trust-reviews__pm-grid';
+      function pmRenderGrid(revs){
+        grid.innerHTML='';
+        var items=revs.slice(0,s.maxRev||12);
+        for(var ci=0;ci<items.length;ci++) grid.appendChild(buildPMCard(items[ci],s));
+      }
+      pmRenderGrid(reviews);
+      wrap.appendChild(grid);
+      return wrap;
+    }
+
     function renderReviews(apiData, s) {
       loadingEl.style.display='none';
       var reviews=apiData.reviews||[];
@@ -454,6 +648,7 @@
       else if(s.style==='quote_fade')   { el=buildQuoteFade(reviews,s); }
       else if(s.style==='classic_list') { el=buildClassicList(reviews,s); }
       else if(s.style==='summary_side') { el=buildSummaryList(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
+      else if(s.style==='photo_masonry'){ el=buildPhotoMasonry(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
       else if(s.style==='popup') {
         el=document.createElement('div'); el.className='trust-reviews__grid'; el.style.gridTemplateColumns='repeat('+s.columns+',1fr)';
         var pItems=reviews.slice(0,s.maxRev); for(var pi=0;pi<pItems.length;pi++) el.appendChild(buildCard(pItems[pi],s));
@@ -471,7 +666,7 @@
     .then(function(resp){
       var d=resp.settings||{}, t=resp.translations||TRANSLATIONS.en; resolvedT=t;
       var accentColor=(blockColor&&blockColor!==D_COLOR)?blockColor:(d.accentColor||D_COLOR);
-      var style=(blockStyle&&blockStyle!==D_STYLE)?blockStyle:(d.defaultStyle||D_STYLE);
+      var style=(widgetKey==='custom_template'&&d.defaultStyle)?d.defaultStyle:((blockStyle&&blockStyle!==D_STYLE)?blockStyle:(d.defaultStyle||D_STYLE));
       var columns=(blockCols&&blockCols!==D_COLS)?parseInt(blockCols,10):(d.columns||3);
       var maxRev=(blockMax&&blockMax!==D_MAX)?parseInt(blockMax,10):(d.maxReviews||6);
       var showVerified=(blockVerif==='false')?false:(d.showVerified!==false);

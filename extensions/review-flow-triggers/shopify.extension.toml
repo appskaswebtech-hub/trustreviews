@@ -1,0 +1,70 @@
+api_version = "2025-04"
+
+[[extensions]]
+name = "Review Submitted"
+handle = "review-submitted"
+uid = "a2162ded-65a7-8c14-1b31-4ebae46673e1d57f1e52"
+type = "flow_trigger"
+description = "Fires when a customer submits a product review from the storefront."
+
+  [[extensions.settings.fields]]
+  key = "customer email"
+  name = "Customer Email"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "customer name"
+  name = "Customer Name"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "rating"
+  name = "Rating"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "comment"
+  name = "Review Comment"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "product id"
+  name = "Product ID"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "status"
+  name = "Status"
+  type = "single_line_text_field"
+
+[[extensions]]
+name = "Review Approved"
+handle = "review-approved"
+uid = "ad2ac5d9-793c-eb79-5657-35208d8df09f4c8a893d"
+type = "flow_trigger"
+description = "Fires when a review is approved by the merchant."
+
+  [[extensions.settings.fields]]
+  key = "customer email"
+  name = "Customer Email"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "customer name"
+  name = "Customer Name"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "rating"
+  name = "Rating"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "comment"
+  name = "Review Comment"
+  type = "single_line_text_field"
+
+  [[extensions.settings.fields]]
+  key = "product id"
+  name = "Product ID"
+  type = "single_line_text_field"

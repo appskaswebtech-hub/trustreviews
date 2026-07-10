@@ -1,0 +1,62 @@
+{{ 'homepage-reviews.css' | asset_url | stylesheet_tag }}
+
+{% assign hr_product_id = '' %}
+{% if product and product.id %}
+  {% assign hr_product_id = product.id | json %}
+{% endif %}
+
+<div
+  id="hr-widget-{{ block.id }}"
+  class="hr-widget"
+  {{ block.shopify_attributes }}
+  data-shop="{{ shop.permanent_domain }}"
+  data-product-id="{{ hr_product_id }}"
+  data-block-id="{{ block.id }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-max="{{ block.settings.max_reviews }}"
+  data-layout="{{ block.settings.layout }}"
+  data-widget-key="homepage_reviews"
+>
+  <h2 class="hr-heading">{{ block.settings.heading }}</h2>
+  <div class="hr-loading">Loading reviews...</div>
+  <div class="hr-body"></div>
+</div>
+
+<script src="{{ 'homepage-reviews.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Homepage Reviews",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Customer Reviews"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout Style",
+      "default": "summary_carousel",
+      "options": [
+        { "value": "summary_carousel", "label": "Summary + Carousel" },
+        { "value": "grid",             "label": "Card Grid" },
+        { "value": "masonry",          "label": "Masonry" },
+        { "value": "spotlight",        "label": "Spotlight" },
+        { "value": "ticker",           "label": "Scrolling Ticker" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "max_reviews",
+      "label": "Max reviews",
+      "min": 3,
+      "max": 24,
+      "step": 3,
+      "default": 9
+    }
+  ]
+}
+{% endschema %}

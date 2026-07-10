@@ -1,12 +1,13 @@
 // app/utils/events.server.js
 import db from "../db.server";
 import { sendKlaviyoEvent } from "./klaviyo.server";
+import { sendMailchimpEvent } from "./mailchimp.server";
+import { sendFlowEvent } from "./flow.server";
 
-// Mailchimp event sync needs an Audience/List ID we don't collect yet, so
-// it's intentionally not registered here — only providers with a working
-// sender fire. Add an entry once a provider's send function exists.
 const SENDERS = {
-  klaviyo: sendKlaviyoEvent,
+  klaviyo:      (integration, event) => sendKlaviyoEvent(integration.apiKey, event),
+  mailchimp:    (integration, event) => sendMailchimpEvent(integration.apiKey, integration.listId, event),
+  shopify_flow: (integration, event) => sendFlowEvent(integration.shop, event),
 };
 
 export async function notifyIntegrations(shop, { metricName, email, properties }) {
@@ -21,7 +22,7 @@ export async function notifyIntegrations(shop, { metricName, email, properties }
       const send = SENDERS[integration.provider];
       if (!send) return;
       try {
-        await send(integration.apiKey, { metricName, email, properties });
+        await send(integration, { metricName, email, properties });
       } catch (error) {
         console.error(`[integrations] ${integration.provider} event send failed:`, error.message);
       }

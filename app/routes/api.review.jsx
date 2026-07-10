@@ -201,6 +201,58 @@ export async function loader({ request }) {
   if (url.searchParams.get("type") === "widget-defaults") {
     const widgetKey = url.searchParams.get("widgetKey") || "review_widget";
     const langStore = await prisma.store.findUnique({ where: { shop }, select: { language: true } });
+    const widgetLanguage = resolveLanguage(url.searchParams.get("locale"), langStore?.language);
+
+    // Custom Template: read the active (isDefault=true) WidgetTemplate
+    if (widgetKey === "custom_template") {
+      try {
+        const tpl = await prisma.widgetTemplate.findFirst({
+          where: { shop, isDefault: true },
+          select: { blocks: true },
+        });
+        if (tpl?.blocks) {
+          const s = tpl.blocks;
+          const LAYOUT_TO_STYLE = {
+            grid: "dark_grid", list: "list_view", masonry: "dark_grid",
+            slider: "slider", compact: "classic_list", featured: "summary_side",
+          };
+          return Response.json({
+            settings: {
+              defaultStyle:       LAYOUT_TO_STYLE[s.layout] || "dark_grid",
+              accentColor:        s.accentColor       || "#6B1A2C",
+              starColor:          s.starColor         || "#F59E0B",
+              cardBackground:     s.cardBg            || "#FFFFFF",
+              textColor:          s.textColor         || "#333333",
+              borderColor:        s.cardBorderColor   || "#E5E5E5",
+              showVerified:       s.showVerified       ?? true,
+              showAvatar:         s.showAvatar         ?? true,
+              showDate:           s.showDate           ?? true,
+              maxReviews:         s.maxReviews         || 6,
+              columns:            s.columnsDesktop     || 3,
+              tabletColumns:      s.columnsTablet      || 2,
+              mobileColumns:      s.columnsMobile      || 1,
+              cardGap:            s.gap                || 16,
+              borderRadius:       s.cardRadius         || 12,
+              showShadow:         (s.cardShadow || "soft") !== "none",
+              heading:            s.headingText        || "What our customers say",
+              headingSize:        s.headingSize        || 28,
+              cardPadding:        s.cardPadding        || 18,
+              showWriteReviewBtn: s.showWriteBtn       ?? false,
+              fontFamily:         s.fontFamily         || "inherit",
+            },
+            language: widgetLanguage,
+            translations: SLIDER_TRANSLATIONS[widgetLanguage] || SLIDER_TRANSLATIONS.en,
+          });
+        }
+      } catch (e) {
+        // widgetTemplate table not yet available — fall through to empty settings
+      }
+      return Response.json({
+        settings: {},
+        language: widgetLanguage,
+        translations: SLIDER_TRANSLATIONS[widgetLanguage] || SLIDER_TRANSLATIONS.en,
+      });
+    }
 
     // ✅ FIX: was missing `return` — response was falling through to reviews logic
     const settings = await prisma.widget.findUnique({
@@ -254,8 +306,6 @@ export async function loader({ request }) {
       },
     });
 
-    const widgetLanguage = resolveLanguage(url.searchParams.get("locale"), langStore?.language);
-
     return Response.json({
       settings: settings || {},
       language: widgetLanguage,
@@ -265,10 +315,6 @@ export async function loader({ request }) {
 
   // ── Reviews list ───────────────────────────────────────────────────────────
   const productId = normalizeProductId(url.searchParams.get("productId"));
-
-  if (!productId) {
-    return Response.json({ reviews: [], total: 0, averageRating: 0, page: 1, limit: 0 });
-  }
 
   const [store, listSettingsRow] = await Promise.all([
     prisma.store.findUnique({ where: { shop }, select: { id: true, language: true } }),
@@ -287,6 +333,31 @@ export async function loader({ request }) {
     return Response.json({
       reviews: [], total: 0, averageRating: 0, page: 1, limit: 0, language,
       translations: reviewTranslations, listSettings,
+    });
+  }
+
+  // No productId = store-wide request (homepage widget)
+  if (!productId) {
+    const [reviews, total, summary] = await Promise.all([
+      prisma.review.findMany({
+        where: { storeId: store.id, status: "approved" },
+        select: {
+          id: true, rating: true, comment: true, customer: true,
+          title: true, likes: true, createdAt: true,
+          mediaUrl: true, mediaType: true, fileName: true,
+          reply: true, repliedAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 24,
+      }),
+      prisma.review.count({ where: { storeId: store.id, status: "approved" } }),
+      prisma.review.aggregate({ where: { storeId: store.id, status: "approved" }, _avg: { rating: true } }),
+    ]);
+    return Response.json({
+      reviews, total,
+      averageRating: summary._avg.rating || 0,
+      page: 1, limit: reviews.length,
+      language, translations: reviewTranslations, listSettings,
     });
   }
 

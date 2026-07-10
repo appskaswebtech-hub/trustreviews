@@ -216,8 +216,9 @@ model WidgetSettings {
 model Integration {
   id            String    @id @default(cuid())
   shop          String
-  provider      String    // "klaviyo" | "mailchimp" | ...
-  apiKey        String
+  provider      String    // "klaviyo" | "mailchimp" | "shopify_flow"
+  apiKey        String    @default("")
+  listId        String?   // Mailchimp audience/list ID
   connected     Boolean   @default(false)
   lastError     String?
   lastCheckedAt DateTime?
@@ -225,6 +226,18 @@ model Integration {
   updatedAt     DateTime  @updatedAt
 
   @@unique([shop, provider])
+}
+
+model WidgetTemplate {
+  id        String   @id @default(cuid())
+  shop      String
+  name      String   @default("Untitled Template")
+  blocks    Json
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shop])
 }
 
 model Widget {

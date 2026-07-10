@@ -3,6 +3,7 @@ import { authenticate } from "../shopify.server";
 import { redirect } from "react-router";
 import db from "../db.server";
 import { useState, useRef, useEffect } from "react";
+import { notifyIntegrations } from "../utils/events.server";
 //import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -268,6 +269,15 @@ export const action = async ({ request }) => {
 
   if (actionType === "approve" && store) {
     await db.review.updateMany({ where: { id, storeId: store.id }, data: { status: "approved", hideReason: null } });
+    // Fire "Review Approved" integration events (Klaviyo, Mailchimp, Shopify Flow)
+    const approved = await db.review.findUnique({ where: { id }, select: { email: true, rating: true, comment: true, customer: true, product: { select: { shopifyProductId: true } } } });
+    if (approved?.email) {
+      notifyIntegrations(session.shop, {
+        metricName: "Review Approved",
+        email: approved.email,
+        properties: { rating: approved.rating, comment: approved.comment, customer: approved.customer, productId: approved.product?.shopifyProductId, status: "approved" },
+      }).catch((e) => console.error("[approve] notifyIntegrations failed:", e.message));
+    }
   }
   if (actionType === "reject" && store) {
     const hideReason = formData.get("hideReason");

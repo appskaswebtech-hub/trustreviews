@@ -37,6 +37,16 @@ export async function action({ request }) {
 // used to build the "addAppBlockId" deep link into the Theme Editor.
 const WIDGETS = [
   {
+    key: "homepage_reviews",
+    title: "Homepage Reviews",
+    description: "Full-page review showcase for your home page — 5 layouts: Summary Carousel, Grid, Masonry, Spotlight, Ticker. Colors and fonts managed from the app.",
+    href: "/app/widgets/homepage_reviews",
+    blockHandle: "homepage-reviews",
+    bg: "linear-gradient(135deg,#fef3c7,#fde68a)",
+    icon: "🏠",
+    badge: "NEW",
+  },
+  {
     key: "review_widget",
     title: "Review Widget",
     description: "Collect and display product reviews directly on your product pages.",
@@ -286,6 +296,12 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
         color: widget.iconColor || C.text, position: "relative",
       }}>
         {widget.icon}
+        {widget.badge && !installed && (
+          <span style={{
+            position: "absolute", top: 10, left: 10, fontSize: 10, fontWeight: 700,
+            background: "#f59e0b", color: "#fff", borderRadius: 20, padding: "3px 9px",
+          }}>{widget.badge}</span>
+        )}
         {installed && (
           <span style={{
             position: "absolute", top: 10, right: 10, fontSize: 11, fontWeight: 700,

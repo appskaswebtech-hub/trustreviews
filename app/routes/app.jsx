@@ -40,9 +40,13 @@ export default function App() {
             Product Groups
           </Link>
 
-          <Link to="/app/integrations">
+          {/* <Link to="/app/customize">
+            Customize
+          </Link> */}
+
+          {/* <Link to="/app/integrations">
             Integrations
-          </Link>
+          </Link> */}
 
           <Link to="/app/billing">
             Billing
