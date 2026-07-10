@@ -4,11 +4,17 @@ import db from "../db.server";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
-  const templates = await db.widgetTemplate.findMany({
-    where: { shop: session.shop },
-    orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
-  });
-  return { templates };
+  let templates = [];
+  let dbError = null;
+  try {
+    templates = await db.widgetTemplate.findMany({
+      where: { shop: session.shop },
+      orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
+    });
+  } catch (e) {
+    dbError = "WidgetTemplate table not found. Run: npx prisma db push";
+  }
+  return { templates, dbError };
 }
 
 // Map template layout name → widget's defaultStyle value
@@ -85,11 +91,27 @@ const C = {
 };
 
 export default function CustomizePage() {
-  const { templates } = useLoaderData();
+  const { templates, dbError } = useLoaderData();
   const actionData = useActionData();
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px", background: C.bg, minHeight: "100vh" }}>
+      {/* DB error banner */}
+      {dbError && (
+        <div style={{ background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: 12, padding: "14px 18px", marginBottom: 20, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: "#9a3412", marginBottom: 4 }}>Database table missing</div>
+            <div style={{ fontSize: 12.5, color: "#7c2d12" }}>
+              The <strong>WidgetTemplate</strong> table does not exist yet. Run the following command in your terminal, then restart the dev server:
+            </div>
+            <code style={{ display: "inline-block", marginTop: 8, padding: "6px 12px", background: "#1e293b", color: "#e2e8f0", borderRadius: 7, fontSize: 12, fontFamily: "monospace" }}>
+              npx prisma db push
+            </code>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>

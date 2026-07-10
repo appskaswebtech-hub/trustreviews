@@ -1,4 +1,4 @@
-import { redirect, useLoaderData, useSubmit, Link } from "react-router";
+import { redirect, useLoaderData, useSubmit, useActionData, Link } from "react-router";
 import { useState } from "react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -130,9 +130,13 @@ const C = { accent: "#6B1A2C", accentL: "#f5e6e9", surface: "#fff", border: "#e4
 export async function loader({ request, params }) {
   const { session } = await authenticate.admin(request);
   if (params.id === "new") return { template: null };
-  const template = await db.widgetTemplate.findFirst({ where: { id: params.id, shop: session.shop } });
-  if (!template) return redirect("/app/customize");
-  return { template };
+  try {
+    const template = await db.widgetTemplate.findFirst({ where: { id: params.id, shop: session.shop } });
+    if (!template) return redirect("/app/customize");
+    return { template };
+  } catch {
+    return redirect("/app/customize");
+  }
 }
 export async function action({ request, params }) {
   const { session } = await authenticate.admin(request);
@@ -140,11 +144,15 @@ export async function action({ request, params }) {
   if (fd.get("actionType") === "save") {
     const name     = (fd.get("name") || "Untitled").trim();
     const settings = JSON.parse(fd.get("settings") || "{}");
-    if (params.id === "new") {
-      const tpl = await db.widgetTemplate.create({ data: { shop: session.shop, name, blocks: settings } });
-      return redirect(`/app/customize/${tpl.id}`);
+    try {
+      if (params.id === "new") {
+        const tpl = await db.widgetTemplate.create({ data: { shop: session.shop, name, blocks: settings } });
+        return redirect(`/app/customize/${tpl.id}`);
+      }
+      await db.widgetTemplate.updateMany({ where: { id: params.id, shop: session.shop }, data: { name, blocks: settings } });
+    } catch {
+      return { ok: false, error: "Database not ready. Run: npx prisma db push" };
     }
-    await db.widgetTemplate.updateMany({ where: { id: params.id, shop: session.shop }, data: { name, blocks: settings } });
     return { ok: true };
   }
   return null;
@@ -713,6 +721,7 @@ function SettingsSidebar({ s, onChange }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TemplateBuilder() {
   const { template } = useLoaderData();
+  const actionData = useActionData();
   const submit = useSubmit();
 
   const [tplName, setTplName] = useState(template?.name || "Untitled Template");
@@ -735,6 +744,14 @@ export default function TemplateBuilder() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#f3f4f6", overflow: "hidden" }}>
+
+      {/* DB error banner */}
+      {actionData?.error && (
+        <div style={{ background: "#fff7ed", borderBottom: "1px solid #fed7aa", padding: "10px 20px", display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "#9a3412", flexShrink: 0 }}>
+          <span>⚠️</span>
+          <strong>Save failed:</strong> {actionData.error}
+        </div>
+      )}
 
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 20px", height: 54, background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0, boxShadow: "0 1px 5px rgba(0,0,0,.07)", zIndex: 20 }}>

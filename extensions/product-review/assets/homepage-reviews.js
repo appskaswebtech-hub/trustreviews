@@ -230,8 +230,8 @@
         var s = {
           accentColor:  d.accentColor      || D_ACCENT,
           starColor:    d.starColor        || D_ACCENT,
-          panelBg:      d.panelBg          || D_PANEL_BG,
-          panelText:    d.panelText        || '#fff',
+          panelBg:      d.summaryPosition   || D_PANEL_BG,
+          panelText:    d.textAlign        || '#fff',
           pageBg:       d.backgroundColor || 'transparent',
           cardBg:       d.cardBackground  || '#fff',
           cardBorder:   d.borderColor     || '#e5e5e5',

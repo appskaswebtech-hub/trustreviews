@@ -29,6 +29,9 @@ export async function action({ request }) {
     cardBackground:  body.cardBg         || "#ffffff",
     textColor:       body.textColor      || "#111111",
     borderColor:     body.cardBorder     || "#e5e5e5",
+    // panel colors stored in existing fields (no migration needed)
+    summaryPosition: body.panelBg        || "#111111",
+    textAlign:       body.panelText      || "#ffffff",
     // typography
     fontFamily:      body.fontFamily     || "inherit",
     headingSize:     Number(body.headingSize)    || 36,
@@ -38,7 +41,7 @@ export async function action({ request }) {
     borderRadius:    Number(body.cardRadius)     || 8,
     showShadow:      body.showShadow     !== false,
     cardGap:         Number(body.gap)            || 20,
-    // panel
+    // heading
     heading:         body.headingText    || "Customer Reviews",
     // toggles
     showVerified:    body.showVerified   !== false,
@@ -297,8 +300,8 @@ export default function HomepageReviewsSettings() {
     showMedia:     settings.showAvatar      !== false,
     paddingTop:    settings.paddingTop      || DS.paddingTop,
     paddingBottom: settings.paddingBottom   || DS.paddingBottom,
-    panelBg:       DS.panelBg,
-    panelText:     DS.panelText,
+    panelBg:       settings.summaryPosition || DS.panelBg,
+    panelText:     settings.textAlign      || DS.panelText,
   });
 
   const upd = useCallback((key, val) => setS(prev => ({ ...prev, [key]: val })), []);
