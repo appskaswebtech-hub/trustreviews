@@ -186,9 +186,9 @@
       widget.style.setProperty('--tr-list-justify', justify);
       var wrap=document.createElement('div'); wrap.className='trust-reviews__classic-list';
       var sortBar=document.createElement('div'); sortBar.className='trust-reviews__classic-sortbar';
-      var sortLabel=document.createElement('span'); sortLabel.className='trust-reviews__classic-sortlabel'; sortLabel.textContent='Sort:';
+      var sortLabel=document.createElement('span'); sortLabel.className='trust-reviews__classic-sortlabel'; sortLabel.textContent=(s.t.sort||'Sort')+':';
       var sortSel=document.createElement('select'); sortSel.className='trust-reviews__classic-select';
-      [['newest','Newest'],['highest','Highest Rated'],['lowest','Lowest Rated']].forEach(function(o){ var opt=document.createElement('option'); opt.value=o[0]; opt.textContent=o[1]; sortSel.appendChild(opt); });
+      [['newest',s.t.sortNewest||'Newest'],['highest',s.t.sortHighest||'Highest Rated'],['lowest',s.t.sortLowest||'Lowest Rated']].forEach(function(o){ var opt=document.createElement('option'); opt.value=o[0]; opt.textContent=o[1]; sortSel.appendChild(opt); });
       sortBar.appendChild(sortLabel); sortBar.appendChild(sortSel); wrap.appendChild(sortBar);
       var listEl=document.createElement('div'); listEl.className='trust-reviews__classic-rows';
       var pagEl=document.createElement('div'); pagEl.className='trust-reviews__classic-pagination';
@@ -225,7 +225,7 @@
 
       var header=document.createElement('div'); header.className='trust-reviews__sl-header';
       var headerLeft=document.createElement('div');
-      var labelEl=document.createElement('div'); labelEl.className='trust-reviews__sl-label'; labelEl.textContent='Customer reviews';
+      var labelEl=document.createElement('div'); labelEl.className='trust-reviews__sl-label'; labelEl.textContent=(s.t.customerReviews||'Customer reviews');
       var headEl=document.createElement('div'); headEl.className='trust-reviews__sl-heading'; headEl.textContent=s.heading||'What our customers say';
       headerLeft.appendChild(labelEl); headerLeft.appendChild(headEl);
 
@@ -237,20 +237,20 @@
       slModal.style.cssText='background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)';
       slModal.innerHTML=
         '<button id="tr-sl-close-'+bid+'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">&times;</button>'+
-        '<h3 style="margin:0 0 20px;font-size:1.2rem;font-weight:700;color:'+s.accentColor+'">Write a Review</h3>'+
-        '<div style="margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Your Rating <span style="color:red">*</span></label>'+
+        '<h3 style="margin:0 0 20px;font-size:1.2rem;font-weight:700;color:'+s.accentColor+'">'+(s.t.writeReview||'Write a Review')+'</h3>'+
+        '<div style="margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">'+(s.t.ratingQuestion||'Your Rating')+' <span style="color:red">*</span></label>'+
         '<div id="tr-sl-stars-'+bid+'" style="display:flex;gap:6px;cursor:pointer">'+
         '<span data-v="1" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="2" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="3" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="4" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="5" style="font-size:28px;color:#ddd">&#9733;</span></div></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Review title</label><input id="tr-sl-title-'+bid+'" type="text" placeholder="Summarize your experience..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your review <span style="color:red">*</span></label><textarea id="tr-sl-comment-'+bid+'" placeholder="Share your experience..." rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Upload image/video <span style="font-weight:400;color:#888">(optional)</span></label>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.reviewTitleLabel||'Review title')+'</label><input id="tr-sl-title-'+bid+'" type="text" placeholder="'+(s.t.reviewTitlePlaceholder||'Summarize your experience...')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.feedbackLabel||'Your review')+' <span style="color:red">*</span></label><textarea id="tr-sl-comment-'+bid+'" placeholder="'+(s.t.feedbackPlaceholder||'Share your experience...')+'" rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.uploadLabel||'Upload image/video')+' <span style="font-weight:400;color:#888">(optional)</span></label>'+
         '<div id="tr-sl-dropzone-'+bid+'" style="border:2px dashed #d1d5db;border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:#fafafa;position:relative">'+
         '<input id="tr-sl-file-'+bid+'" type="file" accept="image/*,video/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">'+
         '<div id="tr-sl-dz-content-'+bid+'"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#374151">Click to upload or drag & drop</p><p style="margin:0;font-size:12px;color:#9ca3af">Images or videos — max 20 MB</p></div>'+
         '<div id="tr-sl-preview-'+bid+'" style="display:none;position:relative"><button id="tr-sl-remove-'+bid+'" type="button" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:14px;line-height:1;cursor:pointer;z-index:1;display:flex;align-items:center;justify-content:center">&times;</button><div id="tr-sl-preview-media-'+bid+'"></div><p id="tr-sl-preview-name-'+bid+'" style="margin:8px 0 0;font-size:12px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p></div></div></div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your name <span style="color:red">*</span></label><input id="tr-sl-name-'+bid+'" type="text" placeholder="Name" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Email <span style="color:red">*</span></label><input id="tr-sl-email-'+bid+'" type="email" placeholder="Email" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.nameLabel||'Your name')+' <span style="color:red">*</span></label><input id="tr-sl-name-'+bid+'" type="text" placeholder="'+(s.t.namePlaceholder||'Name')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.emailLabel||'Email')+' <span style="color:red">*</span></label><input id="tr-sl-email-'+bid+'" type="email" placeholder="'+(s.t.emailPlaceholder||'Email')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div></div>'+
         '<div id="tr-sl-msg-'+bid+'" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>'+
-        '<div style="display:flex;gap:10px;justify-content:flex-end"><button id="tr-sl-cancel-'+bid+'" style="padding:10px 20px;background:#f5f5f5;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Cancel</button><button id="tr-sl-submit-'+bid+'" style="padding:10px 24px;background:'+s.accentColor+';color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Submit Review</button></div>';
+        '<div style="display:flex;gap:10px;justify-content:flex-end"><button id="tr-sl-cancel-'+bid+'" style="padding:10px 20px;background:#f5f5f5;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">'+(s.t.cancel||'Cancel')+'</button><button id="tr-sl-submit-'+bid+'" style="padding:10px 24px;background:'+s.accentColor+';color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">'+(s.t.submitReview||'Submit Review')+'</button></div>';
       slOverlay.appendChild(slModal);
       document.body.appendChild(slOverlay);
 
@@ -300,27 +300,27 @@
         var comment=slModal.querySelector('#tr-sl-comment-'+bid).value.trim();
         var title=slModal.querySelector('#tr-sl-title-'+bid).value.trim();
         var submitBtn=this;
-        if(!name||!email||!comment||slRating===0){ slMsg('Please fill in all required fields and select a star rating.',false); return; }
-        submitBtn.disabled=true; submitBtn.textContent='Submitting…';
+        if(!name||!email||!comment||slRating===0){ slMsg(s.t.submitRequired||'Please fill in all required fields and select a star rating.',false); return; }
+        submitBtn.disabled=true; submitBtn.textContent=(s.t.submitting||'Submitting…');
         var file=slFileInput.files[0], uploadPromise;
         if(file){
-          submitBtn.textContent='Uploading…';
+          submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…');
           var fd=new FormData(); fd.append('file',file);
           uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; });
         } else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
         uploadPromise.then(function(media){
-          submitBtn.textContent='Submitting…';
+          submitBtn.textContent=(s.t.submitting||'Submitting…');
           return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:slRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();});
         }).then(function(json){
           if(json.success===false) throw new Error(json.error||'Submission failed');
-          slMsg('Thank you! Your review has been submitted for approval.',true);
+          slMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true);
           slModal.querySelector('#tr-sl-name-'+bid).value=''; slModal.querySelector('#tr-sl-email-'+bid).value='';
           slModal.querySelector('#tr-sl-comment-'+bid).value=''; slModal.querySelector('#tr-sl-title-'+bid).value='';
-          slClearPreview(); slRating=0; slPaintStars(0); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; setTimeout(slClose,2500);
-        }).catch(function(err){ slMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; });
+          slClearPreview(); slRating=0; slPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); setTimeout(slClose,2500);
+        }).catch(function(err){ slMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); });
       });
 
-      var writeBtn=document.createElement('button'); writeBtn.className='trust-reviews__sl-write-btn'; writeBtn.textContent='Write a review';
+      var writeBtn=document.createElement('button'); writeBtn.className='trust-reviews__sl-write-btn'; writeBtn.textContent=(s.t.writeReview||'Write a review');
       writeBtn.addEventListener('click', slOpen);
       header.appendChild(headerLeft); header.appendChild(writeBtn);
       outer.appendChild(header);
@@ -329,7 +329,7 @@
       var panel=document.createElement('div'); panel.className='trust-reviews__sl-panel';
       var scoreEl=document.createElement('div'); scoreEl.className='trust-reviews__sl-big-score'; scoreEl.textContent=avgRating.toFixed(1);
       var starsRowEl=document.createElement('div'); starsRowEl.className='trust-reviews__sl-stars-row'; starsRowEl.innerHTML=starHTML(Math.round(avgRating),starCol);
-      var countEl=document.createElement('div'); countEl.className='trust-reviews__sl-count'; countEl.textContent='Based on '+total+' '+(total===1?(s.t?s.t.review:'review'):(s.t?s.t.reviews:'reviews'));
+      var countEl=document.createElement('div'); countEl.className='trust-reviews__sl-count'; countEl.textContent=(s.t.basedOn||'Based on')+' '+total+' '+(total===1?(s.t.review||'review'):(s.t.reviews||'reviews'));
       panel.appendChild(scoreEl); panel.appendChild(starsRowEl); panel.appendChild(countEl);
       var ns=[5,4,3,2,1];
       for(var ni=0;ni<ns.length;ni++){
@@ -409,8 +409,8 @@
       var body=overlay.querySelector('.trust-reviews__popup-body');
       var closeBtn=overlay.querySelector('.trust-reviews__popup-close');
       var titleEl=overlay.querySelector('.trust-reviews__popup-title');
-      if(titleEl) titleEl.style.color=s.accentColor;
-      fab.style.background=s.accentColor; fab.style.display='block';
+      if(titleEl){ titleEl.style.color=s.accentColor; titleEl.textContent=s.t.customerReviews||'Customer Reviews'; }
+      fab.style.background=s.accentColor; fab.style.display='block'; fab.textContent=s.t.reviewsBtn||'Reviews';
       var grid=document.createElement('div'); grid.className='trust-reviews__grid'; grid.style.gridTemplateColumns='1fr';
       var items=reviews.slice(0,s.maxRev); for(var i=0;i<items.length;i++) grid.appendChild(buildCard(items[i],s));
       body.appendChild(grid); attachLikes(body);
@@ -461,13 +461,13 @@
             '<span class="trust-reviews__pm-card-name">'+(r.customer||'Customer')+'</span>'+
           '</div>'+
           '<div class="trust-reviews__pm-card-text pm-clamped">'+(r.comment||'')+'</div>'+
-          '<button class="trust-reviews__pm-show-more">Show full review</button>'+
+          '<button class="trust-reviews__pm-show-more">'+(s.t.showFullReview||'Show full review')+'</button>'+
         '</div>';
       var showMore=card.querySelector('.trust-reviews__pm-show-more');
       var textEl=card.querySelector('.trust-reviews__pm-card-text');
       showMore.addEventListener('click',function(){
         var clamped=textEl.classList.toggle('pm-clamped');
-        showMore.textContent=clamped?'Show full review':'Show less';
+        showMore.textContent=clamped?(s.t.showFullReview||'Show full review'):(s.t.showLess||'Show less');
       });
       return card;
     }
@@ -487,19 +487,19 @@
       pmModal.style.cssText='background:#fff;border-radius:14px;padding:28px 28px 24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)';
       pmModal.innerHTML=
         '<button id="tr-pm-close-'+bid+'" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">&times;</button>'+
-        '<h3 style="margin:0 0 20px;font-size:1.2rem;font-weight:700;color:'+s.accentColor+'">Write a Review</h3>'+
-        '<div style="margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Your Rating <span style="color:red">*</span></label>'+
+        '<h3 style="margin:0 0 20px;font-size:1.2rem;font-weight:700;color:'+s.accentColor+'">'+(s.t.writeReview||'Write a Review')+'</h3>'+
+        '<div style="margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">'+(s.t.ratingQuestion||'Your Rating')+' <span style="color:red">*</span></label>'+
         '<div id="tr-pm-stars-'+bid+'" style="display:flex;gap:6px;cursor:pointer"><span data-v="1" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="2" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="3" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="4" style="font-size:28px;color:#ddd">&#9733;</span><span data-v="5" style="font-size:28px;color:#ddd">&#9733;</span></div></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Review title</label><input id="tr-pm-title-'+bid+'" type="text" placeholder="Summarize your experience..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your review <span style="color:red">*</span></label><textarea id="tr-pm-comment-'+bid+'" placeholder="Share your experience..." rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea></div>'+
-        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Upload image/video <span style="font-weight:400;color:#888">(optional)</span></label>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.reviewTitleLabel||'Review title')+'</label><input id="tr-pm-title-'+bid+'" type="text" placeholder="'+(s.t.reviewTitlePlaceholder||'Summarize your experience...')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.feedbackLabel||'Your review')+' <span style="color:red">*</span></label><textarea id="tr-pm-comment-'+bid+'" placeholder="'+(s.t.feedbackPlaceholder||'Share your experience...')+'" rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea></div>'+
+        '<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.uploadLabel||'Upload image/video')+' <span style="font-weight:400;color:#888">(optional)</span></label>'+
         '<div id="tr-pm-dropzone-'+bid+'" style="border:2px dashed #d1d5db;border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;background:#fafafa;position:relative">'+
         '<input id="tr-pm-file-'+bid+'" type="file" accept="image/*,video/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">'+
         '<div id="tr-pm-dz-content-'+bid+'"><p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#374151">Click to upload or drag &amp; drop</p><p style="margin:0;font-size:12px;color:#9ca3af">Images or videos &mdash; max 20 MB</p></div>'+
         '<div id="tr-pm-preview-'+bid+'" style="display:none;position:relative"><button id="tr-pm-remove-'+bid+'" type="button" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:14px;cursor:pointer;z-index:1">&times;</button><div id="tr-pm-preview-media-'+bid+'"></div><p id="tr-pm-preview-name-'+bid+'" style="margin:8px 0 0;font-size:12px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p></div></div></div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Your name <span style="color:red">*</span></label><input id="tr-pm-name-'+bid+'" type="text" placeholder="Name" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Email <span style="color:red">*</span></label><input id="tr-pm-email-'+bid+'" type="email" placeholder="Email" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.nameLabel||'Your name')+' <span style="color:red">*</span></label><input id="tr-pm-name-'+bid+'" type="text" placeholder="'+(s.t.namePlaceholder||'Name')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div><div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">'+(s.t.emailLabel||'Email')+' <span style="color:red">*</span></label><input id="tr-pm-email-'+bid+'" type="email" placeholder="'+(s.t.emailPlaceholder||'Email')+'" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div></div>'+
         '<div id="tr-pm-msg-'+bid+'" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>'+
-        '<div style="display:flex;gap:10px;justify-content:flex-end"><button id="tr-pm-cancel-'+bid+'" style="padding:10px 20px;background:#f5f5f5;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Cancel</button><button id="tr-pm-submit-'+bid+'" style="padding:10px 24px;background:'+s.accentColor+';color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Submit Review</button></div>';
+        '<div style="display:flex;gap:10px;justify-content:flex-end"><button id="tr-pm-cancel-'+bid+'" style="padding:10px 20px;background:#f5f5f5;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">'+(s.t.cancel||'Cancel')+'</button><button id="tr-pm-submit-'+bid+'" style="padding:10px 24px;background:'+s.accentColor+';color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">'+(s.t.submitReview||'Submit Review')+'</button></div>';
       pmOverlay.appendChild(pmModal);
       document.body.appendChild(pmOverlay);
 
@@ -541,14 +541,14 @@
         var comment=pmModal.querySelector('#tr-pm-comment-'+bid).value.trim();
         var title=pmModal.querySelector('#tr-pm-title-'+bid).value.trim();
         var submitBtn=this;
-        if(!name||!email||!comment||pmRating===0){ pmMsg('Please fill in all required fields and select a star rating.',false); return; }
-        submitBtn.disabled=true; submitBtn.textContent='Submitting…';
+        if(!name||!email||!comment||pmRating===0){ pmMsg(s.t.submitRequired||'Please fill in all required fields and select a star rating.',false); return; }
+        submitBtn.disabled=true; submitBtn.textContent=(s.t.submitting||'Submitting…');
         var file=pmFileInput.files[0], uploadPromise;
-        if(file){ submitBtn.textContent='Uploading…'; var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
+        if(file){ submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…'); var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
         else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
-        uploadPromise.then(function(media){ submitBtn.textContent='Submitting…'; return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();}); })
-        .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg('Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; setTimeout(pmClose,2500); })
-        .catch(function(err){ pmMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent='Submit Review'; });
+        uploadPromise.then(function(media){ submitBtn.textContent=(s.t.submitting||'Submitting…'); return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();}); })
+        .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); setTimeout(pmClose,2500); })
+        .catch(function(err){ pmMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); });
       });
 
       /* ── Summary bar ── */
@@ -557,7 +557,7 @@
       var starsHtml='';
       for(var si=0;si<5;si++) starsHtml+='<span style="color:'+(si<Math.round(avgRating)?s.accentColor:'#ddd')+'">&#9733;</span>';
       var scoreDiv=document.createElement('div'); scoreDiv.className='trust-reviews__pm-score';
-      scoreDiv.innerHTML='<div class="trust-reviews__pm-score-num">'+avgRating.toFixed(1)+'</div><div class="trust-reviews__pm-score-stars">'+starsHtml+'</div><div class="trust-reviews__pm-score-count">'+total+' reviews</div>';
+      scoreDiv.innerHTML='<div class="trust-reviews__pm-score-num">'+avgRating.toFixed(1)+'</div><div class="trust-reviews__pm-score-stars">'+starsHtml+'</div><div class="trust-reviews__pm-score-count">'+total+' '+(s.t.reviews||'reviews')+'</div>';
       bar.appendChild(scoreDiv);
 
       var d1=document.createElement('div'); d1.className='trust-reviews__pm-divider'; bar.appendChild(d1);
@@ -588,7 +588,7 @@
       /* ── Action buttons ── */
       var actDiv=document.createElement('div'); actDiv.className='trust-reviews__pm-actions';
       var writeBtn=document.createElement('button'); writeBtn.className='trust-reviews__pm-btn-write';
-      writeBtn.textContent='Write a Review';
+      writeBtn.textContent=(s.t.writeReview||'Write a Review');
       writeBtn.addEventListener('click', pmOpen);
 
       /* Filter button + dropdown */
@@ -597,7 +597,7 @@
       filterBtn.innerHTML='&#9776; Filter';
       var filterMenu=document.createElement('div');
       filterMenu.style.cssText='display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e4e4e4;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;z-index:100;overflow:hidden';
-      var filterOptions=[['all','All reviews'],['5','5 Stars'],['4','4 Stars'],['3','3 Stars'],['2','2 Stars'],['1','1 Star']];
+      var filterOptions=[['all',s.t.filterAllReviews||'All reviews'],['5','5 ★'],['4','4 ★'],['3','3 ★'],['2','2 ★'],['1','1 ★']];
       var activeFilter='all';
       filterOptions.forEach(function(opt){
         var item=document.createElement('button');
@@ -634,6 +634,33 @@
       return wrap;
     }
 
+    function buildCompactRows(reviews, s) {
+      var starCol=s.starColor||'#F59E0B', perPage=Math.max(1,s.maxRev), sorted=reviews.slice();
+      var wrap=document.createElement('div'); wrap.className='trust-reviews__compact-wrap';
+      var sortBar=document.createElement('div'); sortBar.className='trust-reviews__compact-sortbar';
+      var sortLabel=document.createElement('span'); sortLabel.className='trust-reviews__classic-sortlabel'; sortLabel.textContent=(s.t.sort||'Sort')+':';
+      var sortSel=document.createElement('select'); sortSel.className='trust-reviews__classic-select';
+      [['newest',s.t.sortNewest||'Newest'],['highest',s.t.sortHighest||'Highest Rated'],['lowest',s.t.sortLowest||'Lowest Rated']].forEach(function(o){ var opt=document.createElement('option'); opt.value=o[0]; opt.textContent=o[1]; sortSel.appendChild(opt); });
+      sortBar.appendChild(sortLabel); sortBar.appendChild(sortSel); wrap.appendChild(sortBar);
+      var listEl=document.createElement('div'); listEl.className='trust-reviews__compact-rows';
+      wrap.appendChild(listEl);
+      function doSort(mode){ sorted=reviews.slice(); if(mode==='highest') sorted.sort(function(a,b){return b.rating-a.rating;}); else if(mode==='lowest') sorted.sort(function(a,b){return a.rating-b.rating;}); else sorted.sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);}); }
+      function renderRows(){
+        listEl.innerHTML='';
+        sorted.slice(0,perPage).forEach(function(r){
+          var row=document.createElement('div'); row.className='trust-reviews__compact-row';
+          var verifiedHTML=(s.showVerified&&r.isVerified)?'<span class="trust-reviews__verified trust-reviews__compact-verified">'+(s.t?s.t.verified:'Verified')+'</span>':'';
+          var dateHTML=(s.showDate&&r.createdAt)?'<span class="trust-reviews__compact-date">'+fmtDate(r.createdAt)+'</span>':'';
+          var text=r.title?(r.title+(r.comment?' — '+r.comment:'')):(r.comment||'');
+          row.innerHTML='<span class="trust-reviews__compact-stars">'+starHTML(r.rating,starCol)+'</span>'+verifiedHTML+'<span class="trust-reviews__compact-text">'+text+'</span><span class="trust-reviews__compact-reviewer">'+(r.customer||'Anonymous')+'</span>'+dateHTML;
+          listEl.appendChild(row);
+        });
+      }
+      doSort('newest'); renderRows();
+      sortSel.addEventListener('change',function(){ doSort(sortSel.value); renderRows(); });
+      return wrap;
+    }
+
     function renderReviews(apiData, s) {
       loadingEl.style.display='none';
       var reviews=apiData.reviews||[];
@@ -646,7 +673,8 @@
       else if(s.style==='badge_strip')  { el=buildBadgeStrip(reviews,s,apiData.averageRating||0); }
       else if(s.style==='star_summary') { el=buildStarSummary(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
       else if(s.style==='quote_fade')   { el=buildQuoteFade(reviews,s); }
-      else if(s.style==='classic_list') { el=buildClassicList(reviews,s); }
+      else if(s.style==='classic_list')   { el=buildClassicList(reviews,s); }
+      else if(s.style==='compact_rows')   { el=buildCompactRows(reviews,s); }
       else if(s.style==='summary_side') { el=buildSummaryList(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
       else if(s.style==='photo_masonry'){ el=buildPhotoMasonry(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
       else if(s.style==='popup') {
@@ -672,9 +700,9 @@
       var showVerified=(blockVerif==='false')?false:(d.showVerified!==false);
       var showAvatar=(blockAvatar==='false')?false:(d.showAvatar!==false);
       var showDate=(blockDate==='false')?false:(d.showDate!==false);
-      if(headingEl){ var cur=headingEl.textContent.trim(); if(!cur||cur===D_HEADING) headingEl.textContent=d.heading||t.defaultHeading||D_HEADING; }
+      if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
       var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
-      return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey).then(function(r){return r.json();}).then(function(apiData){ renderReviews(apiData,s); });
+      return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });
   }

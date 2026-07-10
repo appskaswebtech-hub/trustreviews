@@ -19,11 +19,11 @@ export async function loader({ request }) {
 
 // Map template layout name → widget's defaultStyle value
 const LAYOUT_TO_STYLE = {
-  grid:     "dark_grid",
+  grid:     "star_summary",
   list:     "list_view",
-  masonry:  "dark_grid",
+  masonry:  "masonry_wall",
   slider:   "slider",
-  compact:  "classic_list",
+  compact:  "compact_rows",
   featured: "summary_side",
 };
 

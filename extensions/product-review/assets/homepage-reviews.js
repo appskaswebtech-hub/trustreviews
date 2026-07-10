@@ -7,25 +7,25 @@
     return s;
   }
 
-  function ratingLabel(avg) {
-    if (avg >= 4.5) return 'Excellent';
-    if (avg >= 4.0) return 'Very Good';
-    if (avg >= 3.5) return 'Good';
-    if (avg >= 3.0) return 'Average';
-    return 'Mixed';
+  function ratingLabel(avg, t) {
+    if (avg >= 4.5) return t.ratingExcellent || 'Excellent';
+    if (avg >= 4.0) return t.ratingVeryGood  || 'Very Good';
+    if (avg >= 3.5) return t.ratingGood      || 'Good';
+    if (avg >= 3.0) return t.ratingAverage   || 'Average';
+    return t.ratingMixed || 'Mixed';
   }
 
   function initials(name) {
     return (name || 'A').split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
   }
 
-  function buildCard(r, s) {
+  function buildCard(r, s, t) {
     var div = document.createElement('div');
     div.className = 'hr-card';
 
     var starsHtml = starHTML(r.rating, s.starColor);
     var verifiedHtml = (s.showVerified && r.verified)
-      ? '<div class="hr-card-verified"><span>&#10003;</span> Verified purchase</div>' : '';
+      ? '<div class="hr-card-verified"><span>&#10003;</span> ' + (t.verifiedPurchase || 'Verified purchase') + '</div>' : '';
     var imgHtml = (s.showMedia && r.mediaUrl)
       ? '<div class="hr-card-img"><img src="' + r.mediaUrl + '" alt="review" loading="lazy"></div>' : '';
 
@@ -37,9 +37,9 @@
     return div;
   }
 
-  function buildSummaryCarousel(reviews, s, avg, total) {
+  function buildSummaryCarousel(reviews, s, avg, total, t) {
     var cols = Math.min(3, s.columns || 3);
-    var labelStr = ratingLabel(avg);
+    var labelStr = ratingLabel(avg, t);
 
     var wrap = document.createElement('div');
     wrap.className = 'hr-sc-wrap';
@@ -50,8 +50,8 @@
     panel.innerHTML =
       '<div class="hr-sc-panel-label">' + labelStr + '</div>' +
       '<div class="hr-sc-panel-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>' +
-      '<div class="hr-sc-panel-avg">' + avg.toFixed(1) + ' average</div>' +
-      '<div class="hr-sc-panel-count">' + total + ' reviews</div>';
+      '<div class="hr-sc-panel-avg">' + avg.toFixed(1) + ' ' + (t.average || 'average') + '</div>' +
+      '<div class="hr-sc-panel-count">' + total + ' ' + (t.reviews || 'reviews') + '</div>';
     wrap.appendChild(panel);
 
     // Carousel
@@ -83,7 +83,7 @@
       var slide = document.createElement('div');
       slide.className = 'hr-slide ' + slideClass;
       var chunk = items.slice(i, i + cols);
-      for (var k = 0; k < chunk.length; k++) slide.appendChild(buildCard(chunk[k], s));
+      for (var k = 0; k < chunk.length; k++) slide.appendChild(buildCard(chunk[k], s, t));
       track.appendChild(slide);
       slides.push(slide);
     }
@@ -111,23 +111,23 @@
     return wrap;
   }
 
-  function buildGrid(reviews, s) {
+  function buildGrid(reviews, s, t) {
     var grid = document.createElement('div');
     grid.className = 'hr-grid';
     var items = reviews.slice(0, s.maxRev || 9);
-    for (var i = 0; i < items.length; i++) grid.appendChild(buildCard(items[i], s));
+    for (var i = 0; i < items.length; i++) grid.appendChild(buildCard(items[i], s, t));
     return grid;
   }
 
-  function buildMasonry(reviews, s) {
+  function buildMasonry(reviews, s, t) {
     var grid = document.createElement('div');
     grid.className = 'hr-masonry';
     var items = reviews.slice(0, s.maxRev || 9);
-    for (var i = 0; i < items.length; i++) grid.appendChild(buildCard(items[i], s));
+    for (var i = 0; i < items.length; i++) grid.appendChild(buildCard(items[i], s, t));
     return grid;
   }
 
-  function buildSpotlight(reviews, s, avg, total) {
+  function buildSpotlight(reviews, s, avg, total, t) {
     var wrap = document.createElement('div');
     wrap.className = 'hr-spotlight';
 
@@ -136,7 +136,7 @@
     left.innerHTML =
       '<div class="hr-spotlight-avg">' + avg.toFixed(1) + '</div>' +
       '<div class="hr-spotlight-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>' +
-      '<div class="hr-spotlight-count">Based on ' + total + ' reviews</div>';
+      '<div class="hr-spotlight-count">' + (t.basedOn || 'Based on') + ' ' + total + ' ' + (t.reviews || 'reviews') + '</div>';
     wrap.appendChild(left);
 
     var right = document.createElement('div');
@@ -150,7 +150,7 @@
         '<div style="font-size:.85rem;margin-bottom:4px">' + starHTML(r.rating, s.starColor) + '</div>' +
         '<div class="hr-spotlight-text">"' + (r.comment || '') + '"</div>' +
         '<div class="hr-spotlight-meta"><strong>' + (r.customer || 'Customer') + '</strong>' +
-        (r.verified ? ' &middot; &#10003; Verified' : '') + '</div>';
+        (r.verified ? ' &middot; &#10003; ' + (t.verified || 'Verified') : '') + '</div>';
       right.appendChild(card);
     }
     wrap.appendChild(right);
@@ -226,6 +226,7 @@
       .then(function (r) { return r.json(); })
       .then(function (resp) {
         var d = resp.settings || {};
+        var t = resp.translations || {};
         // Field names map: API uses Widget model names, JS uses friendlier names
         var s = {
           accentColor:  d.accentColor      || D_ACCENT,
@@ -243,7 +244,7 @@
           fontFamily:   d.fontFamily      || 'inherit',
           headingSize:  d.headingSize     || 36,
           headingAlign: 'center',
-          headingText:  d.heading         || 'Customer Reviews',
+          headingText:  (d.heading && d.heading !== 'Customer Reviews' && d.heading !== 'What our customers say') ? d.heading : (t.customerReviews || 'Customer Reviews'),
           nameSize:     14,
           reviewSize:   d.reviewSize      || 14,
           gap:          d.cardGap         != null ? d.cardGap      : 20,
@@ -271,24 +272,24 @@
             var total = data.total || reviews.length;
 
             if (!reviews.length) {
-              bodyEl.textContent = 'No reviews yet.';
+              bodyEl.textContent = t.noReviews || 'No reviews yet.';
               return;
             }
 
             var ly = s.layout;
             var content;
-            if (ly === 'summary_carousel') content = buildSummaryCarousel(reviews, s, avg, total);
-            else if (ly === 'grid')         content = buildGrid(reviews, s);
-            else if (ly === 'masonry')      content = buildMasonry(reviews, s);
-            else if (ly === 'spotlight')    content = buildSpotlight(reviews, s, avg, total);
+            if (ly === 'summary_carousel') content = buildSummaryCarousel(reviews, s, avg, total, t);
+            else if (ly === 'grid')         content = buildGrid(reviews, s, t);
+            else if (ly === 'masonry')      content = buildMasonry(reviews, s, t);
+            else if (ly === 'spotlight')    content = buildSpotlight(reviews, s, avg, total, t);
             else if (ly === 'ticker')       content = buildTicker(reviews, s);
-            else                            content = buildSummaryCarousel(reviews, s, avg, total);
+            else                            content = buildSummaryCarousel(reviews, s, avg, total, t);
 
             bodyEl.appendChild(content);
           });
       })
       .catch(function () {
-        if (loadingEl) loadingEl.textContent = 'Could not load reviews.';
+        if (loadingEl) loadingEl.textContent = 'Could not load reviews.'; // t not available on error
       });
   }
 

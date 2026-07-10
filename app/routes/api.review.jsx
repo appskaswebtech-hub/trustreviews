@@ -213,12 +213,16 @@ export async function loader({ request }) {
         if (tpl?.blocks) {
           const s = tpl.blocks;
           const LAYOUT_TO_STYLE = {
-            grid: "dark_grid", list: "list_view", masonry: "dark_grid",
-            slider: "slider", compact: "classic_list", featured: "summary_side",
+            grid:     "star_summary",  // summary bar + light-card grid
+            list:     "list_view",
+            masonry:  "masonry_wall",  // light masonry (CSS variables, not dark)
+            slider:   "slider",
+            compact:  "compact_rows",
+            featured: "summary_side",
           };
           return Response.json({
             settings: {
-              defaultStyle:       LAYOUT_TO_STYLE[s.layout] || "dark_grid",
+              defaultStyle:       LAYOUT_TO_STYLE[s.layout] || "star_summary",
               accentColor:        s.accentColor       || "#6B1A2C",
               starColor:          s.starColor         || "#F59E0B",
               cardBackground:     s.cardBg            || "#FFFFFF",
@@ -234,7 +238,7 @@ export async function loader({ request }) {
               cardGap:            s.gap                || 16,
               borderRadius:       s.cardRadius         || 12,
               showShadow:         (s.cardShadow || "soft") !== "none",
-              heading:            s.headingText        || "What our customers say",
+              heading:            s.headingText        || null,
               headingSize:        s.headingSize        || 28,
               cardPadding:        s.cardPadding        || 18,
               showWriteReviewBtn: s.showWriteBtn       ?? false,

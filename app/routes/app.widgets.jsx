@@ -47,6 +47,16 @@ const WIDGETS = [
     badge: "NEW",
   },
   {
+    key: "custom_template",
+    title: "Custom Template",
+    description: "Use your own design from the Customize page — layout, colors, cards and fonts all driven by your active template.",
+    href: "/app/customize",
+    blockHandle: "custom-template",
+    bg: "linear-gradient(135deg,#ede9fe,#c4b5fd)",
+    icon: "🎨",
+    badge: "NEW",
+  },
+  {
     key: "review_widget",
     title: "Review Widget",
     description: "Collect and display product reviews directly on your product pages.",
