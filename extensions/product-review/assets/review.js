@@ -83,7 +83,13 @@ function applyTranslations(remoteT){
 /* ============ TOAST ============ */
 function showToast(message, type) {
   type = type || 'success';
-  var container = document.getElementById('toast-container');
+  var container = document.getElementById('rf-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'rf-toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
   var toast = document.createElement('div');
   toast.className = 'toast toast-' + type;
   var icon = type === 'success' ? '✓' : '✕';

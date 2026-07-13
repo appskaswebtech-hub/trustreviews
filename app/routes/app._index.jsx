@@ -1602,18 +1602,28 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
         </td>
         <td style={TD}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <button onClick={() => onAction("approve", review)} style={ABT("approve")}>✓ {t.approve}</button>
-            <select
-              defaultValue=""
-              onChange={(e) => onAction("reject", review, { hideReason: e.target.value || null })}
-              style={{ ...ABT("reject"), padding: "5px 6px" }}
-              title="Reject / hide with reason"
-            >
-              <option value="">✕ {t.reject}</option>
-              {HIDE_REASONS.map((r) => (
-                <option key={r.value} value={r.value}>Hide: {r.label}</option>
-              ))}
-            </select>
+            {review.status !== "approved" && (
+              <button onClick={() => onAction("approve", review)} style={ABT("approve")}>✓ {t.approve}</button>
+            )}
+            {review.status !== "rejected" && (
+              <button onClick={() => onAction("reject", review)} style={ABT("reject")}>✕ {t.reject}</button>
+            )}
+            {review.status !== "rejected" && (
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (!e.target.value) return;
+                  onAction("reject", review, { hideReason: e.target.value });
+                }}
+                style={{ fontSize: 12, borderRadius: 7, border: `1px solid ${C.border}`, padding: "5px 8px", cursor: "pointer", color: C.muted, background: "#f3f4f6", fontWeight: 600 }}
+                title="Reject with specific reason"
+              >
+                <option value="">Hide reason…</option>
+                {HIDE_REASONS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            )}
             <button onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>💬 Reply</button>
             <button onClick={() => setPickingProduct((v) => !v)} style={ABT("neutral")}>
               🔗 {review.productId ? "Change" : "Assign"} Product
