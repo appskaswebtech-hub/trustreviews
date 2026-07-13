@@ -76,7 +76,7 @@
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 7px;
-  color: #333;
+  color: var(--rl-accent, #1a1a1a);
 }
 .required { color: #e53935; }
 
@@ -98,6 +98,10 @@
 .form-field textarea:focus {
   border-color: #1a1a1a;
   background: #fff;
+}
+.form-field input::placeholder,
+.form-field textarea::placeholder{
+  color: var(--rl-accent, #1a1a1a);
 }
 .form-field textarea {
   min-height: 110px;
