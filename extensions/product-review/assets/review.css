@@ -87,7 +87,7 @@
   border-radius: var(--rf-radius, 0px);
   font-size: 14px;
   font-family: inherit;
-  color: #1a1a1a;
+  color: var(--rl-accent, #1a1a1a);
   background: #fafafa;
   transition: border-color 0.15s;
   outline: none;
@@ -141,6 +141,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s;
+}
+.form-field input[type="file"]::file-selector-button {
+  color: #fff;
+  background: var(--rl-accent, #1a1a1a);
 }
 .submit-btn:hover { opacity: 0.88; }
 .cancel-btn {
