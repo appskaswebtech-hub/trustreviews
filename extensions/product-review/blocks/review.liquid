@@ -3,6 +3,16 @@
   data-product-id="{{ product.id }}"
   data-product-title="{{ product.title | escape }}"
   data-locale="{{ request.locale.iso_code }}"
+  data-accent="{{ block.settings.accent_color }}"
+  data-btn-text="{{ block.settings.btn_text_color }}"
+  data-card-bg="{{ block.settings.card_bg }}"
+  data-card-border="{{ block.settings.card_border }}"
+  data-card-text="{{ block.settings.card_text_color }}"
+  data-section-bg="{{ block.settings.section_bg }}"
+  data-heading="{{ block.settings.heading_color }}"
+  data-muted="{{ block.settings.muted_color }}"
+  data-form-bg="{{ block.settings.form_bg }}"
+  style="--rf-accent:{{ block.settings.accent_color }};--rl-accent:{{ block.settings.accent_color }};--rf-btn-text:{{ block.settings.btn_text_color }};--rl-card-bg:{{ block.settings.card_bg }};--rl-card-border:{{ block.settings.card_border }};--rl-card-text:{{ block.settings.card_text_color }};--rs-bg:{{ block.settings.section_bg }};--rs-heading:{{ block.settings.heading_color }};--rs-muted:{{ block.settings.muted_color }};--rf-bg:{{ block.settings.form_bg }};"
 >
   <div class="nr-review-top-hed-wr">
     <!-- AVERAGE RATING SUMMARY -->
@@ -126,6 +136,7 @@
 {{ 'review.css' | asset_url | stylesheet_tag }}
 <script>let locale_language = `{{ request.locale.iso_code }}`</script>
 <script src="{{ 'review.js' | asset_url }}" defer></script>
+</div>
 
 {% schema %}
 {
@@ -135,8 +146,18 @@
     "templates": ["product"]
   },
   "settings": [
-    { "type": "checkbox", "id": "show_write_review", "label": "Show \"Write a Review\" button and form", "default": true }
+    { "type": "checkbox", "id": "show_write_review", "label": "Show \"Write a Review\" button and form", "default": true },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "accent_color", "label": "Accent Color (buttons & stars)", "default": "#1a1a1a" },
+    { "type": "color", "id": "btn_text_color", "label": "Button Text Color", "default": "#ffffff" },
+    { "type": "color", "id": "card_bg", "label": "Card Background", "default": "#ffffff" },
+    { "type": "color", "id": "card_border", "label": "Card Border Color", "default": "#000000" },
+    { "type": "color", "id": "card_text_color", "label": "Card Text Color", "default": "#333333" },
+    { "type": "header", "content": "Section" },
+    { "type": "color", "id": "section_bg", "label": "Section Background", "default": "#ffffff" },
+    { "type": "color", "id": "heading_color", "label": "Score & Heading Color", "default": "#1a1a1a" },
+    { "type": "color", "id": "muted_color", "label": "Muted Text Color", "default": "#888888" },
+    { "type": "color", "id": "form_bg", "label": "Write Review Form Background", "default": "#ffffff" }
   ]
 }
 {% endschema %}
-</div>

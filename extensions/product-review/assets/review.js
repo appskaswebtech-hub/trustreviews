@@ -288,6 +288,8 @@ function buildCardHTML(r, q, style){
     }
   }
 
+  var titleLineHTML = r.title ? `<div class="review-title-line">${highlight(r.title, q)}</div>` : "";
+
   var replyHTML = r.reply
     ? `<div class="review-reply"><strong>${escapeHTML(T.storeReplyLabel || "Store reply")}:</strong> ${escapeHTML(r.reply)}</div>`
     : "";
@@ -311,6 +313,7 @@ function buildCardHTML(r, q, style){
           </div>
           <div class="review-stars">${stars}</div>
           ${productLabelHTML}
+          ${titleLineHTML}
           <p class="review-comment">${commentHTML}</p>
           ${mediaHTML}
           ${replyHTML}
@@ -331,6 +334,7 @@ function buildCardHTML(r, q, style){
             <div class="review-stars">${stars}</div>
             <div class="review-author">${customerHTML}</div>
           </div>
+          ${titleLineHTML}
           <p class="review-comment">${commentHTML}</p>
           ${mediaHTML}
           ${replyHTML}
@@ -341,7 +345,6 @@ function buildCardHTML(r, q, style){
   }
 
   if(style === "minimal"){
-    var titleLineHTML = r.title ? `<div class="review-title-line">${highlight(r.title, q)}</div>` : "";
     return `
       <div class="review-card review-card--minimal" id="review-${r.id}">
         <div class="review-stars">${stars}</div>
@@ -365,12 +368,12 @@ function buildCardHTML(r, q, style){
         <div class="review-avatar">${initials}</div>
       </div>
       <div class="review-body">
-
         <div class="flex-body">
         <div class="review-flex">
         <div class="review-stars">${stars}</div>
         ${productLabelHTML}
         <div class="review-author">${customerHTML}</div>
+        ${titleLineHTML}
         <p class="review-comment">${commentHTML}</p>
         ${replyHTML}
         </div>
@@ -645,6 +648,35 @@ async function applyFormStyle(){
   }
 }
 
+/* ============ BLOCK-LEVEL COLOR OVERRIDES ============ */
+function applyBlockSettings() {
+  var section = document.querySelector(".review-section");
+  if (!section) return;
+  var inner = section.querySelector(".reviews-section");
+  var d = section.dataset;
+  if (d.accent) {
+    section.style.setProperty("--rf-accent", d.accent);
+    section.style.setProperty("--rl-accent", d.accent);
+    if (inner) inner.style.setProperty("--rl-accent", d.accent);
+  }
+  if (d.btnText)    section.style.setProperty("--rf-btn-text", d.btnText);
+  if (d.cardBg) {
+    section.style.setProperty("--rl-card-bg", d.cardBg);
+    if (inner) inner.style.setProperty("--rl-card-bg", d.cardBg);
+  }
+  if (d.cardBorder) {
+    section.style.setProperty("--rl-card-border", d.cardBorder);
+    if (inner) inner.style.setProperty("--rl-card-border", d.cardBorder);
+  }
+  if (d.cardText) {
+    section.style.setProperty("--rl-card-text", d.cardText);
+    if (inner) inner.style.setProperty("--rl-card-text", d.cardText);
+  }
+  if (d.sectionBg)  section.style.setProperty("--rs-bg", d.sectionBg);
+  if (d.heading)    section.style.setProperty("--rs-heading", d.heading);
+  if (d.muted)      section.style.setProperty("--rs-muted", d.muted);
+  if (d.formBg)     section.style.setProperty("--rf-bg", d.formBg);
+}
+
 /* ============ INIT ============ */
-loadReviews();
-applyFormStyle();
+Promise.all([loadReviews(), applyFormStyle()]).then(applyBlockSettings);

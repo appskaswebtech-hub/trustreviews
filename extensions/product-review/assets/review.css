@@ -5,7 +5,8 @@
   margin: 60px 0;
   padding: 0 40px;
   font-family: var(--rf-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
-  color: #1a1a1a;
+  color: var(--rs-heading, #1a1a1a);
+  background: var(--rs-bg, transparent);
 }
 
 /* ============ WRITE REVIEW BUTTON ============ */
@@ -155,21 +156,21 @@
   font-size: 38px;
   font-weight: 800;
   line-height: 1;
-  color: #1a1a1a;
+  color: var(--rs-heading, #1a1a1a);
 }
 .out-of {
   font-size: 22px;
   font-weight: 400;
-  color: #888;
+  color: var(--rs-muted, #888);
 }
 .avg-stars {
   font-size: 22px;
-  color: #000;
+  color: var(--rl-accent, #000);
   margin: 7px 0 5px;
 }
 .total-reviews {
   font-size: 13px;
-  color: #888;
+  color: var(--rs-muted, #888);
 }
 
 /* ============ REVIEWS SECTION ============ */
@@ -178,8 +179,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #000;
-  border-top: 1px solid #000;
+  border-bottom: 1px solid var(--rl-card-border, #000);
+  border-top: 1px solid var(--rl-card-border, #000);
   padding: 20px 0;
   margin-bottom: 0;
   flex-wrap: wrap;
@@ -198,8 +199,8 @@
   transition: color 0.15s, border-color 0.15s;
 }
 .tab.active {
-  color: #1a1a1a;
-  border-bottom-color: #1a1a1a;
+  color: var(--rl-accent, #1a1a1a);
+  border-bottom-color: var(--rl-accent, #1a1a1a);
 }
 .toolbar-right {
   display: flex;
@@ -213,7 +214,7 @@
 .sort-wrap { position: relative; }
 .sort-btn {
   font-size: 16px;
-  color: #000000;
+  color: var(--rs-heading, #000000);
   cursor: pointer;
   padding: 0;
   border: 0;
@@ -255,7 +256,7 @@
 .search-wrap { position: relative; display: flex; align-items: center; gap: 6px; }
 .search-btn {
   font-size: 13px;
-  color: #555;
+  color: var(--rf-accent, #000);
   cursor: pointer;
   padding: 6px 12px;
   border: 0;
@@ -271,7 +272,7 @@
 .search-box {
   display: flex;
   align-items: center;
-  border: 1.5px solid #1a1a1a;
+  border: 1.5px solid var(--rf-accent, #000);
   border-radius: 3px;
   background: #fff;
   overflow: hidden;
@@ -287,7 +288,7 @@
   padding: 6px 10px;
   font-size: 13px;
   font-family: inherit;
-  color: #1a1a1a;
+  color: var(--rf-accent, #000);
   width: 180px;
   background: transparent;
 }
@@ -473,17 +474,17 @@
 .review-product-label {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--rl-accent, #1a1a1a);
   margin-bottom: 4px;
 }
 .review-author {
   font-size: 13px;
-  color: #888;
+  color: var(--rs-muted, #888);
   margin-bottom: 8px;
 }
 .review-comment {
   font-size: 14px;
-  color: #333;
+  color: var(--rl-card-text, #333);
   line-height: 1.6;
   margin: 0 0 12px;
 }
@@ -513,7 +514,7 @@
   padding: 5px 12px;
   font-size: 12.5px;
   cursor: pointer;
-  color: #555;
+  color: var(--rl-accent, #1a1a1a);
   transition: border-color 0.15s, background 0.15s;
 }
 .helpful-btn:hover { border-color: #1a1a1a; background: #f7f7f7; }
@@ -522,7 +523,7 @@
   background: none;
   border: none;
   font-size: 12.5px;
-  color: #888;
+  color: var(--rl-accent, #1a1a1a);
   cursor: pointer;
   padding: 5px 0;
   text-decoration: underline;
@@ -687,8 +688,8 @@
   .toolbar-right {
     margin-bottom: 6px;
     width: 100%;
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #000;
+    border-top: 1px solid var(--rl-card-border, #000);
+    border-bottom: 1px solid var(--rl-card-border, #000);
     padding: 10px 0;
   }
   .search-box input {
