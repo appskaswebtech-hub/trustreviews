@@ -1,0 +1,36 @@
+<style id="tr-custom-css"></style>
+
+<script>
+(function () {
+  var SHOP = {{ shop.permanent_domain | json }};
+  var BASE = '/apps/review';
+
+  fetch(BASE + '?type=custom-code&field=css&shop=' + encodeURIComponent(SHOP))
+    .then(function (r) { return r.text(); })
+    .then(function (css) {
+      if (css && css.trim()) {
+        document.getElementById('tr-custom-css').textContent = css;
+      }
+    })
+    .catch(function () {});
+
+  fetch(BASE + '?type=custom-code&field=js&shop=' + encodeURIComponent(SHOP))
+    .then(function (r) { return r.text(); })
+    .then(function (js) {
+      if (js && js.trim()) {
+        var sc = document.createElement('script');
+        sc.textContent = js;
+        document.head.appendChild(sc);
+      }
+    })
+    .catch(function () {});
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Trust Custom Code",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

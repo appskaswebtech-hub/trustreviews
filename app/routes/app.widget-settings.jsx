@@ -3,9 +3,10 @@ import { useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import WidgetCustomizeShell, {
-  InstallSection, ColorField, SelectField, RangeField, ToggleField, TextFieldInput, SHELL_C,
+  InstallSection, ColorField, SelectField, RangeField, ToggleField, TextFieldInput, Field, SHELL_C,
 } from "../components/WidgetCustomizeShell";
 import { resolveLanguage } from "../utils/widgetTranslations.server";
+import { useAdminT } from "../utils/adminTranslations";
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
@@ -164,6 +165,7 @@ export default function WidgetSettingsPage() {
   const { settings, shopLocale } = useLoaderData();
   const fetcher = useFetcher();
   const langFetcher = useFetcher();
+  const t = useAdminT();
   const [saved, setSaved] = useState(false);
   const [lang, setLang] = useState(shopLocale || "en");
 
@@ -195,7 +197,7 @@ export default function WidgetSettingsPage() {
 
   return (
     <WidgetCustomizeShell
-      title="Star Rating Badge"
+      title={t.settingsTitle}
       saved={saved}
       onSave={handleSave}
       installSection={
@@ -206,42 +208,88 @@ export default function WidgetSettingsPage() {
       }
       sections={[
         {
-          key: "style", label: "Color and styling",
+          key: "style", label: t.badgeStyle, icon: "✦",
           content: (
             <>
-              <SelectField label="Display style" value={widgetStyle} onChange={setWidgetStyle} options={STYLE_OPTIONS} helpText="Choose how the rating badge looks on product cards" />
-              <TextFieldInput
-                label="Secondary Stat (optional)" value={secondaryStat} onChange={setSecondaryStat}
-                placeholder="1.5M+ Servings"
-                helpText="Shown after a divider in the Text style, e.g. '1.5M+ Servings'. Leave empty to hide."
+              <SelectField
+                label={t.displayStyle}
+                value={widgetStyle}
+                onChange={setWidgetStyle}
+                options={STYLE_OPTIONS}
+                helpText="Choose how the rating badge looks on product cards"
               />
-              <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
-              <RangeField label="Star Size" value={starSize} onChange={setStarSize} min={10} max={30} unit="px" />
-              <ColorField label="Background Color" value={background} onChange={setBackground} helpText="Used by card/compact styles" />
-              <RangeField label="Border Radius" value={borderRadius} onChange={setBorderRadius} min={0} max={20} unit="px" />
+              <TextFieldInput
+                label={t.secondaryStat}
+                value={secondaryStat}
+                onChange={setSecondaryStat}
+                placeholder="e.g. 1.5M+ Servings"
+                helpText="Shown after a divider in the Text style. Leave empty to hide."
+              />
             </>
           ),
         },
         {
-          key: "text", label: "Text",
+          key: "stars", label: t.stars, icon: "★",
           content: (
             <>
-              <ColorField label="Count Text Color" value={countColor} onChange={setCountColor} />
-              <RangeField label="Count Font Size" value={countFontSize} onChange={setCountFontSize} min={10} max={20} unit="px" />
-              <ToggleField label="Show widget even with 0 reviews" checked={showEmpty} onChange={setShowEmpty} />
+              <ColorField label={t.starColor} value={starColor} onChange={setStarColor} />
+              <RangeField label={t.starSize} value={starSize} onChange={setStarSize} min={10} max={30} unit="px" />
             </>
           ),
         },
         {
-          key: "advanced", label: "Advanced — Admin Language",
+          key: "text", label: t.countText, icon: "T",
           content: (
-            <Field label="Admin dashboard language" helpText="Changes the language for this entire app's admin pages.">
-              <select
-                value={lang} onChange={(e) => changeLanguage(e.target.value)}
-                style={{ width: "100%", border: `1px solid ${SHELL_C.border}`, borderRadius: 6, padding: "7px 9px", fontSize: 12.5 }}
-              >
-                {Object.entries(LANG_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-              </select>
+            <>
+              <ColorField label={t.countColor} value={countColor} onChange={setCountColor} />
+              <RangeField label={t.countFontSize} value={countFontSize} onChange={setCountFontSize} min={10} max={20} unit="px" />
+            </>
+          ),
+        },
+        {
+          key: "background", label: t.bgShape, icon: "◻",
+          content: (
+            <>
+              <ColorField label={t.backgroundColor} value={background} onChange={setBackground} helpText="Used by Card and Compact styles" />
+              <RangeField label={t.borderRadius} value={borderRadius} onChange={setBorderRadius} min={0} max={20} unit="px" />
+            </>
+          ),
+        },
+        {
+          key: "behavior", label: t.options, icon: "⚙",
+          content: (
+            <ToggleField
+              label={t.showEmpty}
+              checked={showEmpty}
+              onChange={setShowEmpty}
+              helpText="Display the badge even when no reviews exist yet"
+            />
+          ),
+        },
+        {
+          key: "language", label: t.appLanguage, icon: "🌐",
+          content: (
+            <Field label={t.adminLangHint} helpText={t.adminLangHint}>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={lang}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  style={{
+                    width: "100%", border: `1px solid ${SHELL_C.border}`, borderRadius: 8,
+                    padding: "8px 32px 8px 10px", fontSize: 12.5, background: "#fafbfc",
+                    color: SHELL_C.text, appearance: "none", outline: "none", cursor: "pointer",
+                  }}
+                >
+                  {Object.entries(LANG_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{
+                  position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none",
+                }}>
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke={SHELL_C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </Field>
           ),
         },
@@ -280,12 +328,3 @@ export default function WidgetSettingsPage() {
   );
 }
 
-function Field({ label, helpText, children }) {
-  return (
-    <div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: SHELL_C.text, marginBottom: 5 }}>{label}</div>
-      {children}
-      {helpText && <div style={{ fontSize: 11, color: SHELL_C.muted, marginTop: 4 }}>{helpText}</div>}
-    </div>
-  );
-}

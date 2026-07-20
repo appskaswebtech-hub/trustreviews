@@ -7,6 +7,7 @@ var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
 // at all to the server (which would fall back to the merchant's saved
 // default language instead of the customer's current one).
 var storeLocale = (reviewSection && reviewSection.dataset.locale) || locale_language || (document.documentElement.lang || "").split("-")[0] || "";
+var seoEnabled = reviewSection ? reviewSection.dataset.seoEnabled !== 'false' : true;
 let rating = 0;
 let allReviews = [];
 let currentSort = "newest";
@@ -118,6 +119,56 @@ function applyListSettings(remoteSettings){
   section.style.setProperty("--rl-card-border", listSettings.cardBorderColor || "#000000");
   section.style.setProperty("--rl-card-text",   listSettings.cardTextColor   || "#333333");
   section.style.setProperty("--rl-accent",      listSettings.accentColor     || "#1a1a1a");
+
+  if (listSettings.customCardCSS) {
+    var existing = document.getElementById("tr-custom-card-css");
+    if (existing) existing.remove();
+    var style = document.createElement("style");
+    style.id = "tr-custom-card-css";
+    style.textContent = listSettings.customCardCSS;
+    document.head.appendChild(style);
+  }
+}
+
+/* ============ CUSTOM HTML CARD RENDERER ============ */
+function buildCustomCardHTML(r, template, q) {
+  var stars = "";
+  for (var i = 1; i <= 5; i++) {
+    stars += i <= r.rating
+      ? '<span class="tr-star">★</span>'
+      : '<span class="tr-star tr-star--empty">★</span>';
+  }
+  var initials   = getInitials(r.customer || "");
+  var dateStr    = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "";
+  var titleBlock = r.title
+    ? '<div class="tr-card__title">' + highlight(r.title, q) + '</div>'
+    : "";
+  var reply = r.reply
+    ? '<div class="tr-reply"><strong>Store reply:</strong> ' + escapeHTML(r.reply) + '</div>'
+    : "";
+  var media = "";
+  if (r.mediaUrl) {
+    var mUrl = escapeHTML(resolveMediaUrl(r.mediaUrl, "https://trustreviews.kaswebtechsolutions.com"));
+    if (r.mediaType && r.mediaType.startsWith("image/")) {
+      media = '<div class="tr-media"><img src="' + mUrl + '" alt="Review image"></div>';
+    } else if (r.mediaType && r.mediaType.startsWith("video/")) {
+      media = '<div class="tr-media"><video src="' + mUrl + '" controls></video></div>';
+    }
+  }
+  return template
+    .replace(/\{\{id\}\}/g,         r.id)
+    .replace(/\{\{customer\}\}/g,   highlight(r.customer || "", q))
+    .replace(/\{\{initials\}\}/g,   escapeHTML(initials))
+    .replace(/\{\{rating\}\}/g,     r.rating)
+    .replace(/\{\{stars\}\}/g,      stars)
+    .replace(/\{\{comment\}\}/g,    highlight(r.comment || "", q))
+    .replace(/\{\{title\}\}/g,      escapeHTML(r.title || ""))
+    .replace(/\{\{titleBlock\}\}/g, titleBlock)
+    .replace(/\{\{date\}\}/g,       escapeHTML(dateStr))
+    .replace(/\{\{verified\}\}/g,   '<span class="tr-verified">✓ ' + (T.verified || 'Verified') + '</span>')
+    .replace(/\{\{helpful\}\}/g,    r.likes || 0)
+    .replace(/\{\{reply\}\}/g,      reply)
+    .replace(/\{\{media\}\}/g,      media);
 }
 
 /* ============ OPEN / CLOSE FORM ============ */
@@ -472,7 +523,13 @@ function renderReviews(){
   var pageItems  = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
   var style      = listSettings.listStyle || "list";
 
-  container.innerHTML = pageItems.map(function(r) { return buildCardHTML(r, q, style); }).join("");
+  if (listSettings.customCardHTML) {
+    container.innerHTML = pageItems.map(function(r) {
+      return buildCustomCardHTML(r, listSettings.customCardHTML, q);
+    }).join("");
+  } else {
+    container.innerHTML = pageItems.map(function(r) { return buildCardHTML(r, q, style); }).join("");
+  }
   renderPagination(totalPages);
 }
 
@@ -520,10 +577,51 @@ async function loadReviews(){
     }
     document.getElementById("avg-stars").innerHTML = avgStars;
 
+    injectStructuredData(avgValue, total, allReviews);
     renderReviews();
   } catch(e){
     console.error("loadReviews error:", e);
   }
+}
+
+/* ============ RICH SNIPPETS / SEO ============ */
+function injectStructuredData(avgRating, total, reviews) {
+  if (!seoEnabled || !productTitle || !total) return;
+  var existing = document.getElementById("tr-ld-json");
+  if (existing) existing.remove();
+
+  var schema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": productTitle,
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": avgRating.toFixed(1),
+      "reviewCount": String(total),
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": reviews.slice(0, 20).map(function(r) {
+      return {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": r.customer || "Customer" },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": String(r.rating),
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "reviewBody": r.comment || "",
+        "datePublished": r.createdAt ? r.createdAt.split("T")[0] : undefined
+      };
+    })
+  };
+
+  var script = document.createElement("script");
+  script.id   = "tr-ld-json";
+  script.type = "application/ld+json";
+  script.textContent = JSON.stringify(schema);
+  document.head.appendChild(script);
 }
 
 /* ============ SUBMIT REVIEW ============ */

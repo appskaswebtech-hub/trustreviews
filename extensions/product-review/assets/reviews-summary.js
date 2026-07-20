@@ -6,6 +6,7 @@
   var productTitle = section.dataset.productTitle;
   var storeLocale  = section.dataset.locale;
   var showVerified = section.dataset.showVerified === "true";
+  var seoEnabled   = section.dataset.seoEnabled !== "false";
 
   var rating = 0;
   var allReviews = [];
@@ -249,6 +250,20 @@
     renderPagination(totalPages);
   }
 
+  function injectStructuredData(avgRating, total, reviews) {
+    if (!seoEnabled || !productTitle || !total) return;
+    var sid = 'rs-ld-json';
+    if (document.getElementById(sid)) return;
+    var schema = {
+      "@context": "https://schema.org/", "@type": "Product", "name": productTitle,
+      "aggregateRating": { "@type": "AggregateRating", "ratingValue": avgRating.toFixed(1), "reviewCount": String(total), "bestRating": "5", "worstRating": "1" },
+      "review": reviews.slice(0, 20).map(function(r) {
+        return { "@type": "Review", "author": { "@type": "Person", "name": r.customer || "Customer" }, "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5", "worstRating": "1" }, "reviewBody": r.comment || "", "datePublished": r.createdAt ? r.createdAt.split("T")[0] : undefined };
+      })
+    };
+    var sc = document.createElement("script"); sc.id = sid; sc.type = "application/ld+json"; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+  }
+
   /* ── LOAD REVIEWS ── */
   async function loadReviews(){
     try {
@@ -265,6 +280,7 @@
       document.getElementById("rs-avg-stars").innerHTML = starsHTML(Math.round(avg));
 
       renderBreakdown(allReviews, total);
+      injectStructuredData(avg, total, allReviews);
       renderReviews();
     } catch(e){
       console.error("Reviews summary load error:", e);

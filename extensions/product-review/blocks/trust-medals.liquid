@@ -1,4 +1,5 @@
-<div id="trust-medals-{{ block.id }}" class="trust-medals" style="display:none">
+<div id="trust-medals-{{ block.id }}" class="trust-medals" style="display:none"
+  data-locale="{{ request.locale.iso_code }}">
   <div class="trust-medals__stars"></div>
   <div>
     <div class="trust-medals__score"></div>
@@ -24,6 +25,7 @@
   const productId = "{{ product.id }}";
   const widget = document.getElementById('trust-medals-{{ block.id }}');
   if (!widget) return;
+  const locale = widget.dataset.locale || '';
 
   function starsHtml(rating, color){
     let out = '';
@@ -34,16 +36,17 @@
   }
 
   Promise.all([
-    fetch('/apps/review?productId=' + encodeURIComponent(productId)).then(function(r){ return r.json(); }),
-    fetch('/apps/review?type=widget-defaults&widgetKey=trust_medals').then(function(r){ return r.json(); }),
+    fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=trust_medals&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
   ]).then(function(results){
     const reviewData = results[0];
-    const style = results[1].settings || {};
+    const resp = results[1];
+    const style = resp.settings || {};
+    const t = resp.translations || {};
     const accent = style.accentColor || '#6B1A2C';
-    const text = style.textColor || '#333333';
 
     widget.style.setProperty('--tm-accent', accent);
-    widget.style.setProperty('--tm-text', text);
+    widget.style.setProperty('--tm-text', style.textColor || '#333333');
     widget.style.setProperty('--tm-font', style.fontFamily || 'inherit');
 
     const total = Number(reviewData.total || 0);
@@ -52,7 +55,7 @@
 
     widget.querySelector('.trust-medals__stars').innerHTML = starsHtml(avg, accent);
     widget.querySelector('.trust-medals__score').textContent = avg.toFixed(1) + ' / 5';
-    widget.querySelector('.trust-medals__count').textContent = total + ' reviews · Verified';
+    widget.querySelector('.trust-medals__count').textContent = total.toLocaleString() + ' ' + (t.reviews || 'reviews') + ' · ' + (t.verified || 'Verified');
     widget.style.display = 'inline-flex';
   }).catch(function(e){ console.error('Trust medals error:', e); });
 })();

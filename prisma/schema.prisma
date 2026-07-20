@@ -179,6 +179,8 @@ model ReviewListSettings {
   accentColor     String   @default("#1a1a1a")  // stars, avatar background, helpful check
   reviewsPerPage  Int      @default(10)
   showAllProducts Boolean  @default(false)       // show reviews from every product in the store, not just the current one
+  customCardHTML  String?  @db.Text
+  customCardCSS   String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -226,6 +228,15 @@ model Integration {
   updatedAt     DateTime  @updatedAt
 
   @@unique([shop, provider])
+}
+
+model StoreCustomCode {
+  id        String   @id @default(cuid())
+  shop      String   @unique
+  customCss String?  @db.Text
+  customJs  String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WidgetTemplate {

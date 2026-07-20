@@ -1,4 +1,5 @@
-<div id="all-reviews-counter-{{ block.id }}" class="all-reviews-counter" style="display:none">
+<div id="all-reviews-counter-{{ block.id }}" class="all-reviews-counter" style="display:none"
+  data-locale="{{ request.locale.iso_code }}">
   <span class="all-reviews-counter__star">★</span>
   <span class="all-reviews-counter__text"></span>
 </div>
@@ -15,13 +16,16 @@
 (function(){
   const widget = document.getElementById('all-reviews-counter-{{ block.id }}');
   if (!widget) return;
+  const locale = widget.dataset.locale || '';
 
   Promise.all([
-    fetch('/apps/review?type=store-totals').then(function(r){ return r.json(); }),
-    fetch('/apps/review?type=widget-defaults&widgetKey=all_reviews_counter').then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=store-totals&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=all_reviews_counter&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
   ]).then(function(results){
     const totals = results[0];
-    const style = results[1].settings || {};
+    const resp = results[1];
+    const style = resp.settings || {};
+    const t = resp.translations || {};
 
     widget.style.setProperty('--arc-accent', style.accentColor || '#6B1A2C');
     widget.style.setProperty('--arc-text', style.textColor || '#333333');
@@ -30,8 +34,9 @@
     const total = Number(totals.total || 0);
     if (!total) return;
 
+    const avg = Number(totals.averageRating || 0).toFixed(1);
     widget.querySelector('.all-reviews-counter__text').textContent =
-      total + ' Total Reviews (' + Number(totals.averageRating || 0).toFixed(1) + ' avg)';
+      total.toLocaleString() + ' ' + (t.reviews || 'reviews') + ' (' + avg + ' ' + (t.average || 'avg') + ')';
     widget.style.display = 'inline-flex';
   }).catch(function(e){ console.error('All reviews counter error:', e); });
 })();

@@ -1,4 +1,5 @@
-<div id="verified-counter-{{ block.id }}" class="verified-counter" style="display:none">
+<div id="verified-counter-{{ block.id }}" class="verified-counter" style="display:none"
+  data-locale="{{ request.locale.iso_code }}">
   <span class="verified-counter__check">✓</span>
   <span class="verified-counter__text"></span>
 </div>
@@ -16,13 +17,16 @@
   const productId = "{{ product.id }}";
   const widget = document.getElementById('verified-counter-{{ block.id }}');
   if (!widget) return;
+  const locale = widget.dataset.locale || '';
 
   Promise.all([
-    fetch('/apps/review?productId=' + encodeURIComponent(productId)).then(function(r){ return r.json(); }),
-    fetch('/apps/review?type=widget-defaults&widgetKey=verified_counter').then(function(r){ return r.json(); }),
+    fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=verified_counter&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
   ]).then(function(results){
     const reviewData = results[0];
-    const style = results[1].settings || {};
+    const resp = results[1];
+    const style = resp.settings || {};
+    const t = resp.translations || {};
 
     widget.style.setProperty('--vc-accent', style.accentColor || '#16a34a');
     widget.style.setProperty('--vc-text', style.textColor || '#333333');
@@ -31,7 +35,8 @@
     const total = Number(reviewData.total || 0);
     if (!total) return;
 
-    widget.querySelector('.verified-counter__text').textContent = total + ' Verified Reviews';
+    widget.querySelector('.verified-counter__text').textContent =
+      total.toLocaleString() + ' ' + (t.verified || 'Verified') + ' ' + (t.reviews || 'Reviews');
     widget.style.display = 'inline-flex';
   }).catch(function(e){ console.error('Verified counter error:', e); });
 })();

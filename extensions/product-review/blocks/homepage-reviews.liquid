@@ -13,6 +13,7 @@
   data-product-id="{{ hr_product_id }}"
   data-block-id="{{ block.id }}"
   data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
   data-max="{{ block.settings.max_reviews }}"
   data-layout="{{ block.settings.layout }}"
   data-widget-key="homepage_reviews"
@@ -56,7 +57,9 @@
       "max": 24,
       "step": 3,
       "default": 9
-    }
+    },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Organization schema for search)", "default": true }
   ]
 }
 {% endschema %}

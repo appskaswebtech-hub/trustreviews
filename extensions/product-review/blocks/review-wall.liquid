@@ -1,0 +1,99 @@
+{{ 'review-wall.css' | asset_url | stylesheet_tag }}
+
+<div
+  id="rw-widget-{{ block.id }}"
+  class="rw-widget"
+  {{ block.shopify_attributes }}
+  data-shop="{{ shop.permanent_domain }}"
+  data-block-id="{{ block.id }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-accent="{{ block.settings.accent_color }}"
+  data-columns="{{ block.settings.columns }}"
+  data-per-page="{{ block.settings.per_page }}"
+  data-show-search="{{ block.settings.show_search }}"
+  data-show-filter="{{ block.settings.show_filter }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+>
+  {% if block.settings.heading != '' %}
+    <h2 class="rw-heading">{{ block.settings.heading }}</h2>
+  {% endif %}
+
+  <div class="rw-toolbar">
+    <div class="rw-stats" id="rw-stats-{{ block.id }}"></div>
+    <div class="rw-controls">
+      {% if block.settings.show_filter %}
+        <div class="rw-filters" id="rw-filters-{{ block.id }}"></div>
+      {% endif %}
+      {% if block.settings.show_search %}
+        <div class="rw-search-wrap">
+          <svg class="rw-search-icon" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" class="rw-search" id="rw-search-{{ block.id }}" placeholder="Search reviews...">
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="rw-loading" id="rw-loading-{{ block.id }}">
+    <div class="rw-spinner"></div>
+    <span>Loading reviews…</span>
+  </div>
+  <div class="rw-grid" id="rw-grid-{{ block.id }}"></div>
+  <div class="rw-pagination" id="rw-pagination-{{ block.id }}"></div>
+</div>
+
+<script src="{{ 'review-wall.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Review Wall",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What Our Customers Say"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#6B1A2C"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "default": "3",
+      "options": [
+        { "value": "2", "label": "2 columns" },
+        { "value": "3", "label": "3 columns" },
+        { "value": "4", "label": "4 columns" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "per_page",
+      "label": "Reviews per page",
+      "min": 6,
+      "max": 48,
+      "step": 3,
+      "default": 18
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search box",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter",
+      "label": "Show rating filter",
+      "default": true
+    },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Organization schema for search)", "default": true }
+  ]
+}
+{% endschema %}

@@ -6,6 +6,7 @@
   data-product-title="{{ product.title | escape }}"
   data-locale="{{ request.locale.iso_code }}"
   data-show-verified="{{ block.settings.show_verified_badge }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
 >
   <h2 class="rs-heading">{{ block.settings.heading | default: "Customer Reviews" }}</h2>
 
@@ -131,7 +132,9 @@
     { "type": "image_picker", "id": "badge_image_2", "label": "Badge 2 image" },
     { "type": "text", "id": "badge_label_2", "label": "Badge 2 label" },
     { "type": "image_picker", "id": "badge_image_3", "label": "Badge 3 image" },
-    { "type": "text", "id": "badge_label_3", "label": "Badge 3 label" }
+    { "type": "text", "id": "badge_label_3", "label": "Badge 3 label" },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
   ]
 }
 {% endschema %}

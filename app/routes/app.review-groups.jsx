@@ -2,6 +2,7 @@ import { useLoaderData, useSubmit, useFetcher, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useState, useEffect, useRef } from "react";
+import { useAdminT } from "../utils/adminTranslations";
 
 const C = {
   bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
@@ -112,6 +113,7 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
   const fetcher  = useFetcher();
   const [query, setQuery]   = useState("");
   const [open, setOpen]     = useState(false);
+  const t = useAdminT();
   const timerRef = useRef(null);
   const wrapRef  = useRef(null);
 
@@ -142,7 +144,7 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder="Search all your Shopify products…"
+          placeholder={t.searchProducts}
           style={{ flex: 1, border: "none", background: "transparent", fontSize: 13, outline: "none", color: C.text }}
         />
         {loading && <span style={{ fontSize: 11, color: C.muted }}>Searching…</span>}
@@ -192,6 +194,7 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
 
 // ── Product chip inside a group card ────────────────────────────────────────
 function ProductChip({ product, onRemove }) {
+  const t = useAdminT();
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8,
@@ -202,7 +205,7 @@ function ProductChip({ product, onRemove }) {
         <span style={{
           position: "absolute", top: -7, left: 8, fontSize: 10, fontWeight: 700,
           background: C.accent, color: "#fff", borderRadius: 20, padding: "1px 7px",
-        }}>Primary</span>
+        }}>{t.primary}</span>
       )}
       <img
         src={product.image || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png"}
@@ -228,6 +231,7 @@ function ProductChip({ product, onRemove }) {
 function GroupCard({ group, onAddProduct, onRemoveProduct, onDeleteGroup, onRename }) {
   const [renaming, setRenaming] = useState(false);
   const [nameVal, setNameVal]   = useState(group.name);
+  const t = useAdminT();
 
   const existingIds = group.products.map((p) => p.shopifyProductId);
 
@@ -269,7 +273,7 @@ function GroupCard({ group, onAddProduct, onRemoveProduct, onDeleteGroup, onRena
           <button onClick={onDeleteGroup} style={{
             border: "none", background: C.redLt, color: C.red, borderRadius: 8,
             padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
-          }}>Delete</button>
+          }}>{t.deleteGroup}</button>
         </div>
       </div>
 
@@ -308,6 +312,7 @@ export default function ReviewGroupsPage() {
   const { groups } = useLoaderData();
   const submit = useSubmit();
   const [newGroupName, setNewGroupName] = useState("");
+  const t = useAdminT();
 
   const createGroup = (e) => {
     e.preventDefault();
@@ -356,7 +361,7 @@ export default function ReviewGroupsPage() {
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 6 }}>
         <Link to="/app" style={{ fontSize: 16, color: C.text, textDecoration: "none", marginTop: 4 }}>←</Link>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>Multi-Product Review Groups</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>{t.groupsTitle}</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0", maxWidth: 560, lineHeight: 1.6 }}>
             Group products that belong together (variants, duplicate listings, bundles) so they
             share the same pool of reviews — customers on any grouped product page see all reviews.
@@ -384,12 +389,12 @@ export default function ReviewGroupsPage() {
       }}>
         <div style={{ flex: 1 }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: C.muted, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
-            New Group Name
+            {t.groupName}
           </label>
           <input
             value={newGroupName}
             onChange={(e) => setNewGroupName(e.target.value)}
-            placeholder='e.g. "Blue T-Shirt — all sizes" or "Winter Jacket Bundle"'
+            placeholder={t.groupNamePlaceholder}
             style={{
               width: "100%", border: `1px solid ${C.border}`, borderRadius: 9, padding: "9px 14px",
               fontSize: 13, outline: "none", boxSizing: "border-box",
@@ -404,7 +409,7 @@ export default function ReviewGroupsPage() {
             fontSize: 13, fontWeight: 700, cursor: newGroupName.trim() ? "pointer" : "default",
             background: newGroupName.trim() ? C.accent : "#d1d5db", color: "#fff", whiteSpace: "nowrap",
           }}
-        >+ Create Group</button>
+        >{t.createGroup}</button>
       </form>
 
       {/* Groups */}
@@ -414,8 +419,8 @@ export default function ReviewGroupsPage() {
           padding: "50px 20px", textAlign: "center",
         }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>📦</div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 6 }}>No groups yet</div>
-          <div style={{ fontSize: 13, color: C.muted }}>Create your first group above and start linking products together.</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 6 }}>{t.groupsTitle}</div>
+          <div style={{ fontSize: 13, color: C.muted }}>{t.noGroups}</div>
         </div>
       ) : (
         groups.map((g) => (

@@ -91,6 +91,20 @@ async function handleFileUpload(file) {
 export async function loader({ request }) {
   const { shop, url } = await getScopedShop(request);
 
+  // ── Custom CSS / JS injection ─────────────────────────────────────────────
+  if (url.searchParams.get("type") === "custom-code") {
+    const cc = await prisma.storeCustomCode.findUnique({ where: { shop } });
+    const field = url.searchParams.get("field") || "css";
+    const content = (field === "js" ? cc?.customJs : cc?.customCss) || "";
+    return new Response(content, {
+      headers: {
+        "Content-Type": field === "js" ? "text/javascript" : "text/css",
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "public, max-age=300",
+      },
+    });
+  }
+
   // ── Review form settings ───────────────────────────────────────────────────
   if (url.searchParams.get("type") === "form-settings") {
     const [formSettings, langStore] = await Promise.all([
@@ -211,15 +225,51 @@ export async function loader({ request }) {
           select: { blocks: true },
         });
         if (tpl?.blocks) {
-          const s = tpl.blocks;
           const LAYOUT_TO_STYLE = {
-            grid:     "star_summary",  // summary bar + light-card grid
+            grid:     "star_summary",
             list:     "list_view",
-            masonry:  "masonry_wall",  // light masonry (CSS variables, not dark)
+            masonry:  "masonry_wall",
             slider:   "slider",
             compact:  "compact_rows",
             featured: "summary_side",
           };
+
+          // Page builder saves blocks as an array; legacy format is a plain object
+          let s;
+          if (Array.isArray(tpl.blocks)) {
+            // Page builder stores { id, type, settings: {...} } per block
+            const rlBlock  = tpl.blocks.find(b => b.type === "review_list") || {};
+            const hdgBlock = tpl.blocks.find(b => b.type === "heading")     || {};
+            const rls = rlBlock.settings  || {};
+            const hdgs = hdgBlock.settings || {};
+            const hasWriteBtn = tpl.blocks.some(b => b.type === "write_review");
+            s = {
+              layout:         rls.layout         || "grid",
+              accentColor:    rls.accentColor    || "#6B1A2C",
+              starColor:      rls.accentColor    || "#F59E0B",
+              cardBg:         rls.cardBg         || "#FFFFFF",
+              textColor:      rls.textColor      || "#333333",
+              cardBorderColor: rls.cardBorder    || "#E5E5E5",
+              showVerified:   rls.showVerified   ?? true,
+              showAvatar:     rls.showAvatar     ?? true,
+              showDate:       rls.showDate       ?? true,
+              maxReviews:     rls.perPage        || 6,
+              columnsDesktop: rls.columns        || 3,
+              columnsTablet:  2,
+              columnsMobile:  1,
+              gap:            rls.gap            || 16,
+              cardRadius:     rls.cardRadius     || 12,
+              cardShadow:     rls.cardShadow     || "soft",
+              headingText:    hdgs.text          || null,
+              headingSize:    hdgs.fontSize      || 28,
+              cardPadding:    rls.cardPadding    || 18,
+              showWriteBtn:   hasWriteBtn,
+              fontFamily:     rls.fontFamily     || "inherit",
+            };
+          } else {
+            s = tpl.blocks;
+          }
+
           return Response.json({
             settings: {
               defaultStyle:       LAYOUT_TO_STYLE[s.layout] || "star_summary",
@@ -244,6 +294,7 @@ export async function loader({ request }) {
               showWriteReviewBtn: s.showWriteBtn       ?? false,
               fontFamily:         s.fontFamily         || "inherit",
             },
+            blocks: Array.isArray(tpl.blocks) ? tpl.blocks : null,
             language: widgetLanguage,
             translations: SLIDER_TRANSLATIONS[widgetLanguage] || SLIDER_TRANSLATIONS.en,
           });
@@ -326,7 +377,8 @@ export async function loader({ request }) {
   ]);
 
   const language = resolveLanguage(url.searchParams.get("locale"), store?.language);
-  const reviewTranslations = REVIEW_TRANSLATIONS[language] || REVIEW_TRANSLATIONS.en;
+  const sliderT = SLIDER_TRANSLATIONS[language] || SLIDER_TRANSLATIONS.en;
+  const reviewTranslations = { ...sliderT, ...(REVIEW_TRANSLATIONS[language] || REVIEW_TRANSLATIONS.en) };
   const listSettings = listSettingsRow || {
     listStyle: "list", cardBackground: "#FFFFFF", cardBorderColor: "#000000",
     cardTextColor: "#333333", accentColor: "#1a1a1a", reviewsPerPage: 10,
@@ -340,8 +392,9 @@ export async function loader({ request }) {
     });
   }
 
-  // No productId = store-wide request (homepage widget)
+  // No productId = store-wide request (homepage widget / review wall)
   if (!productId) {
+    const storeLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") || "24")));
     const [reviews, total, summary] = await Promise.all([
       prisma.review.findMany({
         where: { storeId: store.id, status: "approved" },
@@ -352,7 +405,7 @@ export async function loader({ request }) {
           reply: true, repliedAt: true,
         },
         orderBy: { createdAt: "desc" },
-        take: 24,
+        take: storeLimit,
       }),
       prisma.review.count({ where: { storeId: store.id, status: "approved" } }),
       prisma.review.aggregate({ where: { storeId: store.id, status: "approved" }, _avg: { rating: true } }),

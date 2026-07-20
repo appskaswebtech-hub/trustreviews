@@ -8,8 +8,10 @@
   id="trust-reviews-widget-{{ block.id }}"
   class="trust-reviews-widget"
   data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
   data-block-id="{{ block.id }}"
   data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
   data-style="{{ block.settings.widget_style }}"
   data-color="{{ block.settings.accent_color }}"
   data-columns="{{ block.settings.columns }}"
@@ -104,7 +106,9 @@
     { "type": "range",    "id": "columns",      "label": "Columns / Cards per slide", "info": "Used by the grid styles for column count, and by Slider for how many reviews show per slide.", "min": 1, "max": 4,  "step": 1, "default": 3 },
     { "type": "checkbox", "id": "show_verified","label": "Show verified badge",   "default": true },
     { "type": "checkbox", "id": "show_avatar",  "label": "Show reviewer avatar",  "default": true },
-    { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true }
+    { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
   ]
 }
 {% endschema %}

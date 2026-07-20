@@ -1,9 +1,9 @@
 {% comment %}
   Trust Reviews — Inline Star Rating block
   • Renders an inline "★★★★★ 4.6 out of 5 based on 1,634 reviews" badge for the current product.
-  • ALSO auto-initialises any <div data-trust-product-id="{{ product.id }}"></div>
-    elements found anywhere on the page, so merchants can embed the snippet in their
-    own theme code without adding another block.
+  • Auto-initialises any <div data-trust-product-id="{{ product.id }}"></div> elements on the page.
+  • Auto-initialises any <span data-trust-count="{{ product.id }}"></span> elements (count-only badge).
+  • Uses localStorage to cache rating data (1-hour TTL) so repeat visits render instantly.
 {% endcomment %}
 
 <span
@@ -24,12 +24,14 @@
 <script>
 (function () {
   var SHOP       = {{ shop.permanent_domain | json }};
+  var LOCALE     = {{ request.locale.iso_code | json }};
   var STAR_COLOR = {{ block.settings.star_color | json }};
   var TEXT_COLOR = {{ block.settings.text_color | json }};
   var STAR_SIZE  = {{ block.settings.star_size }};
   var STAR_GAP   = {{ block.settings.star_gap }};
   var SHOW_TEXT  = {{ block.settings.show_text | json }};
   var FORMAT     = {{ block.settings.text_format | json }};
+  var CACHE_TTL  = 3600000; // 1 hour in ms
 
   function starsHTML(avg) {
     var out = '';
@@ -40,46 +42,92 @@
     return out;
   }
 
-  function formatText(avg, total) {
+  function formatText(avg, total, t) {
     var n = total.toLocaleString();
-    if (FORMAT === 'short') return avg.toFixed(1) + ' (' + n + ' reviews)';
-    if (FORMAT === 'count') return n + ' reviews';
-    return avg.toFixed(1) + ' out of 5 based on ' + n + ' reviews';
+    var r = (t && t.reviewsWord) || 'reviews';
+    var o = (t && t.outOf5)     || 'out of 5';
+    if (FORMAT === 'short') return avg.toFixed(1) + ' (' + n + ' ' + r + ')';
+    if (FORMAT === 'count') return n + ' ' + r;
+    return avg.toFixed(1) + ' ' + o + ' · ' + n + ' ' + r;
   }
 
-  function populate(el, productId) {
+  // Cache key includes locale so switching language fetches fresh data
+  function cacheKey(productId) {
+    return 'tr-ir-' + SHOP + '-' + productId + '-' + LOCALE;
+  }
+
+  function readCache(productId) {
+    try {
+      var raw = localStorage.getItem(cacheKey(productId));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (Date.now() - parsed.ts < CACHE_TTL) return parsed;
+    } catch (e) {}
+    return null;
+  }
+
+  function writeCache(productId, avg, total, t) {
+    try {
+      localStorage.setItem(cacheKey(productId), JSON.stringify({ avg: avg, total: total, t: t, ts: Date.now() }));
+    } catch (e) {}
+  }
+
+  function applyToStarEl(el, avg) {
+    if (!avg) { el.style.display = 'none'; return; }
+    el.style.display    = 'inline-flex';
+    el.style.alignItems = 'center';
+    el.style.gap        = STAR_GAP + 'px';
+    el.style.fontSize   = STAR_SIZE + 'px';
+    el.innerHTML        = starsHTML(avg);
+  }
+
+  function renderEl(el, avg, total, t) {
+    if (!avg) { el.style.display = 'none'; return; }
+    var starsEl = el.querySelector('.trust-ir__stars');
+    var textEl  = el.querySelector('.trust-ir__text');
+    if (starsEl) applyToStarEl(starsEl, avg);
+    if (textEl && SHOW_TEXT) textEl.textContent = formatText(avg, total, t);
+  }
+
+  function renderCountEl(el, avg, total, t) {
+    if (!total) { el.style.display = 'none'; return; }
+    var r = (t && t.reviewsWord) || 'reviews';
+    el.style.display    = 'inline-flex';
+    el.style.alignItems = 'center';
+    el.style.gap        = '4px';
+    el.innerHTML =
+      '<span style="font-weight:700;color:' + STAR_COLOR + '">' + total.toLocaleString() + '</span>' +
+      '<span style="color:#6b7280;font-size:0.9em"> ' + r + '</span>';
+  }
+
+  function populate(el, productId, isCountOnly) {
     if (el.dataset.trDone) return;
     el.dataset.trDone = '1';
 
-    fetch('/apps/review?shop=' + SHOP + '&productId=' + productId)
+    var cached = readCache(productId);
+    if (cached) {
+      if (isCountOnly) renderCountEl(el, cached.avg, cached.total, cached.t);
+      else             renderEl(el, cached.avg, cached.total, cached.t);
+    }
+
+    fetch('/apps/review?shop=' + SHOP + '&productId=' + productId + '&locale=' + encodeURIComponent(LOCALE))
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var avg   = d.averageRating || 0;
         var total = d.total || 0;
-        if (!avg) { el.style.display = 'none'; return; }
-
-        var starsEl = el.querySelector('.trust-ir__stars');
-        var textEl  = el.querySelector('.trust-ir__text');
-
-        if (starsEl) {
-          starsEl.style.display     = 'inline-flex';
-          starsEl.style.alignItems  = 'center';
-          starsEl.style.gap         = STAR_GAP + 'px';
-          starsEl.style.fontSize    = STAR_SIZE + 'px';
-          starsEl.innerHTML         = starsHTML(avg);
-        }
-        if (textEl && SHOW_TEXT) {
-          textEl.textContent = formatText(avg, total);
-        }
+        var t     = d.translations || {};
+        writeCache(productId, avg, total, t);
+        if (isCountOnly) renderCountEl(el, avg, total, t);
+        else             renderEl(el, avg, total, t);
       })
       .catch(function () {});
   }
 
   // Initialise the block element itself
   var blockEl = document.getElementById('trust-ir-{{ block.id }}');
-  if (blockEl) populate(blockEl, blockEl.dataset.productId);
+  if (blockEl) populate(blockEl, blockEl.dataset.productId, false);
 
-  // Auto-initialise any <div data-trust-product-id="..."> on the page
+  // Auto-initialise <div data-trust-product-id="..."> shortcode elements
   document.querySelectorAll('[data-trust-product-id]:not([data-tr-done])').forEach(function (el) {
     var pid = el.dataset.trustProductId;
     el.innerHTML =
@@ -88,7 +136,13 @@
       '</span>' +
       (SHOW_TEXT ? '<span class="trust-ir__text" style="font-size:' + Math.round(STAR_SIZE * 0.8) + 'px;color:' + TEXT_COLOR + ';margin-left:6px;"></span>' : '');
     el.style.cssText += ';display:inline-flex!important;align-items:center;gap:6px;flex-wrap:wrap;';
-    populate(el, pid);
+    populate(el, pid, false);
+  });
+
+  // Auto-initialise <span data-trust-count="..."> count-only shortcode elements
+  document.querySelectorAll('[data-trust-count]:not([data-tr-done])').forEach(function (el) {
+    var pid = el.dataset.trustCount;
+    populate(el, pid, true);
   });
 })();
 </script>

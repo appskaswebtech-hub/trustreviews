@@ -3,6 +3,7 @@
   data-product-id="{{ product.id }}"
   data-product-title="{{ product.title | escape }}"
   data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
   data-accent="{{ block.settings.accent_color }}"
   data-btn-text="{{ block.settings.btn_text_color }}"
   data-card-bg="{{ block.settings.card_bg }}"
@@ -155,7 +156,9 @@
     { "type": "color", "id": "section_bg", "label": "Section Background", "default": "#ffffff" },
     { "type": "color", "id": "heading_color", "label": "Score & Heading Color", "default": "#1a1a1a" },
     { "type": "color", "id": "muted_color", "label": "Muted Text Color", "default": "#888888" },
-    { "type": "color", "id": "form_bg", "label": "Write Review Form Background", "default": "#ffffff" }
+    { "type": "color", "id": "form_bg", "label": "Write Review Form Background", "default": "#ffffff" },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
   ]
 }
 {% endschema %}

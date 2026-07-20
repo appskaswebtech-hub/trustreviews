@@ -20,6 +20,8 @@
     var blockDate   = widget.dataset.date;
     var blockStyle  = widget.dataset.style;
     var widgetKey   = widget.dataset.widgetKey || 'review_widget';
+    var seoEnabled  = widget.dataset.seoEnabled !== 'false';
+    var productTitle = widget.dataset.productTitle || '';
 
     var loadingEl = widget.querySelector('.trust-reviews__loading');
     var container = widget.querySelector('.trust-reviews__container');
@@ -122,7 +124,7 @@
 
     function buildBadgeStrip(reviews, s, avgRating) {
       var wrap = document.createElement('div'); wrap.className = 'trust-reviews__badge-strip';
-      var overall = document.createElement('div'); overall.className = 'trust-reviews__badge'; overall.textContent = avgRating.toFixed(1) + ' Overall';
+      var overall = document.createElement('div'); overall.className = 'trust-reviews__badge'; overall.textContent = avgRating.toFixed(1) + ' ' + (s.t.overall || 'Overall');
       wrap.appendChild(overall);
       var items = reviews.slice(0, s.maxRev);
       for (var i = 0; i < items.length; i++) { var b = document.createElement('div'); b.className = 'trust-reviews__badge'; b.textContent = items[i].rating + '/5 ' + items[i].customer; wrap.appendChild(b); }
@@ -594,7 +596,7 @@
       /* Filter button + dropdown */
       var filterWrap=document.createElement('div'); filterWrap.style.cssText='position:relative;display:inline-block';
       var filterBtn=document.createElement('button'); filterBtn.className='trust-reviews__pm-btn-filter';
-      filterBtn.innerHTML='&#9776; Filter';
+      filterBtn.innerHTML='&#9776; '+(s.t.filterAllReviews||'All reviews');
       var filterMenu=document.createElement('div');
       filterMenu.style.cssText='display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e4e4e4;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;z-index:100;overflow:hidden';
       var filterOptions=[['all',s.t.filterAllReviews||'All reviews'],['5','5 ★'],['4','4 ★'],['3','3 ★'],['2','2 ★'],['1','1 ★']];
@@ -608,7 +610,7 @@
         item.addEventListener('mouseleave',function(){ item.style.background=item.dataset.fv===activeFilter?'#f0f0f0':'none'; });
         item.addEventListener('click',function(){
           activeFilter=opt[0]; filterMenu.style.display='none';
-          filterBtn.innerHTML='&#9776; '+(opt[0]==='all'?'Filter':opt[1]);
+          filterBtn.innerHTML='&#9776; '+(opt[0]==='all'?(s.t.filterAllReviews||'All reviews'):opt[1]);
           var filtered=opt[0]==='all'?reviews:reviews.filter(function(r){ return Math.round(r.rating||0)===parseInt(opt[0]); });
           pmRenderGrid(filtered);
         });
@@ -661,10 +663,25 @@
       return wrap;
     }
 
+    function injectWidgetSchema(avgRating, total, reviews) {
+      if (!seoEnabled || !productTitle || !total) return;
+      var sid = 'tr-ld-json-' + productId;
+      if (document.getElementById(sid)) return;
+      var schema = {
+        '@context': 'https://schema.org/', '@type': 'Product', 'name': productTitle,
+        'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': avgRating.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' },
+        'review': reviews.slice(0, 20).map(function(r) {
+          return { '@type': 'Review', 'author': { '@type': 'Person', 'name': r.customer || 'Customer' }, 'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5', 'worstRating': '1' }, 'reviewBody': r.comment || '', 'datePublished': r.createdAt ? r.createdAt.split('T')[0] : undefined };
+        })
+      };
+      var sc = document.createElement('script'); sc.id = sid; sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+    }
+
     function renderReviews(apiData, s) {
       loadingEl.style.display='none';
       var reviews=apiData.reviews||[];
       if(!reviews.length){ container.innerHTML='<p style="color:#888;font-size:.9rem">'+(s.t?s.t.noReviews:'No reviews yet.')+'</p>'; return; }
+      injectWidgetSchema(apiData.averageRating || 0, apiData.total || reviews.length, reviews);
       applyVars(s);
       var el;
       if(s.style==='floating_tab')  { el=buildFloatingTab(reviews,s); }
@@ -702,7 +719,7 @@
       var showDate=(blockDate==='false')?false:(d.showDate!==false);
       if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
       var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
-      return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
+      return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });
   }

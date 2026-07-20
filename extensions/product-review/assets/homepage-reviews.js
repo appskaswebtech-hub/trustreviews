@@ -217,10 +217,23 @@
     var widgetKey = el.dataset.widgetKey || 'homepage_reviews';
     var layout    = el.dataset.layout || 'summary_carousel';
     var maxRev    = parseInt(el.dataset.max, 10) || 9;
+    var seoEnabled = el.dataset.seoEnabled !== 'false';
 
     var loadingEl = el.querySelector('.hr-loading');
     var bodyEl    = el.querySelector('.hr-body');
     var headingEl = el.querySelector('.hr-heading');
+
+    function injectHRSchema(avgRating, total) {
+      if (!seoEnabled || !total) return;
+      var sid = 'hr-ld-json-' + (el.dataset.blockId || shop);
+      if (document.getElementById(sid)) return;
+      var schema = {
+        '@context': 'https://schema.org/', '@type': 'Organization',
+        'name': shop || document.title,
+        'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': avgRating.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' }
+      };
+      var sc = document.createElement('script'); sc.id = sid; sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+    }
 
     fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale))
       .then(function (r) { return r.json(); })
@@ -286,6 +299,7 @@
             else                            content = buildSummaryCarousel(reviews, s, avg, total, t);
 
             bodyEl.appendChild(content);
+            injectHRSchema(avg, total);
           });
       })
       .catch(function () {

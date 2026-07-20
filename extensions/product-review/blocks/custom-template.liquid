@@ -5,9 +5,11 @@
   class="ct-widget"
   {{ block.shopify_attributes }}
   data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
   data-block-id="{{ block.id }}"
   data-locale="{{ request.locale.iso_code }}"
   data-shop="{{ shop.permanent_domain }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
 >
   {% if block.settings.heading != blank %}
     <h2 class="ct-heading">{{ block.settings.heading }}</h2>
@@ -28,7 +30,9 @@
       "id": "heading",
       "label": "Section Heading",
       "default": "What our customers say"
-    }
+    },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
   ]
 }
 {% endschema %}
