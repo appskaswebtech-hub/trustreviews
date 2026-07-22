@@ -4,6 +4,7 @@
 // metadata lives in providers.js instead.
 import { testKlaviyoConnection } from "./klaviyo.server";
 import { testMailchimpConnection, getMailchimpLists } from "./mailchimp.server";
+import { testGoogleMerchantConnection } from "./google-merchant.server";
 
 // Shopify Flow has no external API key to test — connection is always valid
 // once the extension is deployed. Return ok:true immediately.
@@ -13,9 +14,10 @@ async function testFlowConnection() {
 
 // Add a new provider's test function here, keyed to match providers.js.
 export const TESTERS = {
-  klaviyo:       testKlaviyoConnection,
-  mailchimp:     testMailchimpConnection,
-  shopify_flow:  testFlowConnection,
+  klaviyo:         testKlaviyoConnection,
+  mailchimp:       testMailchimpConnection,
+  shopify_flow:    testFlowConnection,
+  google_merchant: testGoogleMerchantConnection,
 };
 
 export { getMailchimpLists };

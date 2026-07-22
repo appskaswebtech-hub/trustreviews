@@ -274,6 +274,16 @@ const WIDGETS = [
     icon: "📷",
   },
   {
+    key: "google_reviews",
+    title: "Google Reviews",
+    description: "Pull your store's own Google rating and reviews onto the storefront — 15 designs, from a minimal badge to a full testimonial wall.",
+    href: "/app/widgets/google-reviews",
+    blockHandle: "google-reviews",
+    bg: "linear-gradient(135deg,#e8f0fe,#c2d9fc)",
+    icon: "⭐",
+    badge: "PRO",
+  },
+  {
     key: "customer_accounts",
     title: "Customer accounts widgets",
     description: "Let customers write and view reviews, and see rewards directly on the order confirmation page.",

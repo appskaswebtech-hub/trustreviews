@@ -51,9 +51,9 @@ export default function App() {
             Customize
           </Link> */}
 
-          {/* <Link to="/app/integrations">
+          <Link to="/app/integrations">
             Integrations
-          </Link> */}.
+          </Link>
 
           <Link to="/app/custom-code">
             Custom Code

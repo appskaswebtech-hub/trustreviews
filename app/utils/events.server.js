@@ -3,11 +3,13 @@ import db from "../db.server";
 import { sendKlaviyoEvent } from "./klaviyo.server";
 import { sendMailchimpEvent } from "./mailchimp.server";
 import { sendFlowEvent } from "./flow.server";
+import { sendGoogleMerchantReview } from "./google-merchant.server";
 
 const SENDERS = {
-  klaviyo:      (integration, event) => sendKlaviyoEvent(integration.apiKey, event),
-  mailchimp:    (integration, event) => sendMailchimpEvent(integration.apiKey, integration.listId, event),
-  shopify_flow: (integration, event) => sendFlowEvent(integration.shop, event),
+  klaviyo:         (integration, event) => sendKlaviyoEvent(integration.apiKey, event),
+  mailchimp:       (integration, event) => sendMailchimpEvent(integration.apiKey, integration.listId, event),
+  shopify_flow:    (integration, event) => sendFlowEvent(integration.shop, event),
+  google_merchant: (integration, event) => sendGoogleMerchantReview(integration.apiKey, { shop: integration.shop, ...event }),
 };
 
 export async function notifyIntegrations(shop, { metricName, email, properties }) {

@@ -211,6 +211,91 @@ export async function loader({ request }) {
     });
   }
 
+  // ── Google Reviews widget (Pro-gated; always served from cache) ───────────
+  if (url.searchParams.get("type") === "google-reviews") {
+    const plan = await prisma.shopPlan.findUnique({ where: { shop } });
+    const isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
+    if (!isPro) return Response.json({ configured: false });
+
+    const widget = await prisma.googleReviewsWidget.findUnique({ where: { shop } });
+    if (!widget?.placeId || !widget?.cachedRating) return Response.json({ configured: false });
+
+    const spacing = {
+      fontFamily: widget.fontFamily,
+      fontSize: widget.fontSize,
+      headingFontSize: widget.headingFontSize,
+      starSize: widget.starSize,
+      padding: widget.padding,
+      margin: widget.margin,
+      gap: widget.gap,
+      borderRadius: widget.borderRadius,
+      borderColor: widget.borderColor,
+      borderWidth: widget.borderWidth,
+      maxWidth: widget.maxWidth,
+      minHeight: widget.minHeight,
+      showWriteReviewButton: widget.showWriteReviewButton,
+      writeReviewButtonText: widget.writeReviewButtonText,
+      reviewsPerPage: widget.reviewsPerPage,
+    };
+    const colors = {
+      accentColor: widget.accentColor,
+      starColor: widget.starColor,
+      backgroundColor: widget.backgroundColor,
+      textColor: widget.textColor,
+    };
+
+    // If the merchant connected their Business Profile via OAuth, serve the
+    // full, paginated review set from our own DB instead of the 5-review
+    // Places API cache.
+    const businessConnection = await prisma.googleBusinessConnection.findUnique({ where: { shop } });
+    if (businessConnection?.connected) {
+      const perPage = Math.max(1, Math.min(50, parseInt(url.searchParams.get("perPage")) || widget.reviewsPerPage || 5));
+      const page = Math.max(0, parseInt(url.searchParams.get("page")) || 0);
+
+      const [totalCount, reviews] = await Promise.all([
+        prisma.googleFullReview.count({ where: { shop } }),
+        prisma.googleFullReview.findMany({
+          where: { shop },
+          orderBy: { createTime: "desc" },
+          skip: page * perPage,
+          take: perPage,
+        }),
+      ]);
+
+      return Response.json({
+        configured: true,
+        placeId: widget.placeId,
+        style: widget.style,
+        colors,
+        spacing,
+        rating: widget.cachedRating,
+        reviewCount: totalCount,
+        totalCount,
+        page,
+        perPage,
+        reviews: reviews.map((r) => ({
+          authorName: r.authorName,
+          rating: r.rating,
+          text: r.text,
+          relativeTime: r.createTime ? new Date(r.createTime).toLocaleDateString() : "",
+        })),
+        displayName: widget.cachedDisplayName,
+      });
+    }
+
+    return Response.json({
+      configured: true,
+      placeId: widget.placeId,
+      style: widget.style,
+      colors,
+      spacing,
+      rating: widget.cachedRating,
+      reviewCount: widget.cachedReviewCount,
+      reviews: widget.cachedReviews,
+      displayName: widget.cachedDisplayName,
+    });
+  }
+
   // ── Widget defaults ────────────────────────────────────────────────────────
   if (url.searchParams.get("type") === "widget-defaults") {
     const widgetKey = url.searchParams.get("widgetKey") || "review_widget";

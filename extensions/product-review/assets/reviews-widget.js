@@ -665,16 +665,60 @@
 
     function injectWidgetSchema(avgRating, total, reviews) {
       if (!seoEnabled || !productTitle || !total) return;
+
+      var aggRating = {
+        '@type': 'AggregateRating',
+        'ratingValue': avgRating.toFixed(1),
+        'reviewCount': String(total),
+        'bestRating': '5',
+        'worstRating': '1'
+      };
+      var reviewItems = reviews.slice(0, 20).map(function(r) {
+        var item = {
+          '@type': 'Review',
+          'author': { '@type': 'Person', 'name': r.customer || 'Customer' },
+          'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5', 'worstRating': '1' },
+          'reviewBody': r.comment || ''
+        };
+        if (r.createdAt) item['datePublished'] = r.createdAt.split('T')[0];
+        return item;
+      });
+
+      // Find the theme's existing Product schema and augment it instead of adding a duplicate
+      var existingScript = null;
+      var existingData   = null;
+      document.querySelectorAll('script[type="application/ld+json"]').forEach(function(sc) {
+        try {
+          var d = JSON.parse(sc.textContent);
+          var arr = Array.isArray(d) ? d : [d];
+          arr.forEach(function(node) {
+            if (!existingData && node['@type'] === 'Product') {
+              existingData = node;
+              existingScript = sc;
+            }
+          });
+        } catch(e) {}
+      });
+
+      if (existingScript && existingData) {
+        existingData['aggregateRating'] = aggRating;
+        existingData['review']          = reviewItems;
+        existingScript.textContent = JSON.stringify(Array.isArray(JSON.parse(existingScript.textContent)) ? JSON.parse(existingScript.textContent) : existingData);
+        return;
+      }
+
       var sid = 'tr-ld-json-' + productId;
       if (document.getElementById(sid)) return;
       var schema = {
         '@context': 'https://schema.org/', '@type': 'Product', 'name': productTitle,
-        'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': avgRating.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' },
-        'review': reviews.slice(0, 20).map(function(r) {
-          return { '@type': 'Review', 'author': { '@type': 'Person', 'name': r.customer || 'Customer' }, 'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5', 'worstRating': '1' }, 'reviewBody': r.comment || '', 'datePublished': r.createdAt ? r.createdAt.split('T')[0] : undefined };
-        })
+        'aggregateRating': aggRating,
+        'review': reviewItems
       };
-      var sc = document.createElement('script'); sc.id = sid; sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+      var sc = document.createElement('script');
+      sc.id   = sid;
+      sc.type = 'application/ld+json';
+      sc.textContent = JSON.stringify(schema);
+      document.head.appendChild(sc);
     }
 
     function renderReviews(apiData, s) {

@@ -5,6 +5,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
 import { TESTERS, getMailchimpLists } from "../utils/integrations.server";
+import { syncAllApprovedReviews } from "../utils/google-merchant.server";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -43,6 +44,8 @@ export const loader = async ({ request, params }) => {
     lastError:      integration?.lastError ?? null,
     lastCheckedAt:  integration?.lastCheckedAt ?? null,
     mailchimpLists,
+    googleServiceAccountEmail:
+      providerKey === "google_merchant" ? process.env.GOOGLE_MERCHANT_SERVICE_ACCOUNT_EMAIL || null : null,
   };
 };
 
@@ -126,6 +129,17 @@ export const action = async ({ request, params }) => {
   if (actionType === "disconnect") {
     await db.integration.delete({ where }).catch(() => {});
     return { ok: true, message: `${meta.label} integration removed.` };
+  }
+
+  if (providerKey === "google_merchant" && actionType === "sync_all") {
+    const integration = await db.integration.findUnique({ where });
+    if (!integration?.apiKey) return { ok: false, message: "Save a Merchant Center ID first." };
+    try {
+      const { sent, failed } = await syncAllApprovedReviews(session.shop, integration.apiKey);
+      return { ok: true, message: `Synced ${sent} review(s) to Google Merchant Center${failed ? `, ${failed} failed` : ""}.` };
+    } catch (err) {
+      return { ok: false, message: `Sync failed: ${err.message}` };
+    }
   }
 
   return null;
@@ -290,7 +304,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
 }
 
 /* ── Klaviyo / Mailchimp page ── */
-function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedListId, connected, lastError, lastCheckedAt, mailchimpLists, fetcher }) {
+function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedListId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail, fetcher }) {
   const [apiKey, setApiKey] = useState("");
   const [listId, setListId] = useState(savedListId || "");
 
@@ -315,12 +329,25 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         {lastCheckedAt && <span style={{ fontSize: 12, color: C.muted }}>· last checked {new Date(lastCheckedAt).toLocaleString()}</span>}
       </div>
 
+      {/* Google Merchant: service account email to add as a Merchant Center user */}
+      {providerKey === "google_merchant" && (
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+          <strong style={{ fontSize: 12, color: "#1e40af", display: "block", marginBottom: 4 }}>Step 1 — add this account as a Merchant Center user</strong>
+          <code style={{ fontSize: 12.5, color: "#1e3a8a", background: "#dbeafe", padding: "3px 8px", borderRadius: 6, display: "inline-block", wordBreak: "break-all" }}>
+            {googleServiceAccountEmail || "Not configured yet — set GOOGLE_MERCHANT_SERVICE_ACCOUNT_EMAIL"}
+          </code>
+          <p style={{ fontSize: 11.5, color: "#1e3a8a", margin: "6px 0 0" }}>
+            Merchant Center → Settings → Account access → Add user → paste the email above with Standard access.
+          </p>
+        </div>
+      )}
+
       {/* API key */}
       <label style={{ fontSize: 12, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>
         {provider.keyLabel || "API Key"}
       </label>
       <input
-        type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)}
+        type={providerKey === "google_merchant" ? "text" : "password"} value={apiKey} onChange={(e) => setApiKey(e.target.value)}
         placeholder={hasKey ? maskedKey : provider.keyPlaceholder}
         style={{ width: "100%", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 13, marginBottom: 4, boxSizing: "border-box" }}
       />
@@ -358,6 +385,12 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
           style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: busy || !hasKey ? "default" : "pointer", background: "#fff", color: C.text, opacity: !hasKey ? 0.5 : 1 }}>
           {busy && pendingAction === "test" ? "Testing…" : "Test Connection"}
         </button>
+        {providerKey === "google_merchant" && connected && (
+          <button onClick={() => submit("sync_all")} disabled={busy}
+            style={{ border: `1px solid ${C.accent}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: busy ? "default" : "pointer", background: "#fff", color: C.accent }}>
+            {busy && pendingAction === "sync_all" ? "Syncing…" : "Sync existing approved reviews now"}
+          </button>
+        )}
         {connected && (
           <button onClick={() => { if (window.confirm("Remove this integration?")) submit("disconnect"); }} disabled={busy}
             style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", background: "#fff", color: C.red, marginLeft: "auto" }}>
@@ -390,7 +423,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
 }
 
 export default function IntegrationSettingsPage() {
-  const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists } = useLoaderData();
+  const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail } = useLoaderData();
   const fetcher = useFetcher();
 
   return (
@@ -412,7 +445,8 @@ export default function IntegrationSettingsPage() {
           provider={provider} providerKey={providerKey}
           hasKey={hasKey} maskedKey={maskedKey} listId={listId}
           connected={connected} lastError={lastError} lastCheckedAt={lastCheckedAt}
-          mailchimpLists={mailchimpLists} fetcher={fetcher}
+          mailchimpLists={mailchimpLists} googleServiceAccountEmail={googleServiceAccountEmail}
+          fetcher={fetcher}
         />
       )}
     </div>

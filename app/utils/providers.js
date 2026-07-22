@@ -28,6 +28,17 @@ export const PROVIDER_META = {
     listIdHelp: "Mailchimp → Audience → Manage Audience → Settings → Audience name and defaults → Audience ID.",
     listIdPlaceholder: "abc12345",
   },
+  google_merchant: {
+    label: "Google Merchant Center",
+    description: "Push approved product reviews straight to Google Merchant Center so star ratings can show up on Google Shopping ads and product listings (Product Ratings program).",
+    icon: "🛒",
+    bg: "linear-gradient(135deg,#e8f0fe,#c2d9fc)",
+    keyLabel: "Merchant Center ID",
+    keyPlaceholder: "123456789",
+    keyHelp: "First add our service account as a user on your Merchant Center account (Settings → Account access → Add user — see the email above). Then paste your numeric Merchant Center ID here (Settings → Business information).",
+    requiresKey: true,
+    requiresListId: false,
+  },
   shopify_flow: {
     label: "Shopify Flow",
     description: "Fire Shopify Flow triggers when reviews are submitted or approved. Build automations in Shopify admin — send emails via Shopify Email, Klaviyo, Mailchimp, or any Flow-compatible app. No API key needed.",

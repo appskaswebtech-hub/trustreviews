@@ -230,6 +230,79 @@ model Integration {
   @@unique([shop, provider])
 }
 
+model GoogleReviewsWidget {
+  id                String    @id @default(cuid())
+  shop              String    @unique
+  placeId           String?
+  style             String    @default("minimal_badge")
+  accentColor       String    @default("#1a1a1a")
+  starColor         String    @default("#FBBC05")
+  backgroundColor   String    @default("#FFFFFF")
+  textColor         String    @default("#1c1b1a")
+
+  fontFamily            String  @default("inherit")
+  fontSize              Int     @default(14)
+  headingFontSize       Int     @default(28)
+  starSize              Int     @default(14)
+  padding               Int     @default(16)
+  margin                Int     @default(0)
+  gap                   Int     @default(12)
+  borderRadius          Int     @default(10)
+  borderColor           String  @default("#E5E5E5")
+  borderWidth           Int     @default(1)
+  maxWidth              Int     @default(0)
+  minHeight             Int     @default(0)
+  showWriteReviewButton Boolean @default(true)
+  writeReviewButtonText String  @default("Write a review on Google")
+  reviewsPerPage        Int     @default(5)
+
+  cachedDisplayName String?
+  cachedRating      Float?
+  cachedReviewCount Int?
+  cachedReviews     Json?
+  lastFetchedAt     DateTime?
+  lastFetchError    String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model GoogleBusinessConnection {
+  id             String    @id @default(cuid())
+  shop           String    @unique
+  accessToken    String    @db.Text
+  refreshToken   String    @db.Text
+  tokenExpiresAt DateTime?
+  accountId      String?
+  locationId     String?
+  locationName   String?
+  connected      Boolean   @default(false)
+  lastSyncedAt   DateTime?
+  lastSyncError  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model GoogleOAuthState {
+  state     String   @id
+  shop      String
+  createdAt DateTime @default(now())
+}
+
+model GoogleFullReview {
+  id         String    @id @default(cuid())
+  shop       String
+  reviewId   String
+  authorName String
+  rating     Int
+  text       String    @db.Text
+  createTime DateTime?
+  updateTime DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([shop, reviewId])
+  @@index([shop])
+}
+
 model StoreCustomCode {
   id        String   @id @default(cuid())
   shop      String   @unique
