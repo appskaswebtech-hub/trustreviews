@@ -348,6 +348,7 @@
       function slRenderPage(page){
         var start=page*slPerPage, pageItems=reviews.slice(start,start+slPerPage);
         listDiv.innerHTML='';
+        if(!reviews.length){ listDiv.innerHTML='<p style="color:#888;font-size:.9rem;margin:0">'+(s.t?s.t.noReviews:'No reviews yet.')+' '+(s.t&&s.t.beFirst?s.t.beFirst:'Be the first to write one!')+'</p>'; }
         for(var si=0;si<pageItems.length;si++){
           var r=pageItems[si], row=document.createElement('div'); row.className='trust-reviews__sl-review-row';
           var avatarHTML2=s.showAvatar?'<span class="trust-reviews__sl-row-avatar" style="background:'+s.accentColor+'">'+initials(r.customer)+'</span>':'';
@@ -628,6 +629,7 @@
       var grid=document.createElement('div'); grid.className='trust-reviews__pm-grid';
       function pmRenderGrid(revs){
         grid.innerHTML='';
+        if(!reviews.length){ grid.innerHTML='<p style="color:#888;font-size:.9rem;margin:0">'+(s.t?s.t.noReviews:'No reviews yet.')+' '+(s.t&&s.t.beFirst?s.t.beFirst:'Be the first to write one!')+'</p>'; return; }
         var items=revs.slice(0,s.maxRev||12);
         for(var ci=0;ci<items.length;ci++) grid.appendChild(buildPMCard(items[ci],s));
       }
@@ -724,7 +726,11 @@
     function renderReviews(apiData, s) {
       loadingEl.style.display='none';
       var reviews=apiData.reviews||[];
-      if(!reviews.length){ container.innerHTML='<p style="color:#888;font-size:.9rem">'+(s.t?s.t.noReviews:'No reviews yet.')+'</p>'; return; }
+      // summary_side and photo_masonry render their own "Write a review"
+      // button as part of the layout — keep showing it (with an empty
+      // list) instead of hiding the whole widget when there are 0 reviews.
+      var hasEmbeddedWriteButton = s.style==='summary_side' || s.style==='photo_masonry';
+      if(!reviews.length && !hasEmbeddedWriteButton){ container.innerHTML='<p style="color:#888;font-size:.9rem">'+(s.t?s.t.noReviews:'No reviews yet.')+'</p>'; return; }
       injectWidgetSchema(apiData.averageRating || 0, apiData.total || reviews.length, reviews);
       applyVars(s);
       var el;
