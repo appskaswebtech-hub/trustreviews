@@ -252,16 +252,37 @@
 
   function injectStructuredData(avgRating, total, reviews) {
     if (!seoEnabled || !productTitle || !total) return;
+
+    var aggRating = { "@type": "AggregateRating", "ratingValue": avgRating.toFixed(1), "reviewCount": String(total), "bestRating": "5", "worstRating": "1" };
+    var reviewItems = reviews.slice(0, 20).map(function(r) {
+      return { "@type": "Review", "author": { "@type": "Person", "name": r.customer || "Customer" }, "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5", "worstRating": "1" }, "reviewBody": r.comment || "", "datePublished": r.createdAt ? r.createdAt.split("T")[0] : undefined };
+    });
+
+    // Find the theme's existing Product schema and augment it instead of adding
+    // a duplicate — two Product entities on the same page confuses Google's
+    // structured data parser and typically breaks rich-result eligibility.
+    var scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (var si = 0; si < scripts.length; si++) {
+      var sc = scripts[si];
+      var parsed;
+      try { parsed = JSON.parse(sc.textContent); } catch(e) { continue; }
+      var arr = Array.isArray(parsed) ? parsed : [parsed];
+      var matched = false;
+      for (var ni = 0; ni < arr.length; ni++) {
+        if (arr[ni] && arr[ni]["@type"] === "Product") {
+          arr[ni]["aggregateRating"] = aggRating;
+          arr[ni]["review"]          = reviewItems;
+          matched = true;
+          break;
+        }
+      }
+      if (matched) { sc.textContent = JSON.stringify(parsed); return; }
+    }
+
     var sid = 'rs-ld-json';
     if (document.getElementById(sid)) return;
-    var schema = {
-      "@context": "https://schema.org/", "@type": "Product", "name": productTitle,
-      "aggregateRating": { "@type": "AggregateRating", "ratingValue": avgRating.toFixed(1), "reviewCount": String(total), "bestRating": "5", "worstRating": "1" },
-      "review": reviews.slice(0, 20).map(function(r) {
-        return { "@type": "Review", "author": { "@type": "Person", "name": r.customer || "Customer" }, "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5", "worstRating": "1" }, "reviewBody": r.comment || "", "datePublished": r.createdAt ? r.createdAt.split("T")[0] : undefined };
-      })
-    };
-    var sc = document.createElement("script"); sc.id = sid; sc.type = "application/ld+json"; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+    var schema = { "@context": "https://schema.org/", "@type": "Product", "name": productTitle, "aggregateRating": aggRating, "review": reviewItems };
+    var sc2 = document.createElement("script"); sc2.id = sid; sc2.type = "application/ld+json"; sc2.textContent = JSON.stringify(schema); document.head.appendChild(sc2);
   }
 
   /* ── LOAD REVIEWS ── */

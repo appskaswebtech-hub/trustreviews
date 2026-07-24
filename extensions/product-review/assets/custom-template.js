@@ -22,11 +22,21 @@
       } catch (_e) {}
     }
 
-    fetch('/apps/review?shop=' + encodeURIComponent(shop) +
-          '&type=widget-defaults&widgetKey=custom_template' +
-          '&locale=' + encodeURIComponent(storeLocale))
-    .then(function (r) { return r.json(); })
-    .then(function (resp) {
+    // Both requests are independent — fire them in parallel instead of
+    // chaining, which was roughly doubling the network wait before render.
+    Promise.all([
+      fetch('/apps/review?shop=' + encodeURIComponent(shop) +
+            '&type=widget-defaults&widgetKey=custom_template' +
+            '&locale=' + encodeURIComponent(storeLocale))
+        .then(function (r) { return r.json(); }),
+      fetch('/apps/review?shop=' + encodeURIComponent(shop) +
+            '&productId=' + encodeURIComponent(productId) +
+            '&widgetKey=custom_template' +
+            '&locale=' + encodeURIComponent(storeLocale))
+        .then(function (r) { return r.json(); }),
+    ])
+    .then(function (results) {
+      var resp = results[0], apiData = results[1];
       var d      = resp.settings     || {};
       var t      = resp.translations || {};
       var blocks = resp.blocks;      // null for legacy, array for page builder
@@ -43,25 +53,17 @@
           headingEl.textContent = _cH || (t.defaultHeading || _dH);
         }
       }
-      if (loadingEl) loadingEl.textContent = t.loading || 'Loading reviews…';
 
-      return fetch('/apps/review?shop=' + encodeURIComponent(shop) +
-                   '&productId=' + encodeURIComponent(productId) +
-                   '&widgetKey=custom_template' +
-                   '&locale=' + encodeURIComponent(storeLocale))
-      .then(function (r) { return r.json(); })
-      .then(function (apiData) {
-        var rt = apiData.translations || {};
-        for (var k in rt) if (!t[k]) t[k] = rt[k];
-        loadingEl.style.display = 'none';
+      var rt = apiData.translations || {};
+      for (var k in rt) if (!t[k]) t[k] = rt[k];
+      loadingEl.style.display = 'none';
 
-        if (Array.isArray(blocks) && blocks.length) {
-          var openWrite = buildWriteModal(s, t, productId, shop);
-          renderBlockBased(container, widget, blocks, apiData, t, productId, shop, openWrite);
-        } else {
-          render(container, widget, apiData, s, t, productId, shop);
-        }
-      });
+      if (Array.isArray(blocks) && blocks.length) {
+        var openWrite = buildWriteModal(s, t, productId, shop);
+        renderBlockBased(container, widget, blocks, apiData, t, productId, shop, openWrite);
+      } else {
+        render(container, widget, apiData, s, t, productId, shop);
+      }
     })
     .catch(function () {
       if (loadingEl) loadingEl.textContent = 'Could not load reviews.';
@@ -1061,16 +1063,37 @@
     var productTitle = widget.dataset.productTitle || '';
     if (!productTitle) return;
     var productId = widget.dataset.productId || '';
+
+    var aggRating = { '@type': 'AggregateRating', 'ratingValue': avgRating.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' };
+    var reviewItems = reviews.slice(0, 20).map(function(r) {
+      return { '@type': 'Review', 'author': { '@type': 'Person', 'name': r.customer || 'Customer' }, 'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5', 'worstRating': '1' }, 'reviewBody': r.comment || '', 'datePublished': r.createdAt ? r.createdAt.split('T')[0] : undefined };
+    });
+
+    // Find the theme's existing Product schema and augment it instead of adding
+    // a duplicate — two Product entities on the same page confuses Google's
+    // structured data parser and typically breaks rich-result eligibility.
+    var scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (var si = 0; si < scripts.length; si++) {
+      var sc = scripts[si];
+      var parsed;
+      try { parsed = JSON.parse(sc.textContent); } catch(e) { continue; }
+      var arr = Array.isArray(parsed) ? parsed : [parsed];
+      var matched = false;
+      for (var ni = 0; ni < arr.length; ni++) {
+        if (arr[ni] && arr[ni]['@type'] === 'Product') {
+          arr[ni]['aggregateRating'] = aggRating;
+          arr[ni]['review']          = reviewItems;
+          matched = true;
+          break;
+        }
+      }
+      if (matched) { sc.textContent = JSON.stringify(parsed); return; }
+    }
+
     var sid = 'ct-ld-json-' + productId;
     if (document.getElementById(sid)) return;
-    var schema = {
-      '@context': 'https://schema.org/', '@type': 'Product', 'name': productTitle,
-      'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': avgRating.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' },
-      'review': reviews.slice(0, 20).map(function(r) {
-        return { '@type': 'Review', 'author': { '@type': 'Person', 'name': r.customer || 'Customer' }, 'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5', 'worstRating': '1' }, 'reviewBody': r.comment || '', 'datePublished': r.createdAt ? r.createdAt.split('T')[0] : undefined };
-      })
-    };
-    var sc = document.createElement('script'); sc.id = sid; sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
+    var schema = { '@context': 'https://schema.org/', '@type': 'Product', 'name': productTitle, 'aggregateRating': aggRating, 'review': reviewItems };
+    var newSc = document.createElement('script'); newSc.id = sid; newSc.type = 'application/ld+json'; newSc.textContent = JSON.stringify(schema); document.head.appendChild(newSc);
   }
 
   /* ── Legacy main render ── */

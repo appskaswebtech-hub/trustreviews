@@ -235,9 +235,16 @@
       var sc = document.createElement('script'); sc.id = sid; sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(schema); document.head.appendChild(sc);
     }
 
-    fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale))
-      .then(function (r) { return r.json(); })
-      .then(function (resp) {
+    // Fetch review data in parallel with the style settings instead of
+    // waiting for settings to resolve first — the review fetch doesn't
+    // depend on anything in the settings response.
+    var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews';
+    Promise.all([
+      fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale)).then(function (r) { return r.json(); }),
+      fetch(reviewUrl).then(function (r) { return r.json(); }),
+    ])
+      .then(function (results) {
+        var resp = results[0], data = results[1];
         var d = resp.settings || {};
         var t = resp.translations || {};
         // Field names map: API uses Widget model names, JS uses friendlier names
@@ -274,33 +281,27 @@
         applyVars(el, s);
         if (headingEl && s.headingText) headingEl.textContent = s.headingText;
 
-        // Fetch reviews — store-wide when no productId (homepage), product-specific otherwise
-        var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews';
-        return fetch(reviewUrl)
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (loadingEl) loadingEl.style.display = 'none';
-            var reviews = data.reviews || [];
-            var avg = data.averageRating || 0;
-            var total = data.total || reviews.length;
+        if (loadingEl) loadingEl.style.display = 'none';
+        var reviews = data.reviews || [];
+        var avg = data.averageRating || 0;
+        var total = data.total || reviews.length;
 
-            if (!reviews.length) {
-              bodyEl.textContent = t.noReviews || 'No reviews yet.';
-              return;
-            }
+        if (!reviews.length) {
+          bodyEl.textContent = t.noReviews || 'No reviews yet.';
+          return;
+        }
 
-            var ly = s.layout;
-            var content;
-            if (ly === 'summary_carousel') content = buildSummaryCarousel(reviews, s, avg, total, t);
-            else if (ly === 'grid')         content = buildGrid(reviews, s, t);
-            else if (ly === 'masonry')      content = buildMasonry(reviews, s, t);
-            else if (ly === 'spotlight')    content = buildSpotlight(reviews, s, avg, total, t);
-            else if (ly === 'ticker')       content = buildTicker(reviews, s);
-            else                            content = buildSummaryCarousel(reviews, s, avg, total, t);
+        var ly = s.layout;
+        var content;
+        if (ly === 'summary_carousel') content = buildSummaryCarousel(reviews, s, avg, total, t);
+        else if (ly === 'grid')         content = buildGrid(reviews, s, t);
+        else if (ly === 'masonry')      content = buildMasonry(reviews, s, t);
+        else if (ly === 'spotlight')    content = buildSpotlight(reviews, s, avg, total, t);
+        else if (ly === 'ticker')       content = buildTicker(reviews, s);
+        else                            content = buildSummaryCarousel(reviews, s, avg, total, t);
 
-            bodyEl.appendChild(content);
-            injectHRSchema(avg, total);
-          });
+        bodyEl.appendChild(content);
+        injectHRSchema(avg, total);
       })
       .catch(function () {
         if (loadingEl) loadingEl.textContent = 'Could not load reviews.'; // t not available on error

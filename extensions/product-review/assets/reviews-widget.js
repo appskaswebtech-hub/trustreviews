@@ -686,27 +686,26 @@
         return item;
       });
 
-      // Find the theme's existing Product schema and augment it instead of adding a duplicate
-      var existingScript = null;
-      var existingData   = null;
-      document.querySelectorAll('script[type="application/ld+json"]').forEach(function(sc) {
-        try {
-          var d = JSON.parse(sc.textContent);
-          var arr = Array.isArray(d) ? d : [d];
-          arr.forEach(function(node) {
-            if (!existingData && node['@type'] === 'Product') {
-              existingData = node;
-              existingScript = sc;
-            }
-          });
-        } catch(e) {}
-      });
-
-      if (existingScript && existingData) {
-        existingData['aggregateRating'] = aggRating;
-        existingData['review']          = reviewItems;
-        existingScript.textContent = JSON.stringify(Array.isArray(JSON.parse(existingScript.textContent)) ? JSON.parse(existingScript.textContent) : existingData);
-        return;
+      // Find the theme's existing Product schema and augment it instead of adding a
+      // duplicate. Re-serialize the same parsed object we mutated (not a fresh
+      // re-parse of the original text) — otherwise the mutation is silently lost
+      // whenever the theme wraps its schema in an array, which is common.
+      var scripts = document.querySelectorAll('script[type="application/ld+json"]');
+      for (var si2 = 0; si2 < scripts.length; si2++) {
+        var sc2 = scripts[si2];
+        var parsed;
+        try { parsed = JSON.parse(sc2.textContent); } catch(e) { continue; }
+        var arr = Array.isArray(parsed) ? parsed : [parsed];
+        var matched = false;
+        for (var ni2 = 0; ni2 < arr.length; ni2++) {
+          if (arr[ni2] && arr[ni2]['@type'] === 'Product') {
+            arr[ni2]['aggregateRating'] = aggRating;
+            arr[ni2]['review']          = reviewItems;
+            matched = true;
+            break;
+          }
+        }
+        if (matched) { sc2.textContent = JSON.stringify(parsed); return; }
       }
 
       var sid = 'tr-ld-json-' + productId;
@@ -756,9 +755,15 @@
       container.appendChild(el); attachLikes(container);
     }
 
-    fetch('/apps/review?shop='+shop+'&type=widget-defaults&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale))
-    .then(function(r){return r.json();})
-    .then(function(resp){
+    // Both requests are independent (neither needs the other's response) —
+    // fire them in parallel instead of chaining, which was roughly doubling
+    // the network wait before the widget could render.
+    Promise.all([
+      fetch('/apps/review?shop='+shop+'&type=widget-defaults&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}),
+      fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}),
+    ])
+    .then(function(results){
+      var resp=results[0], apiData=results[1];
       var d=resp.settings||{}, t=resp.translations||TRANSLATIONS.en; resolvedT=t;
       var accentColor=(blockColor&&blockColor!==D_COLOR)?blockColor:(d.accentColor||D_COLOR);
       var style=(widgetKey==='custom_template'&&d.defaultStyle)?d.defaultStyle:((blockStyle&&blockStyle!==D_STYLE)?blockStyle:(d.defaultStyle||D_STYLE));
@@ -769,7 +774,8 @@
       var showDate=(blockDate==='false')?false:(d.showDate!==false);
       if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
       var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
-      return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
+      var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k];
+      renderReviews(apiData,s);
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });
   }

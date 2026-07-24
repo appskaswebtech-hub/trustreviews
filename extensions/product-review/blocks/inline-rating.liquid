@@ -32,6 +32,37 @@
   var SHOW_TEXT  = {{ block.settings.show_text | json }};
   var FORMAT     = {{ block.settings.text_format | json }};
   var CACHE_TTL  = 3600000; // 1 hour in ms
+  var PRODUCT_TITLE = {{ product.title | json }};
+
+  // Only called for the block's own product-page instance (not the generic
+  // shortcode elements, which can show other products' ratings on collection
+  // pages where a page-level Product schema wouldn't make sense).
+  function injectRatingSchema(avg, total) {
+    if (!PRODUCT_TITLE || !total) return;
+    var aggRating = { '@type': 'AggregateRating', 'ratingValue': avg.toFixed(1), 'reviewCount': String(total), 'bestRating': '5', 'worstRating': '1' };
+
+    var scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (var si = 0; si < scripts.length; si++) {
+      var sc = scripts[si];
+      var parsed;
+      try { parsed = JSON.parse(sc.textContent); } catch (e) { continue; }
+      var arr = Array.isArray(parsed) ? parsed : [parsed];
+      var matched = false;
+      for (var ni = 0; ni < arr.length; ni++) {
+        if (arr[ni] && arr[ni]['@type'] === 'Product') {
+          arr[ni]['aggregateRating'] = aggRating;
+          matched = true;
+          break;
+        }
+      }
+      if (matched) { sc.textContent = JSON.stringify(parsed); return; }
+    }
+
+    var sid = 'tr-ir-ld-json';
+    if (document.getElementById(sid)) return;
+    var schema = { '@context': 'https://schema.org/', '@type': 'Product', 'name': PRODUCT_TITLE, 'aggregateRating': aggRating };
+    var newSc = document.createElement('script'); newSc.id = sid; newSc.type = 'application/ld+json'; newSc.textContent = JSON.stringify(schema); document.head.appendChild(newSc);
+  }
 
   function starsHTML(avg) {
     var out = '';
@@ -100,7 +131,7 @@
       '<span style="color:#6b7280;font-size:0.9em"> ' + r + '</span>';
   }
 
-  function populate(el, productId, isCountOnly) {
+  function populate(el, productId, isCountOnly, isPrimaryProduct) {
     if (el.dataset.trDone) return;
     el.dataset.trDone = '1';
 
@@ -108,6 +139,7 @@
     if (cached) {
       if (isCountOnly) renderCountEl(el, cached.avg, cached.total, cached.t);
       else             renderEl(el, cached.avg, cached.total, cached.t);
+      if (isPrimaryProduct) injectRatingSchema(cached.avg, cached.total);
     }
 
     fetch('/apps/review?shop=' + SHOP + '&productId=' + productId + '&locale=' + encodeURIComponent(LOCALE))
@@ -119,13 +151,17 @@
         writeCache(productId, avg, total, t);
         if (isCountOnly) renderCountEl(el, avg, total, t);
         else             renderEl(el, avg, total, t);
+        if (isPrimaryProduct) injectRatingSchema(avg, total);
       })
       .catch(function () {});
   }
 
-  // Initialise the block element itself
+  // Initialise the block element itself — the only instance schema
+  // injection applies to, since it's tied to the current page's own
+  // product.id (shortcode elements elsewhere on the page may show ratings
+  // for other products, e.g. on a collection grid).
   var blockEl = document.getElementById('trust-ir-{{ block.id }}');
-  if (blockEl) populate(blockEl, blockEl.dataset.productId, false);
+  if (blockEl && blockEl.dataset.productId) populate(blockEl, blockEl.dataset.productId, false, true);
 
   // Auto-initialise <div data-trust-product-id="..."> shortcode elements
   document.querySelectorAll('[data-trust-product-id]:not([data-tr-done])').forEach(function (el) {
