@@ -14,9 +14,10 @@ export async function loader({ request }) {
 
   let shopLocale = "en";
   try {
-    const res2 = await admin.graphql(`{ shop { primaryLocale } }`);
+    const res2 = await admin.graphql(`{ shopLocales { locale primary } }`);
     const data = await res2.json();
-    shopLocale = data?.data?.shop?.primaryLocale || "en";
+    const locales = data?.data?.shopLocales || [];
+    shopLocale = locales.find((l) => l.primary)?.locale || "en";
   } catch (e) {
     console.error("[locale fetch] failed, defaulting to en:", e.message);
   }
