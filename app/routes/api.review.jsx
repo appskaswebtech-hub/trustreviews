@@ -43,9 +43,18 @@ const normalizeEmail    = (value) => {
 
 // ── Auth helper ────────────────────────────────────────────────────────────────
 async function getScopedShop(request) {
-  const context = await authenticate.public.appProxy(request);
-  const url     = new URL(request.url);
-  const shop    = context.session?.shop || url.searchParams.get("shop");
+  const url = new URL(request.url);
+  let context;
+  try {
+    context = await authenticate.public.appProxy(request);
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    // Session/token refresh failures shouldn't take down the storefront
+    // widget — fall back to the shop query param Shopify's proxy attaches.
+    console.error("[app proxy auth] failed, continuing without session:", error.message);
+    context = { session: undefined };
+  }
+  const shop = context.session?.shop || url.searchParams.get("shop");
 
   if (!shop) throw new Response("Shop context not found", { status: 401 });
 

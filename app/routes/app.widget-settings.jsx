@@ -10,17 +10,12 @@ import { useAdminT } from "../utils/adminTranslations";
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
+  // Shop's primary locale is read from our own DB (store.language) below —
+  // fetching it from Shopify requires the read_locales/read_markets_home
+  // scope, which this app doesn't request, so we don't call it here.
   let shopLocale = "en";
-  try {
-    const res2 = await admin.graphql(`{ shopLocales { locale primary } }`);
-    const data = await res2.json();
-    const locales = data?.data?.shopLocales || [];
-    shopLocale = locales.find((l) => l.primary)?.locale || "en";
-  } catch (e) {
-    console.error("[locale fetch] failed, defaulting to en:", e.message);
-  }
 
   const [settings, store] = await Promise.all([
     prisma.widgetSettings.findUnique({ where: { shop: session.shop } }),

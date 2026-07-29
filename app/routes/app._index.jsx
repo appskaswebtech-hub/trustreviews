@@ -84,16 +84,6 @@ async function ensureProduct(storeId, rawProductId) {
 /* ─────────────────────────────────────────
    LOADER
 ───────────────────────────────────────── */
-/* ─────────────────────────────────────────
-   LOCALE HELPER
-───────────────────────────────────────── */
-const SUPPORTED_LANGS = ["en", "hi", "es", "fr", "de", "it", "pt", "nl", "ar", "zh", "ja", "ru", "tr", "pl", "ko"];
-
-function mapLocale(shopifyLocale = "en") {
-  const base = shopifyLocale.split("-")[0].toLowerCase();
-  return SUPPORTED_LANGS.includes(base) ? base : "en";
-}
-
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
 
@@ -112,16 +102,10 @@ export const loader = async ({ request }) => {
     console.error("[billing gate] error, skipping:", err.message);
   }*/
 
-  // ── Fetch shop's primary locale ──────────────────────────────────────────────
+  // Shop's primary locale is read from our own DB (store.language) below —
+  // fetching it from Shopify requires the read_locales/read_markets_home
+  // scope, which this app doesn't request, so we don't call it here.
   let shopLocale = "en";
-  try {
-    const res  = await admin.graphql(`{ shopLocales { locale primary } }`);
-    const data = await res.json();
-    const locales = data?.data?.shopLocales || [];
-    shopLocale = mapLocale(locales.find((l) => l.primary)?.locale || "en");
-  } catch (e) {
-    console.error("[locale fetch] failed, defaulting to en:", e.message);
-  }
 
   const url = new URL(request.url);
   const page = Math.max(1, Number(url.searchParams.get("page") || 1));
