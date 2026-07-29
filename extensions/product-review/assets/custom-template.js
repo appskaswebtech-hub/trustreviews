@@ -27,12 +27,14 @@
     Promise.all([
       fetch('/apps/review?shop=' + encodeURIComponent(shop) +
             '&type=widget-defaults&widgetKey=custom_template' +
-            '&locale=' + encodeURIComponent(storeLocale))
+            '&locale=' + encodeURIComponent(storeLocale),
+            { credentials: 'same-origin', cache: 'no-store' })
         .then(function (r) { return r.json(); }),
       fetch('/apps/review?shop=' + encodeURIComponent(shop) +
             '&productId=' + encodeURIComponent(productId) +
             '&widgetKey=custom_template' +
-            '&locale=' + encodeURIComponent(storeLocale))
+            '&locale=' + encodeURIComponent(storeLocale),
+            { credentials: 'same-origin', cache: 'no-store' })
         .then(function (r) { return r.json(); }),
     ])
     .then(function (results) {
@@ -925,7 +927,9 @@
         fetch('/apps/review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, productId: productId, rating: pickRating, comment: comment, title: title, customer: name, shop: shop, mediaUrl: mediaUrl || null, mediaType: mediaType || null, fileName: fileName || null })
+          body: JSON.stringify({ email: email, productId: productId, rating: pickRating, comment: comment, title: title, customer: name, shop: shop, mediaUrl: mediaUrl || null, mediaType: mediaType || null, fileName: fileName || null }),
+          credentials: 'same-origin',
+          cache: 'no-store',
         })
         .then(function (r) { return r.json(); })
         .then(function (json) {
@@ -947,7 +951,7 @@
         btn.textContent = t.uploadingPhoto || 'Uploading photo…';
         var fd = new FormData();
         fd.append('file', file);
-        fetch('/apps/review?shop=' + encodeURIComponent(shop) + '&type=upload-file', { method: 'POST', body: fd })
+        fetch('/apps/review?shop=' + encodeURIComponent(shop) + '&type=upload-file', { method: 'POST', body: fd, credentials: 'same-origin', cache: 'no-store' })
         .then(function (r) { return r.json(); })
         .then(function (up) { submitReview(up.url || null, up.mediaType || null, up.fileName || null); })
         .catch(function () { submitReview(null, null, null); });

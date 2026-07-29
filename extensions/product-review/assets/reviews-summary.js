@@ -288,7 +288,7 @@
   /* ── LOAD REVIEWS ── */
   async function loadReviews(){
     try {
-      var res = await fetch("/apps/review?productId=" + encodeURIComponent(productId) + "&locale=" + encodeURIComponent(storeLocale));
+      var res = await fetch("/apps/review?productId=" + encodeURIComponent(productId) + "&locale=" + encodeURIComponent(storeLocale), { credentials: "same-origin", cache: "no-store" });
       if(!res.ok) throw new Error("Unable to load reviews");
       var data = await res.json();
       allReviews = data.reviews || [];
@@ -326,7 +326,7 @@
       if(file){
         var fd = new FormData();
         fd.append("file", file);
-        var uploadRes = await fetch("/apps/review", { method: "POST", body: fd });
+        var uploadRes = await fetch("/apps/review", { method: "POST", body: fd, credentials: "same-origin", cache: "no-store" });
         uploadedFile = await uploadRes.json();
         if(!uploadedFile.success) throw new Error("File upload failed");
       }
@@ -338,6 +338,7 @@
 
       var response = await fetch("/apps/review", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+        credentials: "same-origin", cache: "no-store",
       });
       if(!response.ok) throw new Error("Review submit failed");
 
@@ -362,7 +363,7 @@
   /* ── FORM STYLE (reuses the same admin settings as the Product Review block) ── */
   async function applyFormStyle(){
     try {
-      var res = await fetch("/apps/review?type=form-settings");
+      var res = await fetch("/apps/review?type=form-settings", { credentials: "same-origin", cache: "no-store" });
       if(!res.ok) return;
       var data = await res.json();
       var s = data.settings || {};

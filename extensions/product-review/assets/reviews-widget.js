@@ -62,7 +62,7 @@
         (function(btn) {
           btn.addEventListener('click', function() {
             if (btn.disabled) return; btn.disabled = true;
-            fetch('/apps/review?shop=' + shop, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:'like', id:btn.dataset.id }) })
+            fetch('/apps/review?shop=' + shop, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:'like', id:btn.dataset.id }), credentials:'same-origin', cache:'no-store' })
             .then(function(r){ return r.json(); }).then(function(json){ if (json.success) btn.querySelector('.like-count').textContent = json.review.likes; })
             .catch(function(){}).finally(function(){ btn.disabled = false; });
           });
@@ -434,11 +434,11 @@
         if(file){
           submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…');
           var fd=new FormData(); fd.append('file',file);
-          uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; });
+          uploadPromise=fetch('/apps/review',{method:'POST',body:fd,credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; });
         } else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
         uploadPromise.then(function(media){
           submitBtn.textContent=(s.t.submitting||'Submitting…');
-          return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:slRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();});
+          return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:slRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName}),credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();});
         }).then(function(json){
           if(json.success===false) throw new Error(json.error||'Submission failed');
           slMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true);
@@ -673,9 +673,9 @@
         if(!name||!email||!comment||pmRating===0){ pmMsg(s.t.submitRequired||'Please fill in all required fields and select a star rating.',false); return; }
         submitBtn.disabled=true; submitBtn.textContent=(s.t.submitting||'Submitting…');
         var file=pmFileInput.files[0], uploadPromise;
-        if(file){ submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…'); var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
+        if(file){ submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…'); var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd,credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
         else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
-        uploadPromise.then(function(media){ submitBtn.textContent=(s.t.submitting||'Submitting…'); return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();}); })
+        uploadPromise.then(function(media){ submitBtn.textContent=(s.t.submitting||'Submitting…'); return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName}),credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}); })
         .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); setTimeout(pmClose,2500); })
         .catch(function(err){ pmMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); });
       });
@@ -893,8 +893,8 @@
     // fire them in parallel instead of chaining, which was roughly doubling
     // the network wait before the widget could render.
     Promise.all([
-      fetch('/apps/review?shop='+shop+'&type=widget-defaults&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}),
-      fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}),
+      fetch('/apps/review?shop='+shop+'&type=widget-defaults&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale), { credentials:'same-origin', cache:'no-store' }).then(function(r){return r.json();}),
+      fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale), { credentials:'same-origin', cache:'no-store' }).then(function(r){return r.json();}),
     ])
     .then(function(results){
       var resp=results[0], apiData=results[1];

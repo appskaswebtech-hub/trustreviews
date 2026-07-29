@@ -382,8 +382,8 @@
     // depend on anything in the settings response.
     var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews';
     Promise.all([
-      fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale)).then(function (r) { return r.json(); }),
-      fetch(reviewUrl).then(function (r) { return r.json(); }),
+      fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch(reviewUrl, { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
     ])
       .then(function (results) {
         var resp = results[0], data = results[1];

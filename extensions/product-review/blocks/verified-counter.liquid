@@ -20,8 +20,8 @@
   const locale = widget.dataset.locale || '';
 
   Promise.all([
-    fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
-    fetch('/apps/review?type=widget-defaults&widgetKey=verified_counter&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=verified_counter&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function(r){ return r.json(); }),
   ]).then(function(results){
     const reviewData = results[0];
     const resp = results[1];

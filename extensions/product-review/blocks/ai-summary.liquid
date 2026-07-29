@@ -35,7 +35,7 @@
   const widget = document.getElementById('trust-ai-summary-{{ block.id }}');
   if (!widget) return;
 
-  fetch('/apps/review?type=ai-summary&productId=' + encodeURIComponent(productId))
+  fetch('/apps/review?type=ai-summary&productId=' + encodeURIComponent(productId), { credentials: 'same-origin', cache: 'no-store' })
     .then(function(res){ return res.json(); })
     .then(function(data){
       if (!data.summary) return;

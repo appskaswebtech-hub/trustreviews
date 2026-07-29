@@ -192,7 +192,7 @@
       try {
         var url = "/apps/review?shop=" + encodeURIComponent(shop) +
                   "&locale=" + encodeURIComponent(locale) + "&limit=200";
-        var res  = await fetch(url);
+        var res  = await fetch(url, { credentials: "same-origin", cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         var json = await res.json();
         T           = json.translations || {};

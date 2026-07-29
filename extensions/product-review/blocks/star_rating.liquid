@@ -14,7 +14,7 @@
 
     async function loadAverageRating() {
       try {
-        const res = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}`);
+        const res = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}`, { credentials: "same-origin", cache: "no-store" });
         if (!res.ok) throw new Error("Unable to load rating");
 
         const data = await res.json();

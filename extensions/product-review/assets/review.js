@@ -556,7 +556,7 @@ function openMediaModal(url, type) {
 /* ============ FETCH REVIEWS ============ */
 async function loadReviews(){
   try {
-    var res = await fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(storeLocale));
+    var res = await fetch('/apps/review?productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(storeLocale), { credentials: 'same-origin', cache: 'no-store' });
     if(!res.ok) throw new Error("Unable to load reviews");
     var data = await res.json();
     allReviews = data.reviews || [];
@@ -646,7 +646,9 @@ async function submitReview() {
 
       var uploadResponse = await fetch("/apps/review", {
         method: "POST",
-        body: uploadFormData
+        body: uploadFormData,
+        credentials: "same-origin",
+        cache: "no-store"
       });
 
       uploadedFile = await uploadResponse.json();
@@ -673,7 +675,9 @@ async function submitReview() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: "same-origin",
+      cache: "no-store"
     });
 
     if (!response.ok) {
@@ -706,7 +710,9 @@ async function likeReview(id){
   var response = await fetch("/apps/review", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "like", id: id })
+    body: JSON.stringify({ type: "like", id: id }),
+    credentials: "same-origin",
+    cache: "no-store"
   });
   if(!response.ok) return;
   loadReviews();
@@ -725,7 +731,7 @@ function shareReview(id){
 /* ============ FORM STYLE (color/font/size/background) ============ */
 async function applyFormStyle(){
   try {
-    const res = await fetch("/apps/review?type=form-settings");
+    const res = await fetch("/apps/review?type=form-settings", { credentials: "same-origin", cache: "no-store" });
     if(!res.ok) return;
     const data = await res.json();
     const s = data.settings || {};

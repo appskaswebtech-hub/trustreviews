@@ -142,7 +142,7 @@
       if (isPrimaryProduct) injectRatingSchema(cached.avg, cached.total);
     }
 
-    fetch('/apps/review?shop=' + SHOP + '&productId=' + productId + '&locale=' + encodeURIComponent(LOCALE))
+    fetch('/apps/review?shop=' + SHOP + '&productId=' + productId + '&locale=' + encodeURIComponent(LOCALE), { credentials: 'same-origin', cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var avg   = d.averageRating || 0;

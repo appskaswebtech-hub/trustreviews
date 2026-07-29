@@ -94,7 +94,7 @@
   }
 
   function loadQuestions(){
-    fetch('/apps/review?type=questions&productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(storeLocale))
+    fetch('/apps/review?type=questions&productId=' + encodeURIComponent(productId) + '&locale=' + encodeURIComponent(storeLocale), { credentials: 'same-origin', cache: 'no-store' })
       .then(function(res){ return res.json(); })
       .then(function(data){
         applyTranslations(data.translations);
@@ -104,7 +104,7 @@
   }
 
   function applyStyle(){
-    fetch('/apps/review?type=widget-defaults&widgetKey=questions_answers')
+    fetch('/apps/review?type=widget-defaults&widgetKey=questions_answers', { credentials: 'same-origin', cache: 'no-store' })
       .then(function(res){ return res.json(); })
       .then(function(data){
         const s = data.settings || {};
@@ -129,6 +129,8 @@
 
     fetch('/apps/review', {
       method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "question", productId: productId, customer: name, email: email, question: question }),
     })

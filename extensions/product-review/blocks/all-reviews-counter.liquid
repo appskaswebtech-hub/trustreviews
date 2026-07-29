@@ -19,8 +19,8 @@
   const locale = widget.dataset.locale || '';
 
   Promise.all([
-    fetch('/apps/review?type=store-totals&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
-    fetch('/apps/review?type=widget-defaults&widgetKey=all_reviews_counter&locale=' + encodeURIComponent(locale)).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=store-totals&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function(r){ return r.json(); }),
+    fetch('/apps/review?type=widget-defaults&widgetKey=all_reviews_counter&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function(r){ return r.json(); }),
   ]).then(function(results){
     const totals = results[0];
     const resp = results[1];
