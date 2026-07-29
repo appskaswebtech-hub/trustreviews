@@ -6,6 +6,7 @@ import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
 import { TESTERS, getMailchimpLists } from "../utils/integrations.server";
 import { syncAllApprovedReviews } from "../utils/google-merchant.server";
+import { isGooglePro } from "../billing.server";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -32,6 +33,9 @@ export const loader = async ({ request, params }) => {
   const shopSlug = session.shop.replace(".myshopify.com", "");
   const adminBase = `https://admin.shopify.com/store/${shopSlug}`;
 
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  const isPro = isGooglePro(plan);
+
   return {
     providerKey,
     provider: meta,
@@ -46,6 +50,7 @@ export const loader = async ({ request, params }) => {
     mailchimpLists,
     googleServiceAccountEmail:
       providerKey === "google_merchant" ? process.env.GOOGLE_MERCHANT_SERVICE_ACCOUNT_EMAIL || null : null,
+    isPro,
   };
 };
 
@@ -55,6 +60,9 @@ export const action = async ({ request, params }) => {
   const meta = PROVIDER_META[providerKey];
   const test = TESTERS[providerKey];
   if (!meta || !test) throw redirect("/app/integrations");
+
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  if (!isGooglePro(plan)) return { ok: false, message: "Upgrade to Google Reviews Pro to use integrations." };
 
   const formData = await request.formData();
   const actionType = formData.get("actionType");
@@ -422,9 +430,37 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
   );
 }
 
+function IntegrationPaywall({ provider }) {
+  return (
+    <div style={{ textAlign: "center", padding: "50px 24px", maxWidth: 460, margin: "0 auto" }}>
+      <div style={{ fontSize: 44, marginBottom: 14 }}>🔒</div>
+      <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 8 }}>
+        {provider.label} — Google Reviews Pro
+      </div>
+      <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 24 }}>
+        Connect {provider.label} to sync review events — available on the Google Reviews Pro plan.
+      </div>
+      <Link to="/app/billing" style={{
+        display: "inline-flex", padding: "11px 26px", borderRadius: 9, fontSize: 13, fontWeight: 800,
+        background: C.accent, color: "#fff", textDecoration: "none",
+      }}>
+        Upgrade to Google Reviews Pro — $19.99/mo
+      </Link>
+    </div>
+  );
+}
+
 export default function IntegrationSettingsPage() {
-  const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail } = useLoaderData();
+  const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail, isPro } = useLoaderData();
   const fetcher = useFetcher();
+
+  if (!isPro) {
+    return (
+      <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
+        <IntegrationPaywall provider={provider} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>

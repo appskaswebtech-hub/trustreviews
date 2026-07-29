@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
+import { isAdvancedOrHigher } from "../billing.server";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -16,7 +17,7 @@ export async function loader({ request }) {
     templates = tpls;
     customCardHTML = ls?.customCardHTML || "";
     customCardCSS  = ls?.customCardCSS  || "";
-    isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
+    isPro = isAdvancedOrHigher(plan);
   } catch { dbError = "Database not ready. Run: npx prisma db push"; }
   return { templates, dbError, customCardHTML, customCardCSS, isPro };
 }

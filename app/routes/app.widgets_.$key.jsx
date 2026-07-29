@@ -3,13 +3,15 @@
 
 import { useState } from "react";
 import { data, redirect } from "react-router";
-import { useLoaderData, useSubmit } from "react-router";
+import { useLoaderData, useSubmit, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import WidgetCustomizeShell, {
   InstallSection, ColorField, SelectField, RangeField, TextFieldInput, ToggleField, SHELL_C,
 } from "../components/WidgetCustomizeShell";
 import ReviewWidgetPreview from "../components/ReviewWidgetPreview";
+import { STYLE_OPTIONS, PRO_STYLE_VALUES, DEFAULT_FREE_STYLE } from "../utils/reviewWidgetStyles";
+import { isAdvancedOrHigher } from "../billing.server";
 
 // ── Per-card defaults ─────────────────────────────────────────────────────────
 const KEY_DEFAULTS = {
@@ -56,7 +58,10 @@ export async function loader({ request, params }) {
     });
   }
 
-  return data({ settings, key, shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "" });
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  const isPro = isAdvancedOrHigher(plan);
+
+  return data({ settings, key, shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "", isPro });
 }
 
 // ── Action ────────────────────────────────────────────────────────────────────
@@ -67,8 +72,19 @@ export async function action({ request, params }) {
 
   const form = await request.formData();
 
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  const isPro = isAdvancedOrHigher(plan);
+
+  let requestedStyle = form.get("defaultStyle");
+  if (PRO_STYLE_VALUES.has(requestedStyle) && !isPro) {
+    // Don't trust the client — a non-Pro shop can't persist a Pro-only style
+    // even if they bypass the UI gate and post the form directly.
+    const existing = await db.widget.findUnique({ where: { shop_widgetKey: { shop: session.shop, widgetKey: key } } });
+    requestedStyle = existing?.defaultStyle && !PRO_STYLE_VALUES.has(existing.defaultStyle) ? existing.defaultStyle : DEFAULT_FREE_STYLE;
+  }
+
   const payload = {
-    defaultStyle:    form.get("defaultStyle"),
+    defaultStyle:    requestedStyle,
     accentColor:     form.get("accentColor"),
     starColor:          form.get("starColor") || "#F59E0B",
     starGap:            parseInt(form.get("starGap")) || 2,
@@ -122,28 +138,6 @@ export async function action({ request, params }) {
 
   return data({ ok: true, saved: true });
 }
-
-const STYLE_OPTIONS = [
-  { label: "Dark Grid",             value: "dark_grid"    },
-  { label: "Minimal Grid",          value: "minimal_grid" },
-  { label: "Slider",                value: "slider"       },
-  { label: "Star Summary + Grid",   value: "star_summary" },
-  { label: "Accent Wall",           value: "accent_wall"  },
-  { label: "Review List",           value: "list_view"    },
-  { label: "Editorial / Magazine",  value: "editorial"    },
-  { label: "Horizontal Scroll",     value: "scroll_strip" },
-  { label: "Popup Widget",          value: "popup"        },
-  { label: "Badge Strip",           value: "badge_strip"  },
-  { label: "Quote Fade",            value: "quote_fade"   },
-  { label: "Masonry Wall",          value: "masonry_wall" },
-  { label: "Classic List",          value: "classic_list"  },
-  { label: "Summary + List",        value: "summary_side"  },
-  { label: "Snippet Rotator",       value: "snippet_rotator" },
-  { label: "Floating Tab",          value: "floating_tab" },
-  { label: "Trust Medals",          value: "trust_medals" },
-  { label: "Verified Counter",      value: "verified_counter" },
-  { label: "All Reviews Counter",   value: "all_reviews_counter" },
-];
 
 const FONT_OPTIONS = [
   { label: "Inherit from theme",  value: "inherit"              },
@@ -208,9 +202,15 @@ const COL_OPTIONS = [
 ];
 
 export default function WidgetCustomizePage() {
-  const { settings, key, shop, apiKey } = useLoaderData();
+  const { settings, key, shop, apiKey, isPro } = useLoaderData();
   const submit = useSubmit();
   const meta = defaultsFor(key);
+
+  const styleSelectOptions = STYLE_OPTIONS.map((o) => ({
+    label: o.pro && !isPro ? `🔒 ${o.label} (Advanced)` : o.label,
+    value: o.value,
+  }));
+  const [showProUpsell, setShowProUpsell] = useState(false);
 
   const [style, setStyle]               = useState(settings.defaultStyle ?? "dark_grid");
   const [accentColor, setAccentColor]   = useState(settings.accentColor ?? "#6B1A2C");
@@ -259,6 +259,12 @@ export default function WidgetCustomizePage() {
   const isSummarySide  = style === "summary_side";
 
   const handleSave = () => {
+    const chosen = STYLE_OPTIONS.find((o) => o.value === style);
+    if (chosen?.pro && !isPro) {
+      setShowProUpsell(true);
+      return;
+    }
+    setShowProUpsell(false);
     const fd = new FormData();
     fd.set("defaultStyle", style);
     fd.set("accentColor", accentColor);
@@ -334,7 +340,17 @@ export default function WidgetCustomizePage() {
           key: "style", label: "Color and styling",
           content: (
             <>
-              <SelectField label="Widget Design" value={style} onChange={setStyle} options={STYLE_OPTIONS} />
+              <SelectField label="Widget Design" value={style} onChange={setStyle} options={styleSelectOptions} />
+              {showProUpsell && (
+                <div style={{
+                  background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 8,
+                  padding: "10px 12px", fontSize: 12.5, color: "#92400e", display: "flex",
+                  alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap",
+                }}>
+                  <span>🔒 This design needs the Advanced plan.</span>
+                  <Link to="/app/billing" style={{ fontWeight: 700, color: "#92400e" }}>Upgrade →</Link>
+                </div>
+              )}
               <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
               <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
               <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />

@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
+import { isAdvancedOrHigher } from "../billing.server";
 
 // ── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
@@ -9,7 +11,9 @@ export async function loader({ request }) {
   const widget = await db.widget.findUnique({
     where: { shop_widgetKey: { shop: session.shop, widgetKey: "homepage_reviews" } },
   });
-  return { settings: widget || {} };
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  const isPro = isAdvancedOrHigher(plan);
+  return { settings: widget || {}, isPro };
 }
 
 // ── Action ────────────────────────────────────────────────────────────────────
@@ -17,9 +21,20 @@ export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const body = await request.json();
 
+  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+  const isPro = isAdvancedOrHigher(plan);
+
+  let requestedLayout = body.layout || "summary_carousel";
+  if (PRO_LAYOUT_VALUES.has(requestedLayout) && !isPro) {
+    // Don't trust the client — a non-Pro shop can't persist a Pro-only layout
+    // even if they bypass the UI gate and post the request directly.
+    const existing = await db.widget.findUnique({ where: { shop_widgetKey: { shop: session.shop, widgetKey: "homepage_reviews" } } });
+    requestedLayout = existing?.defaultStyle && !PRO_LAYOUT_VALUES.has(existing.defaultStyle) ? existing.defaultStyle : DEFAULT_FREE_LAYOUT;
+  }
+
   const data = {
     // layout & display
-    defaultStyle:    body.layout         || "summary_carousel",
+    defaultStyle:    requestedLayout,
     maxReviews:      Number(body.maxReviews)     || 9,
     columns:         Number(body.columns)        || 3,
     // colors
@@ -60,14 +75,6 @@ export async function action({ request }) {
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const LAYOUTS = [
-  { key: "summary_carousel", label: "Summary + Carousel", desc: "Rating panel left + review carousel", icon: "⊞◁▷" },
-  { key: "grid",             label: "Card Grid",          desc: "Responsive 3-column grid",            icon: "⊞⊞⊞" },
-  { key: "masonry",          label: "Masonry",            desc: "Pinterest-style columns",             icon: "⊟⊞⊟" },
-  { key: "spotlight",        label: "Spotlight",          desc: "Stats panel + featured reviews",      icon: "★≡" },
-  { key: "ticker",           label: "Scrolling Ticker",   desc: "Auto-scrolling review strip",         icon: "▶▶▶" },
-];
-
 const FONTS = [
   { value: "inherit",                   label: "Theme Default" },
   { value: "system-ui, sans-serif",     label: "System UI" },
@@ -209,6 +216,147 @@ function PreviewTicker({ s }) {
   );
 }
 
+// ── Advanced-plan-only previews ────────────────────────────────────────────────
+function PreviewHeroBanner({ s }) {
+  return (
+    <div style={{ background: s.panelBg, borderRadius: s.cardRadius, padding: "32px 24px", textAlign: "center", color: "#fff" }}>
+      <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>4.9<span style={{ fontSize: 18, opacity: .6 }}>/5</span></div>
+      <div style={{ fontSize: 18, color: s.accentColor, margin: "8px 0" }}>★★★★★</div>
+      <div style={{ fontSize: 12, opacity: .75, marginBottom: 16 }}>from 222 happy customers</div>
+      <button style={{ background: s.accentColor, color: "#111", border: "none", borderRadius: 20, padding: "8px 20px", fontSize: 12, fontWeight: 700 }}>See all reviews</button>
+    </div>
+  );
+}
+
+function PreviewSplitScreen({ s }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {SAMPLES.slice(0, 2).map((r, i) => (
+        <div key={i} style={{ display: "flex", flexDirection: i % 2 ? "row-reverse" : "row", gap: 16, alignItems: "center", background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, overflow: "hidden" }}>
+          <div style={{ width: 90, height: 90, background: "#ddd", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🖼</div>
+          <div style={{ padding: "8px 14px" }}>
+            <StarRow rating={r.rating} color={s.starColor} size={11} />
+            <div style={{ fontSize: 11, color: "#444", margin: "4px 0" }}>{r.text.slice(0, 60)}…</div>
+            <strong style={{ fontSize: 11, color: s.textColor }}>{r.name}</strong>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PreviewMarqueeStrip({ s }) {
+  return (
+    <div style={{ overflow: "hidden", padding: "10px 0", borderTop: `1px solid ${s.cardBorder}`, borderBottom: `1px solid ${s.cardBorder}` }}>
+      <div style={{ display: "flex", gap: 28, whiteSpace: "nowrap" }}>
+        {[...SAMPLES, ...SAMPLES].map((r, i) => (
+          <span key={i} style={{ fontSize: 11, color: s.textColor }}>
+            <StarRow rating={r.rating} color={s.starColor} size={10} /> "{r.text.slice(0, 40)}" — {r.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PreviewVideoShowcase({ s }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: s.gap * 0.6 }}>
+      {SAMPLES.map((r, i) => (
+        <div key={i} style={{ position: "relative", borderRadius: s.cardRadius, overflow: "hidden", aspectRatio: "4/3", background: "linear-gradient(135deg,#444,#181818)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: 22, color: "rgba(255,255,255,.5)" }}>▶</span>
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "6px 8px", background: "linear-gradient(transparent,rgba(0,0,0,.75))", color: "#fff" }}>
+            <StarRow rating={r.rating} color={s.starColor} size={9} />
+            <div style={{ fontSize: 9, fontWeight: 700 }}>{r.name}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PreviewStackedCards({ s }) {
+  return (
+    <div style={{ position: "relative", height: 150, maxWidth: 320, margin: "0 auto" }}>
+      {SAMPLES.map((r, i) => (
+        <div key={i} style={{
+          position: "absolute", top: i * 10, left: i * 14, right: -(i * 14), width: `calc(100% - ${i * 14}px)`,
+          background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius,
+          padding: s.cardPadding * 0.6, boxShadow: "0 6px 16px rgba(0,0,0,.1)", zIndex: SAMPLES.length - i,
+        }}>
+          <StarRow rating={r.rating} color={s.starColor} size={11} />
+          <div style={{ fontSize: 11, color: "#444", margin: "4px 0" }}>{r.text.slice(0, 55)}…</div>
+          <strong style={{ fontSize: 11, color: s.textColor }}>{r.name}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PreviewStatsDashboard({ s }) {
+  const stats = [
+    { label: "Average rating", value: "4.9" },
+    { label: "Total reviews", value: "222" },
+    { label: "5-star", value: "94%" },
+  ];
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
+        {stats.map((st) => (
+          <div key={st.label} style={{ background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, padding: "12px 10px", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: s.accentColor }}>{st.value}</div>
+            <div style={{ fontSize: 10, color: "#888" }}>{st.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: s.gap * 0.6 }}>
+        {SAMPLES.map((r, i) => (
+          <div key={i} style={{ background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, padding: s.cardPadding * 0.6 }}>
+            <StarRow rating={r.rating} color={s.starColor} size={10} />
+            <div style={{ fontSize: 10, color: "#444", marginTop: 4 }}>{r.text.slice(0, 45)}…</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PreviewAccordionPanels({ s }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {SAMPLES.map((r, i) => (
+        <div key={i} style={{ border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: s.cardBg }}>
+            <StarRow rating={r.rating} color={s.starColor} size={11} />
+            <strong style={{ fontSize: 11, color: s.textColor }}>{r.name}</strong>
+            <span style={{ marginLeft: "auto", color: s.textColor }}>{i === 0 ? "▴" : "▾"}</span>
+          </div>
+          {i === 0 && <div style={{ padding: "0 14px 12px", fontSize: 11, color: "#444" }}>{r.text}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PreviewStoryCircles({ s }) {
+  return (
+    <div style={{ display: "flex", gap: 18, justifyContent: "center", flexWrap: "wrap" }}>
+      {SAMPLES.map((r, i) => (
+        <div key={i} style={{ textAlign: "center" }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: "50%", border: `3px solid ${s.accentColor}`, padding: 3,
+            display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 6px",
+          }}>
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#ddd", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🖼</div>
+          </div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: s.textColor }}>{r.name}</div>
+          <StarRow rating={r.rating} color={s.starColor} size={9} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LivePreview({ s }) {
   const PreviewMap = {
     summary_carousel: PreviewSummaryCar,
@@ -216,6 +364,14 @@ function LivePreview({ s }) {
     masonry: PreviewGrid,
     spotlight: PreviewSpotlight,
     ticker: PreviewTicker,
+    hero_banner: PreviewHeroBanner,
+    split_screen: PreviewSplitScreen,
+    marquee_strip: PreviewMarqueeStrip,
+    video_showcase: PreviewVideoShowcase,
+    stacked_cards: PreviewStackedCards,
+    stats_dashboard: PreviewStatsDashboard,
+    accordion_panels: PreviewAccordionPanels,
+    story_circles: PreviewStoryCircles,
   };
   const Preview = PreviewMap[s.layout] || PreviewSummaryCar;
 
@@ -273,9 +429,10 @@ function Section({ title, children, open, onToggle }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HomepageReviewsSettings() {
-  const { settings } = useLoaderData();
+  const { settings, isPro } = useLoaderData();
   const fetcher = useFetcher();
   const saved = fetcher.data?.saved;
+  const [showProUpsell, setShowProUpsell] = useState(false);
 
   const [s, setS] = useState({
     ...DS,
@@ -306,10 +463,23 @@ export default function HomepageReviewsSettings() {
 
   const upd = useCallback((key, val) => setS(prev => ({ ...prev, [key]: val })), []);
 
+  const selectLayout = (key) => {
+    if (PRO_LAYOUT_VALUES.has(key) && !isPro) {
+      setShowProUpsell(true);
+      return;
+    }
+    setShowProUpsell(false);
+    upd("layout", key);
+  };
+
   const [open, setOpen] = useState("layout");
   const toggle = k => setOpen(prev => prev === k ? null : k);
 
   const save = () => {
+    if (PRO_LAYOUT_VALUES.has(s.layout) && !isPro) {
+      setShowProUpsell(true);
+      return;
+    }
     fetcher.submit(JSON.stringify(s), {
       method: "POST",
       encType: "application/json",
@@ -348,16 +518,26 @@ export default function HomepageReviewsSettings() {
           <Section title="Layout" open={open === "layout"} onToggle={() => toggle("layout")}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {LAYOUTS.map(l => (
-                <button key={l.key} onClick={() => upd("layout", l.key)} style={{
+                <button key={l.key} onClick={() => selectLayout(l.key)} style={{
                   padding: "10px 12px", border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
                   borderRadius: 8, background: s.layout === l.key ? "#f5f3ff" : C.surface,
                   cursor: "pointer", textAlign: "left",
                 }}>
-                  <div style={{ fontWeight: 700, fontSize: 12, color: s.layout === l.key ? C.accent : C.text }}>{l.label}</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: s.layout === l.key ? C.accent : C.text }}>
+                    {l.pro && !isPro ? "🔒 " : ""}{l.label}{l.pro ? " (Advanced)" : ""}
+                  </div>
                   <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{l.desc}</div>
                 </button>
               ))}
             </div>
+            {showProUpsell && (
+              <div style={{
+                marginTop: 10, background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 8,
+                padding: "10px 12px", fontSize: 12, color: "#92400e",
+              }}>
+                🔒 This layout needs the Advanced plan. <Link to="/app/billing" style={{ fontWeight: 700, color: "#92400e" }}>Upgrade →</Link>
+              </div>
+            )}
           </Section>
 
           <Section title="Heading" open={open === "heading"} onToggle={() => toggle("heading")}>
@@ -482,14 +662,15 @@ export default function HomepageReviewsSettings() {
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, textAlign: "right" }}>Live preview · sample data</div>
             <LivePreview s={s} />
             <div style={{ marginTop: 24, padding: 16, background: C.surface, borderRadius: 10, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 8 }}>5 Layout Designs Available</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 8 }}>{LAYOUTS.length} Layout Designs Available</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 10 }}>
                 {LAYOUTS.map(l => (
-                  <button key={l.key} onClick={() => upd("layout", l.key)} style={{
-                    padding: "10px 8px", borderRadius: 8, border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
+                  <button key={l.key} onClick={() => selectLayout(l.key)} style={{
+                    position: "relative", padding: "10px 8px", borderRadius: 8, border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
                     background: s.layout === l.key ? "#f5f3ff" : C.surface, cursor: "pointer", textAlign: "center",
                   }}>
-                    <div style={{ fontSize: 20, marginBottom: 4 }}>{l.key === "summary_carousel" ? "📊" : l.key === "grid" ? "⊞" : l.key === "masonry" ? "⧉" : l.key === "spotlight" ? "✦" : "▶"}</div>
+                    {l.pro && !isPro && <span style={{ position: "absolute", top: 4, right: 4, fontSize: 10 }}>🔒</span>}
+                    <div style={{ fontSize: 20, marginBottom: 4 }}>{l.icon}</div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: s.layout === l.key ? C.accent : C.text }}>{l.label}</div>
                   </button>
                 ))}

@@ -180,6 +180,148 @@
     return outer;
   }
 
+  /* ── Advanced-plan-only layouts ── */
+  function buildHeroBanner(reviews, s, avg, total, t) {
+    var wrap = document.createElement('div');
+    wrap.className = 'hr-hero-banner';
+    wrap.innerHTML =
+      '<div class="hr-hero-num">' + avg.toFixed(1) + '<span class="hr-hero-of5">/5</span></div>' +
+      '<div class="hr-hero-stars">' + starHTML(Math.round(avg), s.starColor) + '</div>' +
+      '<div class="hr-hero-count">' + (t.basedOn || 'from') + ' ' + total + ' ' + (t.reviews || 'reviews') + '</div>' +
+      '<button class="hr-hero-cta">' + (t.seeAllReviews || 'See all reviews') + '</button>';
+    return wrap;
+  }
+
+  function buildSplitScreen(reviews, s, t) {
+    var wrap = document.createElement('div');
+    wrap.className = 'hr-split-screen';
+    var items = reviews.slice(0, s.maxRev || 6);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var row = document.createElement('div');
+      row.className = 'hr-ss-row' + (i % 2 ? ' hr-ss-row--rev' : '');
+      var imgHtml = (s.showMedia && r.mediaUrl) ? '<img src="' + r.mediaUrl + '" alt="review">' : '<div class="hr-ss-placeholder">&#128247;</div>';
+      row.innerHTML =
+        '<div class="hr-ss-media">' + imgHtml + '</div>' +
+        '<div class="hr-ss-content"><div class="hr-ss-stars">' + starHTML(r.rating, s.starColor) + '</div>' +
+        '<p class="hr-ss-text">' + (r.comment || '') + '</p>' +
+        '<strong>' + (r.customer || 'Customer') + '</strong></div>';
+      wrap.appendChild(row);
+    }
+    return wrap;
+  }
+
+  function buildMarqueeStrip(reviews, s) {
+    var outer = document.createElement('div');
+    outer.className = 'hr-marquee-outer';
+    var track = document.createElement('div');
+    track.className = 'hr-marquee-track';
+    var items = reviews.slice(0, 12);
+    var html = '';
+    for (var pass = 0; pass < 2; pass++) {
+      for (var i = 0; i < items.length; i++) {
+        var r = items[i];
+        html += '<span class="hr-marquee-item">' + starHTML(r.rating, s.starColor) + ' "' +
+          (r.comment || '').slice(0, 50) + '" &mdash; ' + (r.customer || 'Customer') + '</span>';
+      }
+    }
+    track.innerHTML = html;
+    outer.appendChild(track);
+    return outer;
+  }
+
+  function buildVideoShowcase(reviews, s, t) {
+    var grid = document.createElement('div');
+    grid.className = 'hr-video-showcase';
+    var withMedia = reviews.filter(function (r) { return r.mediaUrl; });
+    var items = (withMedia.length ? withMedia : reviews).slice(0, s.maxRev || 9);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var card = document.createElement('div');
+      card.className = 'hr-vs-card';
+      var mediaHtml = r.mediaUrl ? '<img src="' + r.mediaUrl + '" alt="review">' : '<div class="hr-vs-placeholder">&#9654;</div>';
+      card.innerHTML = mediaHtml +
+        '<div class="hr-vs-overlay"><span>' + starHTML(r.rating, s.starColor) + '</span><strong>' + (r.customer || 'Customer') + '</strong></div>';
+      grid.appendChild(card);
+    }
+    return grid;
+  }
+
+  function buildStackedCards(reviews, s, t) {
+    var wrap = document.createElement('div');
+    wrap.className = 'hr-stacked';
+    var items = reviews.slice(0, 4);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var card = document.createElement('div');
+      card.className = 'hr-stacked-card';
+      card.style.top = (i * 10) + 'px';
+      card.style.left = (i * 16) + 'px';
+      card.style.zIndex = String(items.length - i);
+      card.innerHTML = '<div>' + starHTML(r.rating, s.starColor) + '</div>' +
+        '<p class="hr-stacked-text">' + (r.comment || '') + '</p><strong>' + (r.customer || 'Customer') + '</strong>';
+      wrap.appendChild(card);
+    }
+    return wrap;
+  }
+
+  function buildStatsDashboard(reviews, s, avg, total, t) {
+    var wrap = document.createElement('div');
+    var fiveStarPct = total ? Math.round(reviews.filter(function (r) { return r.rating === 5; }).length / reviews.length * 100) : 0;
+    var stats = document.createElement('div');
+    stats.className = 'hr-stats-row';
+    stats.innerHTML =
+      '<div class="hr-stat-tile"><div class="hr-stat-num">' + avg.toFixed(1) + '</div><div class="hr-stat-label">' + (t.average || 'Average rating') + '</div></div>' +
+      '<div class="hr-stat-tile"><div class="hr-stat-num">' + total + '</div><div class="hr-stat-label">' + (t.reviews || 'Total reviews') + '</div></div>' +
+      '<div class="hr-stat-tile"><div class="hr-stat-num">' + fiveStarPct + '%</div><div class="hr-stat-label">5-star</div></div>';
+    wrap.appendChild(stats);
+    var grid = document.createElement('div');
+    grid.className = 'hr-grid';
+    var items = reviews.slice(0, s.maxRev || 6);
+    for (var i = 0; i < items.length; i++) grid.appendChild(buildCard(items[i], s, t));
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function buildAccordionPanels(reviews, s, t) {
+    var wrap = document.createElement('div');
+    wrap.className = 'hr-accordion';
+    var items = reviews.slice(0, s.maxRev || 9);
+    for (var i = 0; i < items.length; i++) {
+      (function (r, isFirst) {
+        var row = document.createElement('div');
+        row.className = 'hr-acc-row' + (isFirst ? ' open' : '');
+        var head = document.createElement('button');
+        head.type = 'button'; head.className = 'hr-acc-head';
+        head.innerHTML = '<span>' + starHTML(r.rating, s.starColor) + '</span><strong>' + (r.customer || 'Customer') + '</strong><span class="hr-acc-arrow">&#9662;</span>';
+        var body = document.createElement('div');
+        body.className = 'hr-acc-body';
+        body.innerHTML = '<p>' + (r.comment || '') + '</p>';
+        head.addEventListener('click', function () { row.classList.toggle('open'); });
+        row.appendChild(head); row.appendChild(body);
+        wrap.appendChild(row);
+      })(items[i], i === 0);
+    }
+    return wrap;
+  }
+
+  function buildStoryCircles(reviews, s, t) {
+    var wrap = document.createElement('div');
+    wrap.className = 'hr-story-circles';
+    var items = reviews.slice(0, s.maxRev || 8);
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var item = document.createElement('div');
+      item.className = 'hr-story-item';
+      var mediaHtml = (s.showMedia && r.mediaUrl) ? '<img src="' + r.mediaUrl + '" alt="review">' : '<span>' + initials(r.customer) + '</span>';
+      item.innerHTML = '<div class="hr-story-ring"><div class="hr-story-avatar">' + mediaHtml + '</div></div>' +
+        '<div class="hr-story-name">' + (r.customer || 'Customer') + '</div>' +
+        '<div class="hr-story-stars">' + starHTML(r.rating, s.starColor) + '</div>';
+      wrap.appendChild(item);
+    }
+    return wrap;
+  }
+
   function applyVars(el, s) {
     var vars = {
       '--hr-font':        s.fontFamily   || 'inherit',
@@ -298,6 +440,14 @@
         else if (ly === 'masonry')      content = buildMasonry(reviews, s, t);
         else if (ly === 'spotlight')    content = buildSpotlight(reviews, s, avg, total, t);
         else if (ly === 'ticker')       content = buildTicker(reviews, s);
+        else if (ly === 'hero_banner')      content = buildHeroBanner(reviews, s, avg, total, t);
+        else if (ly === 'split_screen')     content = buildSplitScreen(reviews, s, t);
+        else if (ly === 'marquee_strip')    content = buildMarqueeStrip(reviews, s);
+        else if (ly === 'video_showcase')   content = buildVideoShowcase(reviews, s, t);
+        else if (ly === 'stacked_cards')    content = buildStackedCards(reviews, s, t);
+        else if (ly === 'stats_dashboard')  content = buildStatsDashboard(reviews, s, avg, total, t);
+        else if (ly === 'accordion_panels') content = buildAccordionPanels(reviews, s, t);
+        else if (ly === 'story_circles')    content = buildStoryCircles(reviews, s, t);
         else                            content = buildSummaryCarousel(reviews, s, avg, total, t);
 
         bodyEl.appendChild(content);

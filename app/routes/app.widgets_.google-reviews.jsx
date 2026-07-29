@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { refreshGoogleReviewsCache, connectFromMapsUrl } from "../utils/google-places.server";
 import { listAccountsAndLocations, connectLocation, syncAllReviews } from "../utils/google-business.server";
+import { isGooglePro } from "../billing.server";
 import WidgetCustomizeShell, {
   InstallSection, ColorField, SelectField, TextFieldInput, RangeField, ToggleField, SHELL_C,
 } from "../components/WidgetCustomizeShell";
@@ -14,7 +15,7 @@ export async function loader({ request }) {
   const shop = session.shop;
 
   const plan = await db.shopPlan.findUnique({ where: { shop } });
-  const isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
+  const isPro = isGooglePro(plan);
 
   let widget = await db.googleReviewsWidget.findUnique({ where: { shop } });
   if (!widget) {
@@ -29,7 +30,7 @@ export async function loader({ request }) {
   const businessConnection = await db.googleBusinessConnection.findUnique({ where: { shop } });
   const fullReviewCount = await db.googleFullReview.count({ where: { shop } });
 
-  return { isPro, widget, installUrl, businessConnection, fullReviewCount };
+  return { isPro, widget, installUrl, businessConnection, fullReviewCount, shop };
 }
 
 export async function action({ request }) {
@@ -139,12 +140,12 @@ function PaywallPage() {
   return (
     <div style={{ textAlign: "center", padding: "60px 24px", maxWidth: 500, margin: "0 auto" }}>
       <div style={{ fontSize: 52, marginBottom: 16 }}>🔒</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: SHELL_C.text, marginBottom: 8 }}>Google Reviews Widget — Advanced Plan</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: SHELL_C.text, marginBottom: 8 }}>Google Reviews Widget — Google Reviews Pro</div>
       <div style={{ fontSize: 13.5, color: SHELL_C.muted, lineHeight: 1.75, marginBottom: 28 }}>
-        Pull your store's own Google rating and reviews (via your Google Business Profile) straight onto your storefront — 15 designs to choose from.
+        Pull your store's own Google rating and reviews (via your Google Business Profile) straight onto your storefront — 18 designs to choose from.
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 32, textAlign: "left" }}>
-        {["15 widget designs", "Live Google rating & reviews", "One-click refresh", "Full color customization", "Badges, banners, carousels & more", "Works alongside your other widgets"].map((f) => (
+        {["18 widget designs", "Live Google rating & reviews", "Full Google review sync (Business Profile)", "Full color customization", "Badges, banners, carousels & more", "Works alongside your other widgets"].map((f) => (
           <div key={f} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#374151" }}>
             <span style={{ color: "#059669", fontSize: 13, flexShrink: 0 }}>✓</span>{f}
           </div>
@@ -154,7 +155,7 @@ function PaywallPage() {
         display: "inline-flex", padding: "13px 32px", borderRadius: 10, fontSize: 14, fontWeight: 800,
         background: SHELL_C.accent, color: "#fff", textDecoration: "none", boxShadow: "0 3px 12px rgba(81,69,229,.3)",
       }}>
-        Upgrade to Advanced — $9.99/mo
+        Upgrade to Google Reviews Pro — $19.99/mo
       </Link>
       <div style={{ fontSize: 11.5, color: SHELL_C.muted, marginTop: 12 }}>5-day free trial · Cancel anytime</div>
     </div>
@@ -162,7 +163,7 @@ function PaywallPage() {
 }
 
 export default function GoogleReviewsWidgetPage() {
-  const { isPro, widget, installUrl, businessConnection, fullReviewCount } = useLoaderData();
+  const { isPro, widget, installUrl, businessConnection, fullReviewCount, shop } = useLoaderData();
   const submit = useSubmit();
   const refreshFetcher = useFetcher();
   const connectFetcher = useFetcher();
@@ -305,7 +306,7 @@ export default function GoogleReviewsWidgetPage() {
                     immediately.
                   </p>
                   <a
-                    href="/app/google-business-connect"
+                    href={`/app/google-business-connect?shop=${encodeURIComponent(shop)}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{

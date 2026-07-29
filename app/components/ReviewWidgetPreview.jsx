@@ -380,6 +380,200 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
     );
   }
 
+  if (style === "timeline") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ paddingLeft: 8 }}>
+          {items.map((r, i) => (
+            <div key={r.id} style={{ position: "relative", paddingLeft: 24, paddingBottom: i === items.length - 1 ? 0 : 24, borderLeft: i === items.length - 1 ? "2px solid transparent" : `2px solid ${s.borderColor}` }}>
+              <div style={{ position: "absolute", left: -7, top: 0, width: 12, height: 12, borderRadius: "50%", background: s.accentColor }} />
+              <div style={{ background: s.cardBackground, border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, padding: s.cardPadding }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: s.reviewSize * 0.7 }}>{stars(r.rating, s.accentColor, s.starGap)}</span>
+                  {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888" }}>{r.createdAt}</span>}
+                </div>
+                <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, color: s.textColor, marginBottom: 4 }}>{r.title}</div>
+                <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: 0, lineHeight: 1.5 }}>{r.comment}</p>
+                <div style={{ marginTop: 8, fontSize: s.metaSize, fontWeight: 600, color: s.textColor }}>{r.customer}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "split_hero") {
+    const [hero, ...rest] = items;
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: s.cardGap }}>
+          <div style={{ background: s.cardBackground, border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, padding: s.cardPadding * 1.5 }}>
+            <div style={{ fontSize: 22 }}>{stars(hero.rating, s.accentColor, s.starGap)}</div>
+            <div style={{ fontSize: s.reviewSize * 1.1, fontWeight: 700, color: s.textColor, margin: "6px 0" }}>{hero.title}</div>
+            <p style={{ fontSize: s.reviewSize, color: s.textColor, lineHeight: 1.6 }}>{hero.comment}</p>
+            <div style={{ fontSize: s.metaSize, fontWeight: 600, color: s.textColor }}>{hero.customer}</div>
+          </div>
+          <div style={{ display: "grid", gap: s.cardGap * 0.7 }}>
+            {rest.map((r) => (
+              <div key={r.id} style={{ background: s.cardBackground, border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, padding: s.cardPadding * 0.7 }}>
+                <div style={{ fontSize: s.reviewSize * 0.7 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
+                <p style={{ fontSize: s.reviewSize * 0.9, color: s.textColor, margin: "4px 0" }}>{r.comment}</p>
+                <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "video_wall") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${s.columns}, 1fr)`, gap: s.cardGap }}>
+          {items.map((r) => (
+            <div key={r.id} style={{ position: "relative", borderRadius: s.borderRadius, overflow: "hidden", aspectRatio: "4/3", background: "linear-gradient(135deg,#3a3a3a,#1a1a1a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 28, color: "rgba(255,255,255,.5)" }}>▶</span>
+              <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "8px 10px", background: "linear-gradient(transparent,rgba(0,0,0,.75))", color: "#fff" }}>
+                <div style={{ fontSize: 12 }}>{stars(r.rating, "#F59E0B", 1)}</div>
+                <strong style={{ fontSize: s.metaSize }}>{r.customer}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "rating_bars_hero") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap", background: s.cardBackground, border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, padding: s.cardPadding * 1.2, marginBottom: s.cardGap }}>
+          <div style={{ textAlign: "center", flexShrink: 0 }}>
+            <div style={{ fontSize: 42, fontWeight: 900, color: s.textColor, lineHeight: 1 }}>{avg.toFixed(1)}</div>
+            <div style={{ fontSize: 16 }}>{stars(Math.round(avg), s.accentColor, s.starGap)}</div>
+          </div>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            {[5, 4, 3, 2, 1].map((n) => {
+              const cnt = items.filter((r) => r.rating === n).length;
+              const pct = Math.round((cnt / items.length) * 100);
+              return (
+                <div key={n} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 11.5, width: 16 }}>{n}★</span>
+                  <div style={{ flex: 1, height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: s.accentColor }} />
+                  </div>
+                  <span style={{ fontSize: 11.5, color: "#888", width: 18 }}>{cnt}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: s.cardGap }}>
+          {items.slice(0, 3).map((r) => (
+            <div key={r.id} style={{ background: s.cardBackground, border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, padding: s.cardPadding }}>
+              <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: "0 0 4px", lineHeight: 1.5 }}>{r.comment}</p>
+              <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "chat_bubbles") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {items.map((r, i) => {
+            const rightSide = i % 2 === 1;
+            return (
+              <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "flex-end", maxWidth: "80%", marginLeft: rightSide ? "auto" : 0, flexDirection: rightSide ? "row-reverse" : "row" }}>
+                <span style={{ width: 32, height: 32, borderRadius: "50%", background: s.accentColor, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{initials(r.customer)}</span>
+                <div style={{ background: rightSide ? s.accentColor : s.cardBackground, color: rightSide ? "#fff" : s.textColor, border: rightSide ? "none" : `1px solid ${s.borderColor}`, borderRadius: 16, padding: "10px 14px" }}>
+                  <div style={{ fontSize: s.reviewSize * 0.7 }}>{stars(r.rating, rightSide ? "#fff" : s.accentColor, s.starGap)}</div>
+                  <p style={{ fontSize: s.reviewSize * 0.9, margin: "4px 0" }}>{r.comment}</p>
+                  <strong style={{ fontSize: s.metaSize }}>{r.customer}</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "magazine_spread") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ columnCount: 2, columnGap: 32 }}>
+          {items.map((r, i) => (
+            <div key={r.id} style={{ breakInside: "avoid", marginBottom: 20 }}>
+              {i % 3 === 0 && (
+                <blockquote style={{ fontSize: 20, fontStyle: "italic", fontWeight: 600, color: s.accentColor, margin: "0 0 10px", lineHeight: 1.4 }}>
+                  "{r.title || r.comment.slice(0, 60)}"
+                </blockquote>
+              )}
+              <div style={{ fontSize: s.reviewSize * 0.7 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
+              <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: "4px 0" }}>{r.comment}</p>
+              <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "marquee_line") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ overflow: "hidden", padding: "12px 0", borderTop: `1px solid ${s.borderColor}`, borderBottom: `1px solid ${s.borderColor}` }}>
+          <div style={{ display: "flex", gap: 32, whiteSpace: "nowrap" }}>
+            {items.map((r) => (
+              <span key={r.id} style={{ fontSize: s.reviewSize, color: s.textColor }}>
+                <span style={{ color: s.accentColor }}>{stars(r.rating, s.accentColor, 1)}</span> "{r.comment}" — {r.customer}
+              </span>
+            ))}
+          </div>
+        </div>
+        <p style={{ fontSize: 11, color: "#888", marginTop: 6 }}>(scrolls continuously on your storefront)</p>
+      </div>
+    );
+  }
+
+  if (style === "accordion_list") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {items.map((r, i) => (
+            <div key={r.id} style={{ border: `1px solid ${s.borderColor}`, borderRadius: s.borderRadius, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", background: s.cardBackground }}>
+                <span style={{ fontSize: s.reviewSize * 0.7 }}>{stars(r.rating, s.accentColor, s.starGap)}</span>
+                <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
+                <span style={{ marginLeft: "auto", color: s.textColor }}>{i === 0 ? "▴" : "▾"}</span>
+              </div>
+              {i === 0 && (
+                <div style={{ padding: "0 16px 14px" }}>
+                  <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 700, color: s.textColor, marginBottom: 4 }}>{r.title}</div>
+                  <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: 0, lineHeight: 1.5 }}>{r.comment}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // Default grid family: dark_grid, minimal_grid, accent_wall, reviews_grid, happy_customers, etc.
   const isDark = style === "dark_grid";
   const isAccentWall = style === "accent_wall";

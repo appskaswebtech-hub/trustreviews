@@ -7,6 +7,7 @@ import db from "../db.server";
 import {
   getShopPlan,
   createSubscription,
+  createGoogleProSubscription,
   cancelSubscription,
   syncSubscriptionStatus,
   isDevStore,
@@ -82,6 +83,37 @@ export const action = async ({ request }) => {
     return { confirmationUrl };
   }
 
+  if (actionType === "subscribe_google") {
+    const appUrl = process.env.SHOPIFY_APP_URL?.replace(/\/$/, "");
+    const apiKey = process.env.SHOPIFY_API_KEY;
+    if (!appUrl) throw new Error("SHOPIFY_APP_URL is not set in .env");
+    if (!apiKey) throw new Error("SHOPIFY_API_KEY is not set in .env");
+
+    // Switching tiers — cancel whatever's currently active first so the
+    // shop isn't billed for two subscriptions at once.
+    const existing = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+    if (existing?.subscriptionId) {
+      await cancelSubscription(admin, existing.subscriptionId).catch(() => {});
+    }
+
+    const storeName = session.shop.replace(".myshopify.com", "");
+    const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${apiKey}/app/billing`;
+
+    const { confirmationUrl, subscriptionId } = await createGoogleProSubscription(
+      admin,
+      session.shop,
+      returnUrl,
+    );
+
+    await db.shopPlan.upsert({
+      where: { shop: session.shop },
+      update: { subscriptionId, status: "active" },
+      create: { shop: session.shop, plan: "free", subscriptionId, status: "active" },
+    });
+
+    return { confirmationUrl };
+  }
+
   if (actionType === "cancel") {
     const shopPlan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
     if (shopPlan?.subscriptionId) {
@@ -110,6 +142,8 @@ export default function BillingPage() {
   const navigation = useNavigation();
   const isLoading = navigation.state !== "idle" || fetcher.state !== "idle";
   const isAdvanced = plan === "advanced";
+  const isGooglePro = plan === "googlePro";
+  const isFree = !isAdvanced && !isGooglePro;
 
   if (fetcher.data?.confirmationUrl) {
     window.top.location.href = fetcher.data.confirmationUrl;
@@ -121,8 +155,14 @@ export default function BillingPage() {
     fetcher.submit(fd, { method: "post" });
   };
 
+  const handleSubscribeGoogle = () => {
+    const fd = new FormData();
+    fd.append("actionType", "subscribe_google");
+    fetcher.submit(fd, { method: "post" });
+  };
+
   const handleCancel = () => {
-    if (!confirm("Downgrade to Free? You'll lose Advanced features.")) return;
+    if (!confirm("Downgrade to Free? You'll lose your paid plan's features.")) return;
     const fd = new FormData();
     fd.append("actionType", "cancel");
     fetcher.submit(fd, { method: "post" });
@@ -163,6 +203,16 @@ export default function BillingPage() {
           </div>
         )}
 
+        {!devStore && isGooglePro && (
+          <div style={{
+            background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: 10,
+            padding: "12px 18px", marginBottom: 24, fontSize: 13,
+            color: "#065f46", fontWeight: 600,
+          }}>
+            ✅ You are currently on the <strong>Google Reviews Pro</strong> plan.
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 28 }}>
           <PlanCard
             name="Free"
@@ -174,11 +224,11 @@ export default function BillingPage() {
               "Limited usage for development/testing",
               "Suitable for app review and testing",
             ]}
-            isCurrent={!isAdvanced}
+            isCurrent={isFree}
             badge={null}
             action={
               devStore ? null
-              : isAdvanced
+              : !isFree
                 ? { label: "Downgrade to Free", onClick: handleCancel, variant: "outline" }
                 : null
             }
@@ -188,11 +238,10 @@ export default function BillingPage() {
             name="Advanced"
             price={9.99}
             features={[
-              "Full access for live Shopify stores",
-              "Unlimited feature usage",
-              "Priority customer support",
-              "Automatic feature updates",
-              "High-performance and scalable setup",
+              "16 premium widget designs (Timeline, Chat Bubbles, Video Wall, Stats Dashboard, Story Circles & more)",
+              "Full color, spacing & typography customization on every widget",
+              "Visual Page Builder — drag-and-drop custom template editor",
+              "Priority support",
               "Start 5-Day Free Trial",
             ]}
             isCurrent={isAdvanced}
@@ -200,11 +249,36 @@ export default function BillingPage() {
             action={
               devStore ? null
               : !isAdvanced
-                ? { label: "Upgrade to Advanced", onClick: handleSubscribe, variant: "primary" }
+                ? { label: isGooglePro ? "Downgrade to Advanced" : "Upgrade to Advanced", onClick: handleSubscribe, variant: isGooglePro ? "outline" : "primary" }
                 : null
             }
             isLoading={isLoading}
           />
+          {/* <PlanCard
+            name="Google Reviews Pro"
+            price={19.99}
+            features={[
+              "Everything in Advanced",
+              "Google Reviews widget — show your store's Google rating & reviews on your storefront (18 designs)",
+              "\"Write a review\" button linking straight to your Google listing",
+              "Sync your reviews to Google Merchant Center (Product Ratings — stars on Shopping ads)",
+              "Full Google review sync via Business Profile — every review, not just the 5 Google's public API returns",
+              "Real pagination across your complete Google review history",
+              "Custom Code — inject custom CSS/JS on your storefront",
+              "Marketing integrations — Klaviyo, Mailchimp & Shopify Flow",
+              "Priority Google API setup support",
+              "Start 5-Day Free Trial",
+            ]}
+            isCurrent={isGooglePro}
+            badge={devStore ? "FREE FOR DEV STORES" : null}
+            action={
+              devStore ? null
+              : !isGooglePro
+                ? { label: "Upgrade to Google Reviews Pro", onClick: handleSubscribeGoogle, variant: "primary" }
+                : null
+            }
+            isLoading={isLoading}
+          /> */}
         </div>
 
         <p style={{ fontSize: 13, color: C.muted }}>

@@ -4,14 +4,16 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { SHELL_C } from "../components/WidgetCustomizeShell";
 import { useAdminT } from "../utils/adminTranslations";
+import { isGooglePro } from "../billing.server";
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  const [store, customCode] = await Promise.all([
+  const [store, customCode, plan] = await Promise.all([
     prisma.store.findUnique({ where: { shop: session.shop }, select: { language: true } }),
     prisma.storeCustomCode.findUnique({ where: { shop: session.shop } }),
+    prisma.shopPlan.findUnique({ where: { shop: session.shop } }),
   ]);
 
   return {
@@ -19,6 +21,7 @@ export async function loader({ request }) {
     lang: store?.language || "en",
     customCss: customCode?.customCss || "",
     customJs:  customCode?.customJs  || "",
+    isPro: isGooglePro(plan),
   };
 }
 
@@ -37,6 +40,10 @@ export async function action({ request }) {
   }
 
   if (body.actionType === "custom-code") {
+    const plan = await prisma.shopPlan.findUnique({ where: { shop: session.shop } });
+    if (!isGooglePro(plan)) {
+      return { success: false, message: "Upgrade to Google Reviews Pro to use Custom Code." };
+    }
     await prisma.storeCustomCode.upsert({
       where:  { shop: session.shop },
       update: { customCss: body.css, customJs: body.js },
@@ -134,6 +141,24 @@ function TabBar({ active, onChange }) {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function CustomCodePaywall({ feature }) {
+  return (
+    <div style={{ textAlign: "center", padding: "50px 24px", maxWidth: 440, margin: "0 auto" }}>
+      <div style={{ fontSize: 44, marginBottom: 14 }}>🔒</div>
+      <div style={{ fontSize: 19, fontWeight: 800, color: SHELL_C.text, marginBottom: 8 }}>{feature} — Google Reviews Pro</div>
+      <div style={{ fontSize: 13, color: SHELL_C.muted, lineHeight: 1.7, marginBottom: 24 }}>
+        Upgrade to Google Reviews Pro to unlock {feature.toLowerCase()}.
+      </div>
+      <Link to="/app/billing" style={{
+        display: "inline-flex", padding: "11px 26px", borderRadius: 9, fontSize: 13, fontWeight: 800,
+        background: SHELL_C.accent, color: "#fff", textDecoration: "none",
+      }}>
+        Upgrade to Google Reviews Pro — $19.99/mo
+      </Link>
     </div>
   );
 }
@@ -248,7 +273,7 @@ function CodeEditor({ label, value, onChange, placeholder, hint }) {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function CustomCodePage() {
-  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs } = useLoaderData();
+  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro } = useLoaderData();
 
   const t = useAdminT();
   const [tab, setTab]         = useState("snippets");
@@ -301,7 +326,7 @@ export default function CustomCodePage() {
           </div>
         </div>
 
-        {tab === "code" && (
+        {tab === "code" && isPro && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {codeSaved && (
               <span style={{
@@ -332,7 +357,7 @@ export default function CustomCodePage() {
       {/* ── Content ── */}
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "28px 24px" }}>
 
-        {/* ── SNIPPETS TAB ── */}
+        {/* ── SNIPPETS TAB (free) ── */}
         {tab === "snippets" && (
           <div>
             <div style={{ marginBottom: 24 }}>
@@ -444,7 +469,8 @@ export default function CustomCodePage() {
         )}
 
         {/* ── CUSTOM CSS & JS TAB ── */}
-        {tab === "code" && (
+        {tab === "code" && !isPro && <CustomCodePaywall feature="Custom Code" />}
+        {tab === "code" && isPro && (
           <div>
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: SHELL_C.text, margin: "0 0 6px" }}>

@@ -276,12 +276,12 @@ const WIDGETS = [
   {
     key: "google_reviews",
     title: "Google Reviews",
-    description: "Pull your store's own Google rating and reviews onto the storefront — 15 designs, from a minimal badge to a full testimonial wall.",
+    description: "Pull your store's own Google rating and reviews onto the storefront — 18 designs, from a minimal badge to a full testimonial wall.",
     href: "/app/widgets/google-reviews",
     blockHandle: "google-reviews",
     bg: "linear-gradient(135deg,#e8f0fe,#c2d9fc)",
     icon: "⭐",
-    badge: "PRO",
+    badge: "GOOGLE PRO",
   },
   {
     key: "customer_accounts",

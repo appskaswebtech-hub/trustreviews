@@ -14,7 +14,24 @@ export const PLANS = {
     currencyCode: "USD",
     trialDays: 5,
   },
+  googlePro: {
+    name: "Google Reviews Pro",
+    price: 19.99,
+    currencyCode: "USD",
+    trialDays: 5,
+  },
 };
+
+/** Advanced-tier or higher — everything Google Reviews Pro includes Advanced too. */
+export function isAdvancedOrHigher(shopPlan) {
+  if (shopPlan?.status !== "active") return false;
+  return shopPlan?.plan === "advanced" || shopPlan?.plan === "googlePro";
+}
+
+/** Google-specific features (Google Reviews widget, Merchant Center sync) — Google Reviews Pro only. */
+export function isGooglePro(shopPlan) {
+  return shopPlan?.status === "active" && shopPlan?.plan === "googlePro";
+}
 
 /** Check if the shop is a development store — dev stores skip billing */
 export async function isDevStore(admin) {
@@ -38,8 +55,9 @@ export async function getShopPlan(shop) {
   });
 }
 
-/** Create Shopify AppSubscription and return confirmationUrl */
-export async function createSubscription(admin, shop, returnUrl) {
+/** Create a Shopify AppSubscription for the given plan key and return confirmationUrl */
+async function createSubscriptionFor(admin, planKey, returnUrl) {
+  const planDef = PLANS[planKey];
   const response = await admin.graphql(
     `#graphql
     mutation AppSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean,$trialDays: Int) {
@@ -57,17 +75,17 @@ export async function createSubscription(admin, shop, returnUrl) {
     }`,
     {
       variables: {
-        name: PLANS.advanced.name,
+        name: planDef.name,
         returnUrl,
         test: process.env.NODE_ENV !== "production",
-        trialDays: 5,
+        trialDays: planDef.trialDays || 5,
         lineItems: [
           {
             plan: {
               appRecurringPricingDetails: {
                 price: {
-                  amount: PLANS.advanced.price,
-                  currencyCode: PLANS.advanced.currencyCode,
+                  amount: planDef.price,
+                  currencyCode: planDef.currencyCode,
                 },
                 interval: "EVERY_30_DAYS",
               },
@@ -91,6 +109,16 @@ export async function createSubscription(admin, shop, returnUrl) {
   };
 }
 
+/** Create the Advanced ($9.99) subscription */
+export async function createSubscription(admin, shop, returnUrl) {
+  return createSubscriptionFor(admin, "advanced", returnUrl);
+}
+
+/** Create the Google Reviews Pro ($19.99) subscription */
+export async function createGoogleProSubscription(admin, shop, returnUrl) {
+  return createSubscriptionFor(admin, "googlePro", returnUrl);
+}
+
 /** Cancel active Shopify subscription */
 export async function cancelSubscription(admin, subscriptionId) {
   const response = await admin.graphql(
@@ -109,19 +137,19 @@ export async function cancelSubscription(admin, subscriptionId) {
 
 /** Sync subscription status from Shopify into DB */
 export async function syncSubscriptionStatus(admin, shop) {
-  // Dev stores always get advanced for free
+  // Dev stores always get the top tier for free (so Google features can be tested too)
   const dev = await isDevStore(admin);
   if (dev) {
     await db.shopPlan.upsert({
       where: { shop },
-      update: { plan: "advanced", status: "active" },
-      create: { shop, plan: "advanced", status: "active" },
+      update: { plan: "googlePro", status: "active" },
+      create: { shop, plan: "googlePro", status: "active" },
     });
-    return "advanced";
+    return "googlePro";
   }
 
   const response = await admin.graphql(
-    `{ appInstallation { activeSubscriptions { id status } } }`,
+    `{ appInstallation { activeSubscriptions { id name status } } }`,
   );
   const data = await response.json();
   const subs = data?.data?.appInstallation?.activeSubscriptions ?? [];
@@ -135,23 +163,29 @@ export async function syncSubscriptionStatus(admin, shop) {
     return "free";
   }
 
-  const sub = subs[0];
+  // A shop could in theory have more than one active subscription line —
+  // prefer the higher tier if both are somehow present.
+  const googleSub = subs.find((s) => s.name === PLANS.googlePro.name);
+  const advancedSub = subs.find((s) => s.name === PLANS.advanced.name);
+  const sub = googleSub || advancedSub || subs[0];
+  const planKey = sub === googleSub ? "googlePro" : "advanced";
+
   await db.shopPlan.upsert({
     where: { shop },
     update: {
-      plan: "advanced",
+      plan: planKey,
       subscriptionId: sub.id,
       status: sub.status === "ACTIVE" ? "active" : "cancelled",
       billingStartedAt: new Date(),
     },
     create: {
       shop,
-      plan: "advanced",
+      plan: planKey,
       subscriptionId: sub.id,
       status: "active",
       billingStartedAt: new Date(),
     },
   });
 
-  return "advanced";
+  return planKey;
 }

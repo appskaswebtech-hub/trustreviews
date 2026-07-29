@@ -5,6 +5,9 @@ import fs from "fs";
 import path from "path";
 import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage } from "../utils/widgetTranslations.server";
 import { notifyIntegrations } from "../utils/events.server";
+import { PRO_STYLE_VALUES, DEFAULT_FREE_STYLE } from "../utils/reviewWidgetStyles";
+import { PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
+import { isAdvancedOrHigher, isGooglePro } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -214,8 +217,7 @@ export async function loader({ request }) {
   // ── Google Reviews widget (Pro-gated; always served from cache) ───────────
   if (url.searchParams.get("type") === "google-reviews") {
     const plan = await prisma.shopPlan.findUnique({ where: { shop } });
-    const isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
-    if (!isPro) return Response.json({ configured: false });
+    if (!isGooglePro(plan)) return Response.json({ configured: false });
 
     const widget = await prisma.googleReviewsWidget.findUnique({ where: { shop } });
     if (!widget?.placeId || !widget?.cachedRating) return Response.json({ configured: false });
@@ -446,8 +448,23 @@ export async function loader({ request }) {
       },
     });
 
+    // If the saved style/layout is Advanced-plan-only and the shop isn't
+    // currently on that plan (e.g. it saved it, then downgraded), silently
+    // substitute a free default instead of serving the locked design.
+    let finalSettings = settings || {};
+    const requestedStyle = finalSettings.defaultStyle;
+    if (requestedStyle && (PRO_STYLE_VALUES.has(requestedStyle) || PRO_LAYOUT_VALUES.has(requestedStyle))) {
+      const plan = await prisma.shopPlan.findUnique({ where: { shop } });
+      if (!isAdvancedOrHigher(plan)) {
+        finalSettings = {
+          ...finalSettings,
+          defaultStyle: PRO_LAYOUT_VALUES.has(requestedStyle) ? DEFAULT_FREE_LAYOUT : DEFAULT_FREE_STYLE,
+        };
+      }
+    }
+
     return Response.json({
-      settings: settings || {},
+      settings: finalSettings,
       language: widgetLanguage,
       translations: SLIDER_TRANSLATIONS[widgetLanguage] || SLIDER_TRANSLATIONS.en,
     });

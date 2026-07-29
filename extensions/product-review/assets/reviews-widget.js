@@ -70,6 +70,132 @@
       }
     }
 
+    /* ── Advanced-plan-only designs ── */
+    function buildTimeline(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__timeline';
+      var items = reviews.slice(0, s.maxRev);
+      wrap.innerHTML = items.map(function (r) {
+        var dateHTML = (s.showDate && r.createdAt) ? '<span class="trust-reviews__tl-date">' + fmtDate(r.createdAt) + '</span>' : '';
+        var verifiedHTML = s.showVerified ? '<span class="trust-reviews__verified">' + s.t.verified + '</span>' : '';
+        return '<div class="trust-reviews__tl-item">' +
+          '<div class="trust-reviews__tl-dot" style="background:' + s.accentColor + '"></div>' +
+          '<div class="trust-reviews__tl-content">' +
+          '<div class="trust-reviews__tl-head"><span class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</span>' + dateHTML + '</div>' +
+          (r.title ? '<p class="trust-reviews__title">' + r.title + '</p>' : '') +
+          '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r) +
+          '<div class="trust-reviews__meta"><strong>' + r.customer + '</strong>' + verifiedHTML + '</div>' +
+          '</div></div>';
+      }).join('');
+      attachLikes(wrap);
+      return wrap;
+    }
+
+    function buildSplitHero(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__split-hero';
+      var hero = reviews[0];
+      var rest = reviews.slice(1, s.maxRev);
+      var heroHTML = hero ? (
+        '<div class="trust-reviews__sh-hero">' +
+        '<div class="trust-reviews__stars" style="font-size:1.4rem">' + starHTML(hero.rating, s.accentColor) + '</div>' +
+        (hero.title ? '<p class="trust-reviews__title">' + hero.title + '</p>' : '') +
+        '<p class="trust-reviews__comment">' + hero.comment + '</p>' + mediaHTML(hero) +
+        '<div class="trust-reviews__meta"><strong>' + hero.customer + '</strong></div>' +
+        '</div>'
+      ) : '';
+      var gridHTML = '<div class="trust-reviews__sh-grid">' + rest.map(function (r) {
+        return '<div class="trust-reviews__sh-mini"><div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) +
+          '</div><p class="trust-reviews__comment">' + r.comment + '</p><strong>' + r.customer + '</strong></div>';
+      }).join('') + '</div>';
+      wrap.innerHTML = heroHTML + gridHTML;
+      return wrap;
+    }
+
+    function buildVideoWall(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__video-wall';
+      var withMedia = reviews.filter(function (r) { return r.mediaUrl; });
+      var items = (withMedia.length ? withMedia : reviews).slice(0, s.maxRev);
+      wrap.innerHTML = items.map(function (r) {
+        return '<div class="trust-reviews__vw-card">' + mediaHTML(r) +
+          '<div class="trust-reviews__vw-overlay"><span class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) +
+          '</span><strong>' + r.customer + '</strong></div></div>';
+      }).join('');
+      return wrap;
+    }
+
+    function buildRatingBarsHero(reviews, s, total, avgRating) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__bars-hero';
+      var barsHTML = '';
+      for (var n = 5; n >= 1; n--) {
+        var cnt = 0; for (var i = 0; i < reviews.length; i++) if (reviews[i].rating === n) cnt++;
+        var pct = reviews.length ? Math.round(cnt / reviews.length * 100) : 0;
+        barsHTML += '<div class="trust-reviews__bh-row"><span>' + n + '★</span><div class="trust-reviews__bh-track">' +
+          '<div class="trust-reviews__bh-fill" style="width:' + pct + '%;background:' + s.accentColor + '"></div></div><span>' + cnt + '</span></div>';
+      }
+      var scoreHTML = '<div class="trust-reviews__bh-score"><div class="trust-reviews__bh-num">' + (avgRating || 0).toFixed(1) +
+        '</div><div class="trust-reviews__stars">' + starHTML(Math.round(avgRating || 0), s.accentColor) + '</div></div>';
+      var listHTML = '<div class="trust-reviews__bh-list">' + reviews.slice(0, Math.min(3, s.maxRev)).map(function (r) {
+        return '<div class="trust-reviews__bh-item"><p class="trust-reviews__comment">' + r.comment + '</p><strong>' + r.customer + '</strong></div>';
+      }).join('') + '</div>';
+      wrap.innerHTML = '<div class="trust-reviews__bh-top">' + scoreHTML + barsHTML + '</div>' + listHTML;
+      return wrap;
+    }
+
+    function buildChatBubbles(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__chat';
+      var items = reviews.slice(0, s.maxRev);
+      wrap.innerHTML = items.map(function (r, i) {
+        var side = i % 2 === 0 ? 'left' : 'right';
+        return '<div class="trust-reviews__chat-row trust-reviews__chat-row--' + side + '">' +
+          '<span class="trust-reviews__avatar" style="background:' + s.accentColor + '">' + initials(r.customer) + '</span>' +
+          '<div class="trust-reviews__chat-bubble"><div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) +
+          '</div><p class="trust-reviews__comment">' + r.comment + '</p><strong>' + r.customer + '</strong></div>' +
+          '</div>';
+      }).join('');
+      return wrap;
+    }
+
+    function buildMagazineSpread(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__magazine';
+      var items = reviews.slice(0, s.maxRev);
+      wrap.innerHTML = items.map(function (r, i) {
+        var quoteHTML = (i % 3 === 0) ? '<blockquote class="trust-reviews__mag-quote">"' + (r.title || r.comment.slice(0, 60)) + '"</blockquote>' : '';
+        return '<div class="trust-reviews__mag-col">' + quoteHTML +
+          '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+          '<p class="trust-reviews__comment">' + r.comment + '</p><strong>' + r.customer + '</strong></div>';
+      }).join('');
+      return wrap;
+    }
+
+    function buildMarqueeLine(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__marquee';
+      var track = document.createElement('div'); track.className = 'trust-reviews__marquee-track';
+      var items = reviews.concat(reviews);
+      track.innerHTML = items.map(function (r) {
+        return '<span class="trust-reviews__marquee-item"><span class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) +
+          '</span> "' + r.comment + '" — ' + r.customer + '</span>';
+      }).join('');
+      wrap.appendChild(track);
+      return wrap;
+    }
+
+    function buildAccordionList(reviews, s) {
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__accordion';
+      var items = reviews.slice(0, s.maxRev);
+      for (var i = 0; i < items.length; i++) {
+        (function (r) {
+          var row = document.createElement('div'); row.className = 'trust-reviews__acc-row';
+          var head = document.createElement('button'); head.type = 'button'; head.className = 'trust-reviews__acc-head';
+          head.innerHTML = '<span class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</span><strong>' + r.customer + '</strong><span class="trust-reviews__acc-arrow">▾</span>';
+          var body = document.createElement('div'); body.className = 'trust-reviews__acc-body';
+          body.innerHTML = (r.title ? '<p class="trust-reviews__title">' + r.title + '</p>' : '') + '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r);
+          head.addEventListener('click', function () { row.classList.toggle('open'); });
+          row.appendChild(head); row.appendChild(body);
+          wrap.appendChild(row);
+        })(items[i]);
+      }
+      return wrap;
+    }
+
     function buildSlider(reviews, s) {
       var items = reviews.slice(0, s.maxRev), perView = Math.max(1, parseInt(s.columns,10)||1);
       var wrap = document.createElement('div'); wrap.className = 'trust-reviews__slider-wrap';
@@ -743,6 +869,14 @@
       else if(s.style==='compact_rows')   { el=buildCompactRows(reviews,s); }
       else if(s.style==='summary_side') { el=buildSummaryList(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
       else if(s.style==='photo_masonry'){ el=buildPhotoMasonry(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
+      else if(s.style==='timeline')        { el=buildTimeline(reviews,s); }
+      else if(s.style==='split_hero')      { el=buildSplitHero(reviews,s); }
+      else if(s.style==='video_wall')      { el=buildVideoWall(reviews,s); }
+      else if(s.style==='rating_bars_hero'){ el=buildRatingBarsHero(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
+      else if(s.style==='chat_bubbles')    { el=buildChatBubbles(reviews,s); }
+      else if(s.style==='magazine_spread') { el=buildMagazineSpread(reviews,s); }
+      else if(s.style==='marquee_line')    { el=buildMarqueeLine(reviews,s); }
+      else if(s.style==='accordion_list')  { el=buildAccordionList(reviews,s); }
       else if(s.style==='popup') {
         el=document.createElement('div'); el.className='trust-reviews__grid'; el.style.gridTemplateColumns='repeat('+s.columns+',1fr)';
         var pItems=reviews.slice(0,s.maxRev); for(var pi=0;pi<pItems.length;pi++) el.appendChild(buildCard(pItems[pi],s));
