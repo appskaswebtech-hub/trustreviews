@@ -148,11 +148,18 @@ export async function syncSubscriptionStatus(admin, shop) {
     return "googlePro";
   }
 
-  const response = await admin.graphql(
-    `{ appInstallation { activeSubscriptions { id name status } } }`,
-  );
-  const data = await response.json();
-  const subs = data?.data?.appInstallation?.activeSubscriptions ?? [];
+  let subs = [];
+  try {
+    const response = await admin.graphql(
+      `{ appInstallation { activeSubscriptions { id name status } } }`,
+    );
+    const data = await response.json();
+    subs = data?.data?.appInstallation?.activeSubscriptions ?? [];
+  } catch (e) {
+    console.error("[syncSubscriptionStatus] failed to fetch subscriptions:", e.message);
+    const existing = await db.shopPlan.findUnique({ where: { shop } });
+    return existing?.plan || "free";
+  }
 
   if (subs.length === 0) {
     await db.shopPlan.upsert({
