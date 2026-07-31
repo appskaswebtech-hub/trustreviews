@@ -1,0 +1,164 @@
+<div
+  class="review-section"
+  data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+  data-accent="{{ block.settings.accent_color }}"
+  data-btn-text="{{ block.settings.btn_text_color }}"
+  data-card-bg="{{ block.settings.card_bg }}"
+  data-card-border="{{ block.settings.card_border }}"
+  data-card-text="{{ block.settings.card_text_color }}"
+  data-section-bg="{{ block.settings.section_bg }}"
+  data-heading="{{ block.settings.heading_color }}"
+  data-muted="{{ block.settings.muted_color }}"
+  data-form-bg="{{ block.settings.form_bg }}"
+  style="--rf-accent:{{ block.settings.accent_color }};--rl-accent:{{ block.settings.accent_color }};--rf-btn-text:{{ block.settings.btn_text_color }};--rl-card-bg:{{ block.settings.card_bg }};--rl-card-border:{{ block.settings.card_border }};--rl-card-text:{{ block.settings.card_text_color }};--rs-bg:{{ block.settings.section_bg }};--rs-heading:{{ block.settings.heading_color }};--rs-muted:{{ block.settings.muted_color }};--rf-bg:{{ block.settings.form_bg }};"
+>
+  <div class="nr-review-top-hed-wr">
+    <!-- AVERAGE RATING SUMMARY -->
+    <div class="review-summary">
+      <div class="summary-inner">
+        <div class="nr-review-main-hed">
+          <div class="avg-score">
+            <span id="avg-rating">0</span><span class="out-of">/5</span>
+          </div>
+          <div class="avg-stars" id="avg-stars"></div>
+        </div>
+        <div class="total-reviews"><span id="based-on-label">Based on</span> <span id="total-reviews">0</span> <span id="reviews-word">reviews</span></div>
+      </div>
+    </div>
+    {% if block.settings.show_write_review %}
+    <button id="open-review" class="review-btn">Write a Review</button>
+    <div id="review-form" class="review-form" style="display:none">
+      <div class="form-header">
+        <h3 id="form-title">Write a Review</h3>
+        <button class="form-close" id="form-close-btn" aria-label="Close" onclick="closeReview()">✕</button>
+      </div>
+      <div class="form-field">
+        <label><span id="rating-question">What would you rate this product?</span> <span class="required">*</span></label>
+        <div class="star-rating" id="star-rating">
+          <span data-value="1">★</span>
+          <span data-value="2">★</span>
+          <span data-value="3">★</span>
+          <span data-value="4">★</span>
+          <span data-value="5">★</span>
+        </div>
+      </div>
+      <div class="form-field">
+        <label id="review-title-label">Review title</label>
+        <input type="text" id="review-title" placeholder="Summarize your experience...">
+      </div>
+      <div class="form-field">
+        <label><span id="feedback-label">Tell us your feedback about the product</span> <span class="required">*</span></label>
+        <textarea id="comment" placeholder="Share your experience with this product..." required></textarea>
+      </div>
+        <div class="form-field">
+        <label id="upload-label">Upload image/video</label>
+        <input
+          type="file"
+          id="review-file"
+          accept="image/*,video/*"
+          onchange="previewReviewFile(event)"
+        >
+        <div id="file-preview" class="file-preview"></div>
+      </div>
+      
+      <div class="nr-dubble-field">
+        <div class="form-field-row">
+          <div class="form-field">
+            <label><span id="name-label">Your name</span> <span class="required">*</span></label>
+            <input type="text" id="name" placeholder="Name" required>
+          </div>
+        </div>
+        <div class="form-field-row">
+          <div class="form-field">
+            <label><span id="email-label">Your email address</span> <span class="required">*</span></label>
+            <input type="email" id="email" placeholder="Email" required>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button onclick="closeReview()" id="cancel-btn" class="cancel-btn">Cancel</button>
+        <button onclick="submitReview()" id="submit-btn" class="submit-btn">Submit</button>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- REVIEWS LIST -->
+  <div class="reviews-section">
+    <div class="reviews-toolbar">
+      <div class="toolbar-tabs">
+        <span class="tab active" id="reviews-tab-label">Product Reviews</span>
+      </div>
+      <div class="toolbar-right">
+
+        <!-- SORT DROPDOWN -->
+        <div class="sort-wrap">
+          <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu()">Sort ▾</button>
+          <div class="sort-menu" id="sort-menu" style="display:none">
+            <div class="sort-option active" data-sort="newest" onclick="selectSort(this)">Newest First</div>
+            <div class="sort-option" data-sort="oldest" onclick="selectSort(this)">Oldest First</div>
+            <div class="sort-option" data-sort="highest" onclick="selectSort(this)">Highest Rated</div>
+            <div class="sort-option" data-sort="lowest" onclick="selectSort(this)">Lowest Rated</div>
+            <div class="sort-option" data-sort="helpful" onclick="selectSort(this)">Most Helpful</div>
+          </div>
+        </div>
+
+        <!-- SEARCH BOX -->
+        <div class="search-wrap">
+          <button class="search-btn" id="search-toggle-btn" aria-label="Search reviews" onclick="toggleSearch()">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            <span id="search-label">Search</span>
+          </button>
+          <div class="search-box" id="search-box" style="display:none">
+            <input type="text" id="search-input" placeholder="Search reviews..." oninput="renderReviews()">
+            <button class="search-clear" id="search-clear-btn" aria-label="Clear search" onclick="clearSearch()">✕</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- NO RESULTS MESSAGE -->
+    <div id="no-results" style="display:none" class="no-results">No reviews match your search.</div>
+
+    <div id="review-list"></div>
+
+    <!-- PAGINATION -->
+    <div id="review-pagination" class="review-pagination" style="display:none"></div>
+  </div>
+
+
+{{ 'review.css' | asset_url | stylesheet_tag }}
+<script>let locale_language = `{{ request.locale.iso_code }}`</script>
+<script src="{{ 'review.js' | asset_url }}" defer></script>
+</div>
+
+{% schema %}
+{
+  "name": "Product Review",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    { "type": "checkbox", "id": "show_write_review", "label": "Show \"Write a Review\" button and form", "default": true },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "accent_color", "label": "Accent Color (buttons & stars)", "default": "#1a1a1a" },
+    { "type": "color", "id": "btn_text_color", "label": "Button Text Color", "default": "#ffffff" },
+    { "type": "color", "id": "card_bg", "label": "Card Background", "default": "#ffffff" },
+    { "type": "color", "id": "card_border", "label": "Card Border Color", "default": "#000000" },
+    { "type": "color", "id": "card_text_color", "label": "Card Text Color", "default": "#333333" },
+    { "type": "header", "content": "Section" },
+    { "type": "color", "id": "section_bg", "label": "Section Background", "default": "#ffffff" },
+    { "type": "color", "id": "heading_color", "label": "Score & Heading Color", "default": "#1a1a1a" },
+    { "type": "color", "id": "muted_color", "label": "Muted Text Color", "default": "#888888" },
+    { "type": "color", "id": "form_bg", "label": "Write Review Form Background", "default": "#ffffff" },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
+  ]
+}
+{% endschema %}

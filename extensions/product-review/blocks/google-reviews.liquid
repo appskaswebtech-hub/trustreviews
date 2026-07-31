@@ -1,0 +1,341 @@
+<div id="google-reviews-{{ block.id }}" class="google-reviews" style="display:none"></div>
+
+<style>
+.google-reviews { box-sizing: border-box; }
+.google-reviews * { box-sizing: border-box; }
+.gr-g { display:inline-flex; font-weight:700; letter-spacing:-.02em; }
+.gr-g span:nth-child(1){ color:#4285F4 } .gr-g span:nth-child(2){ color:#EA4335 }
+.gr-g span:nth-child(3){ color:#FBBC05 } .gr-g span:nth-child(4){ color:#4285F4 }
+.gr-g span:nth-child(5){ color:#34A853 } .gr-g span:nth-child(6){ color:#EA4335 }
+.gr-stars { letter-spacing:1px; white-space:nowrap; }
+.gr-avatar { display:flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; font-weight:700; flex-shrink:0; }
+.gr-ticker-track { animation: gr-scroll 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .gr-ticker-track { animation:none; } }
+@keyframes gr-scroll { from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+.gr-nav-btn { border:none; background:none; cursor:pointer; font-size:18px; line-height:1; padding:4px; }
+</style>
+
+<script>
+(function () {
+  var el = document.getElementById('google-reviews-{{ block.id }}');
+  if (!el) return;
+  var locale = "{{ request.locale.iso_code }}";
+
+  var AVATAR_COLORS = ['#c98a5e', '#5e8ac9', '#a15ec9', '#5ec98a', '#c95e5e', '#5ec9c0'];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+  }
+
+  function googleMark(size) {
+    return '<span class="gr-g" style="font-size:' + (size || 15) + 'px">' +
+      'Google'.split('').map(function (ch) { return '<span>' + ch + '</span>'; }).join('') + '</span>';
+  }
+
+  function stars(rating, t, size) {
+    var rounded = Math.round(rating || 0);
+    var out = '';
+    for (var i = 0; i < 5; i++) {
+      out += '<span style="opacity:' + (i < rounded ? 1 : .25) + '">★</span>';
+    }
+    return '<span class="gr-stars" style="color:' + t.starColor + ';font-size:' + (size || t.starSize) + 'px">' + out + '</span>';
+  }
+
+  function avatar(name, bg, size) {
+    size = size || 30;
+    return '<div class="gr-avatar" style="width:' + size + 'px;height:' + size + 'px;background:' + bg + ';font-size:' + (size * 0.4) + 'px">' +
+      esc((name || '?')[0]) + '</div>';
+  }
+
+  function frameStyle(t, overrides) {
+    var base = {
+      display: 'flex', 'flex-direction': 'column', gap: t.gap + 'px',
+      padding: t.padding + 'px', 'border-radius': t.borderRadius + 'px',
+      border: t.borderWidth + 'px solid ' + t.borderColor,
+      'font-family': t.fontFamily === 'inherit' ? 'inherit' : t.fontFamily,
+      'font-size': t.fontSize + 'px', color: t.textColor, background: t.backgroundColor,
+    };
+    if (t.maxWidth > 0) base['max-width'] = t.maxWidth + 'px';
+    if (t.minHeight > 0) base['min-height'] = t.minHeight + 'px';
+    Object.assign(base, overrides || {});
+    return Object.keys(base).map(function (k) { return k + ':' + base[k]; }).join(';');
+  }
+
+  function writeReviewButton(t, placeId) {
+    if (!t.showWriteReviewButton) return '';
+    var href = placeId ? 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(placeId) : '#';
+    return '<a href="' + href + '" target="_blank" rel="noreferrer" style="align-self:flex-start;font-size:' +
+      Math.max(11, t.fontSize - 2) + 'px;font-weight:700;color:#fff;background:' + t.accentColor +
+      ';border-radius:' + Math.min(t.borderRadius, 8) + 'px;padding:7px 14px;text-decoration:none">' +
+      esc(t.writeReviewButtonText) + '</a>';
+  }
+
+  var RENDERERS = {
+    minimal_badge: function (t, d) {
+      return '<div style="' + frameStyle(t, { display: 'inline-flex', 'flex-direction': 'row', 'align-items': 'center' }) + '">' +
+        googleMark() + '<div style="width:1px;height:16px;background:#e2e2e2"></div>' + stars(d.r, t) +
+        '<span style="font-weight:700">' + d.r.toFixed(1) + '</span>' +
+        '<span style="opacity:.6">(' + d.count + ')</span></div>';
+    },
+    star_row: function (t, d) {
+      return '<div style="' + frameStyle(t, { display: 'inline-flex', 'flex-direction': 'row', 'align-items': 'center', border: 'none', padding: '0', background: 'transparent' }) + '">' +
+        stars(d.r, t) + '<span style="font-weight:700">' + d.r.toFixed(1) + '</span>' +
+        '<span style="opacity:.6;text-decoration:underline">' + d.count + ' Google reviews</span></div>';
+    },
+    corner_overlay: function (t, d) {
+      return '<div style="position:relative;width:170px;height:130px;border-radius:' + t.borderRadius + 'px;overflow:hidden;background:linear-gradient(135deg,#dcd3c4,#b9ac93)">' +
+        '<div style="position:absolute;top:9px;left:9px;background:rgba(255,255,255,.92);border-radius:8px;padding:5px 9px;display:flex;align-items:center;gap:5px">' +
+        '<span style="font-weight:700;font-size:' + (t.fontSize - 2) + 'px">' + d.r.toFixed(1) + '</span>' + stars(d.r, t, t.starSize - 4) + '</div></div>';
+    },
+    micro_row: function (t, d) {
+      return '<div style="' + frameStyle(t, { display: 'flex', 'flex-direction': 'row', 'align-items': 'center', 'flex-wrap': 'wrap', border: 'none', padding: '0', background: 'transparent' }) + '">' +
+        '<span style="display:flex;align-items:center;gap:6px">' + stars(d.r, t) + ' ' + d.r.toFixed(1) + '/5</span>' +
+        '<div style="width:1px;height:14px;background:#e2e2e2"></div><span>' + d.count + ' reviews</span>' +
+        '<div style="width:1px;height:14px;background:#e2e2e2"></div><span style="font-size:' + (t.fontSize - 3) + 'px;color:#34A853;font-weight:700">✓ Verified on Google</span></div>';
+    },
+    carousel: function (t, d) {
+      var cards = d.revs.slice(0, 4).map(function (rv, i) {
+        return '<div style="flex:0 0 auto;width:160px;background:#fafaf8;border:1px solid #ececec;border-radius:' + t.borderRadius + 'px;padding:12px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' + avatar(rv.authorName, AVATAR_COLORS[i % 6]) +
+          '<span style="font-weight:700;font-size:' + (t.fontSize - 2) + 'px">' + esc(rv.authorName) + '</span></div>' +
+          '<p style="font-size:' + (t.fontSize - 3) + 'px;line-height:1.5;margin:0;opacity:.75">"' + esc(rv.text) + '"</p></div>';
+      }).join('');
+      return '<div style="' + frameStyle(t) + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' + googleMark(13) +
+        '<span>' + stars(d.r, t) + ' ' + d.r.toFixed(1) + '</span></div>' +
+        '<div style="display:flex;gap:' + t.gap + 'px;overflow-x:auto">' + cards + '</div></div>';
+    },
+    wall: function (t, d) {
+      var cards = d.revs.slice(0, 4).map(function (rv, i) {
+        return '<div style="background:' + t.backgroundColor + ';border:' + t.borderWidth + 'px solid ' + t.borderColor + ';border-radius:' + t.borderRadius + 'px;padding:' + t.padding + 'px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">' + avatar(rv.authorName, AVATAR_COLORS[i % 6], 24) +
+          '<span style="font-weight:700;font-size:' + (t.fontSize - 3) + 'px">' + esc(rv.authorName) + '</span></div>' +
+          stars(rv.rating, t, t.starSize - 3) + '<p style="font-size:' + (t.fontSize - 3) + 'px;line-height:1.5;margin:6px 0 0;opacity:.75">"' + esc(rv.text) + '"</p></div>';
+      }).join('');
+      return '<div style="' + frameStyle(t, { display: 'grid', 'grid-template-columns': 'repeat(auto-fit,minmax(160px,1fr))', border: 'none', padding: '0', background: 'transparent' }) + '">' + cards + '</div>';
+    },
+    ticker: function (t, d) {
+      var items = d.revs.concat(d.revs).map(function (rv) {
+        return '<span style="font-size:' + (t.fontSize - 2) + 'px;color:' + t.textColor + ';white-space:nowrap">' + stars(rv.rating, t, t.starSize - 2) + ' "' + esc(rv.text) + '" — ' + esc(rv.authorName) + '</span>';
+      }).join('');
+      return '<div style="width:100%;background:' + t.backgroundColor + ';border-top:' + t.borderWidth + 'px solid ' + t.borderColor + ';border-bottom:' + t.borderWidth + 'px solid ' + t.borderColor + ';padding:' + t.padding + 'px 0;overflow:hidden">' +
+        '<div class="gr-ticker-track" style="display:flex;gap:' + (t.gap * 2) + 'px;width:max-content">' + items + '</div></div>';
+    },
+    banner: function (t, d) {
+      return '<div style="' + frameStyle(t, { 'flex-direction': 'row', 'align-items': 'center', 'justify-content': 'space-between', 'flex-wrap': 'wrap' }) + '">' +
+        '<div><div style="font-family:ui-serif,Georgia,serif;font-size:' + t.headingFontSize + 'px;line-height:1">' + d.r.toFixed(1) +
+        '<span style="font-size:' + (t.headingFontSize * .45) + 'px;opacity:.7">/5</span></div>' +
+        '<div style="font-size:' + (t.fontSize - 1) + 'px;opacity:.8">from ' + d.count + ' verified Google reviews</div></div>' +
+        '<div style="font-size:' + (t.fontSize - 2) + 'px;font-weight:700;border:1px solid currentColor;opacity:.9;border-radius:8px;padding:8px 14px;white-space:nowrap">See our reviews →</div></div>';
+    },
+    floating: function (t, d) {
+      return '<div style="position:fixed;bottom:20px;right:20px;z-index:999;background:' + t.backgroundColor + ';border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;padding:9px 14px 9px 9px;cursor:pointer">' +
+        '<div style="width:26px;height:26px;border-radius:50%;background:#4285F4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">G</div>' +
+        '<div><div style="font-size:' + (t.fontSize - 2) + 'px;font-weight:700;line-height:1.2;color:' + t.textColor + '">' + stars(d.r, t, t.starSize - 2) + ' ' + d.r.toFixed(1) + '</div>' +
+        '<div style="font-size:' + (t.fontSize - 4) + 'px;opacity:.6">' + d.count + ' reviews</div></div></div>';
+    },
+    popup: function (t, d) {
+      var rows = d.revs.slice(0, 3).map(function (rv, i) {
+        return '<div style="display:flex;gap:8px;align-items:flex-start">' + avatar(rv.authorName, AVATAR_COLORS[i % 6], 22) +
+          '<div><p style="font-size:' + (t.fontSize - 3) + 'px;font-weight:700;margin:0">' + esc(rv.authorName) + '</p>' +
+          '<p style="font-size:' + (t.fontSize - 3.5) + 'px;line-height:1.5;margin:2px 0 0;opacity:.75">"' + esc(rv.text) + '"</p></div></div>';
+      }).join('');
+      return '<div style="' + frameStyle(t, { 'max-width': (t.maxWidth > 0 ? t.maxWidth : 230) + 'px' }) + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' + googleMark(12.5) +
+        '<span style="font-size:' + (t.fontSize - 3) + 'px;font-weight:700">' + stars(d.r, t, t.starSize - 2) + ' ' + d.r.toFixed(1) + '</span></div>' + rows + '</div>';
+    },
+    checkout_strip: function (t, d) {
+      return '<div style="' + frameStyle(t, { 'flex-direction': 'row', 'align-items': 'center', 'justify-content': 'center', 'border-style': 'dashed' }) + '">' +
+        googleMark(12) + '<span style="font-size:' + (t.fontSize - 2) + 'px">Rated ' + d.r.toFixed(1) + '★ by ' + d.count + ' customers — shop with confidence</span></div>';
+    },
+    big_stat: function (t, d) {
+      return '<div style="' + frameStyle(t, { 'align-items': 'center', 'text-align': 'center', border: 'none', background: 'transparent' }) + '">' +
+        '<div><span style="font-family:ui-serif,Georgia,serif;font-size:' + (t.headingFontSize * 2) + 'px;line-height:1">' + d.r.toFixed(1) +
+        '</span><span style="font-size:' + (t.fontSize + 1) + 'px;opacity:.6;margin-left:4px">/5</span></div>' +
+        '<div style="font-size:' + (t.fontSize - 2.5) + 'px;opacity:.6">GOOGLE RATING · ' + d.count + ' REVIEWS</div></div>';
+    },
+    branded_card: function (t, d) {
+      return '<div style="' + frameStyle(t, { 'max-width': (t.maxWidth > 0 ? t.maxWidth : 250) + 'px' }) + '">' +
+        googleMark() + '<div style="font-size:' + (t.fontSize - 3.5) + 'px;opacity:.6">' + esc(d.name) + '</div>' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+        '<span style="font-family:ui-serif,Georgia,serif;font-size:' + t.headingFontSize + 'px">' + d.r.toFixed(1) + '</span>' + stars(d.r, t) + '</div></div>';
+    },
+    dark_card: function (t, d) {
+      var top = d.revs[0] || { text: '', authorName: '' };
+      return '<div style="' + frameStyle(t, { 'max-width': (t.maxWidth > 0 ? t.maxWidth : 260) + 'px' }) + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-family:ui-serif,Georgia,serif;font-size:' + t.headingFontSize + 'px">' + d.r.toFixed(1) + '</span>' + stars(d.r, t) + '</div>' +
+        '<p style="font-size:' + (t.fontSize - 2.5) + 'px;line-height:1.6;opacity:.8;margin:0">"' + esc(top.text) + '"</p>' +
+        '<div style="font-size:' + (t.fontSize - 3.5) + 'px;opacity:.6">' + esc(top.authorName) + ' · Google review</div></div>';
+    },
+    spotlight: function (t, d) {
+      var top = d.revs[0] || { text: '', authorName: '' };
+      return '<div style="' + frameStyle(t, { 'align-items': 'center', 'text-align': 'center', border: 'none', background: 'transparent' }) + '">' +
+        '<p style="font-family:ui-serif,Georgia,serif;font-size:' + (t.headingFontSize * .65) + 'px;line-height:1.45;margin:0">"' + esc(top.text) + '"</p>' +
+        '<div style="font-size:' + (t.fontSize - 2.5) + 'px;opacity:.6">— ' + esc(top.authorName) + ', ' + stars(5, t, t.starSize - 2) + ' on Google</div></div>';
+    },
+    slider: function (t, d, ctx) {
+      var i = ctx.sliderIndex || 0;
+      var rv = d.revs[i] || d.revs[0];
+      var dots = d.revs.map(function (_, di) {
+        return '<span style="width:5px;height:5px;border-radius:50%;background:' + (di === i ? t.accentColor : '#d8d8d8') + '"></span>';
+      }).join('');
+      return '<div style="' + frameStyle(t, { 'align-items': 'center', 'text-align': 'center', 'max-width': (t.maxWidth > 0 ? t.maxWidth : 360) + 'px' }) + '">' +
+        stars(rv.rating, t) +
+        '<p style="margin:0;line-height:1.55">"' + esc(rv.text) + '"</p>' +
+        '<div style="font-size:' + Math.max(10, t.fontSize - 3) + 'px;opacity:.65">— ' + esc(rv.authorName) + '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+        '<button class="gr-nav-btn gr-slider-prev" style="color:' + t.accentColor + '">‹</button>' +
+        '<div style="display:flex;gap:5px">' + dots + '</div>' +
+        '<button class="gr-nav-btn gr-slider-next" style="color:' + t.accentColor + '">›</button></div></div>';
+    },
+    list: function (t, d) {
+      var rows = d.revs.map(function (rv, i) {
+        return '<div style="display:flex;gap:10px;padding:' + t.padding + 'px;border:' + t.borderWidth + 'px solid ' + t.borderColor + ';border-radius:' + t.borderRadius + 'px;background:' + t.backgroundColor + '">' +
+          avatar(rv.authorName, AVATAR_COLORS[i % 6]) +
+          '<div style="flex:1"><div style="display:flex;justify-content:space-between;gap:8px">' +
+          '<span style="font-weight:700;font-size:' + (t.fontSize - 1) + 'px">' + esc(rv.authorName) + '</span>' + stars(rv.rating, t, t.starSize - 2) + '</div>' +
+          '<p style="font-size:' + (t.fontSize - 2) + 'px;line-height:1.55;margin:4px 0 0;opacity:.8">' + esc(rv.text) + '</p>' +
+          (rv.relativeTime ? '<div style="font-size:' + (t.fontSize - 4) + 'px;opacity:.5;margin-top:4px">' + esc(rv.relativeTime) + '</div>' : '') +
+          '</div></div>';
+      }).join('');
+      return '<div style="' + frameStyle(t, { border: 'none', padding: '0', background: 'transparent' }) + '">' + rows + '</div>';
+    },
+    // Google only returns up to 5 reviews per place — pagination works
+    // within that cap (reviewsPerPage lets a merchant force multiple pages).
+    full_wall: function (t, d, ctx, placeId) {
+      var page = ctx.wallPage || 0;
+      // Server-paginated mode (Business Profile connected): d.revs is
+      // already exactly this page's rows — don't re-slice it.
+      var perPage = t.serverPaged ? (t.perPage || d.revs.length) : Math.max(1, t.reviewsPerPage || 5);
+      var pageCount = t.serverPaged ? (t.pageCount || 1) : Math.max(1, Math.ceil(d.revs.length / perPage));
+      var pageRevs = t.serverPaged ? d.revs : d.revs.slice(page * perPage, page * perPage + perPage);
+
+      var header = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:' + t.padding + 'px;background:' + t.backgroundColor + ';border-radius:' + t.borderRadius + 'px;border:' + t.borderWidth + 'px solid ' + t.borderColor + '">' +
+        '<div style="display:flex;align-items:center;gap:10px">' + googleMark() +
+        '<span style="font-weight:700;font-size:' + (t.headingFontSize * .6) + 'px">' + d.r.toFixed(1) + '</span>' + stars(d.r, t) +
+        '<span style="opacity:.6">' + d.count + ' reviews</span></div>' +
+        writeReviewButton(t, placeId) + '</div>';
+
+      var rows = pageRevs.map(function (rv, i) {
+        return '<div style="display:flex;gap:12px;padding:' + t.padding + 'px;background:' + (i % 2 === 0 ? t.backgroundColor : 'rgba(0,0,0,.02)') + ';border-radius:' + t.borderRadius + 'px;border:' + t.borderWidth + 'px solid ' + t.borderColor + '">' +
+          avatar(rv.authorName, AVATAR_COLORS[i % 6], 36) +
+          '<div style="flex:1"><div style="font-weight:700;font-size:' + t.fontSize + 'px">' + esc(rv.authorName) + '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;margin:3px 0">' + stars(rv.rating, t, t.starSize - 1) +
+          (rv.relativeTime ? '<span style="font-size:' + (t.fontSize - 3) + 'px;opacity:.55">' + esc(rv.relativeTime) + '</span>' : '') + '</div>' +
+          '<p style="margin:0;font-size:' + (t.fontSize - 1) + 'px;line-height:1.55;opacity:.85">' + esc(rv.text) + '</p>' +
+          '<div style="margin-top:6px">' + googleMark(t.fontSize - 3) + '</div></div></div>';
+      }).join('');
+
+      var pagination = '';
+      if (pageCount > 1) {
+        var btns = '';
+        for (var p = 0; p < pageCount; p++) {
+          btns += '<button class="gr-wall-page" data-page="' + p + '" style="border:1px solid ' + t.borderColor + ';border-radius:6px;min-width:28px;height:28px;background:' + (p === page ? t.accentColor : 'transparent') + ';color:' + (p === page ? '#fff' : t.textColor) + ';cursor:pointer;font-size:' + (t.fontSize - 2) + 'px">' + (p + 1) + '</button>';
+        }
+        pagination = '<div style="display:flex;align-items:center;justify-content:center;gap:6px">' +
+          '<button class="gr-wall-prev gr-nav-btn" style="border:1px solid ' + t.borderColor + ';border-radius:6px;min-width:28px;height:28px;font-size:' + (t.fontSize - 2) + 'px;color:' + t.textColor + '" ' + (page === 0 ? 'disabled' : '') + '>‹</button>' +
+          btns +
+          '<button class="gr-wall-next gr-nav-btn" style="border:1px solid ' + t.borderColor + ';border-radius:6px;min-width:28px;height:28px;font-size:' + (t.fontSize - 2) + 'px;color:' + t.textColor + '" ' + (page === pageCount - 1 ? 'disabled' : '') + '>›</button></div>';
+      }
+
+      return '<div style="display:flex;flex-direction:column;gap:' + t.gap + 'px;font-family:' + (t.fontFamily === 'inherit' ? 'inherit' : t.fontFamily) + ';font-size:' + t.fontSize + 'px;color:' + t.textColor + '">' +
+        header + '<div style="display:flex;flex-direction:column;gap:' + t.gap + 'px">' + rows + '</div>' + pagination + '</div>';
+    },
+  };
+
+  function render(data) {
+    var render_ = RENDERERS[data.style] || RENDERERS.minimal_badge;
+    var serverPaged = typeof data.page === 'number';
+
+    var t = Object.assign({
+      accentColor: '#1a1a1a', starColor: '#FBBC05', backgroundColor: '#FFFFFF', textColor: '#1c1b1a',
+      fontFamily: 'inherit', fontSize: 14, headingFontSize: 28, starSize: 14,
+      padding: 16, margin: 0, gap: 12, borderRadius: 10, borderColor: '#E5E5E5', borderWidth: 1,
+      maxWidth: 0, minHeight: 0, showWriteReviewButton: true, writeReviewButtonText: 'Write a review on Google',
+      reviewsPerPage: 5,
+    }, data.colors || {}, data.spacing || {});
+
+    var revs = data.reviews && data.reviews.length ? data.reviews : [{ authorName: 'Google user', rating: Math.round(Number(data.rating) || 0), text: '' }];
+    var d = { r: Number(data.rating) || 0, count: Number(data.reviewCount) || 0, revs: revs, name: data.displayName || '' };
+    var ctx = { sliderIndex: 0, wallPage: serverPaged ? data.page : 0 };
+
+    if (serverPaged) {
+      t.serverPaged = true;
+      t.perPage = data.perPage;
+      t.pageCount = Math.max(1, Math.ceil(data.totalCount / data.perPage));
+    }
+    var pageCount = serverPaged ? t.pageCount : Math.max(1, Math.ceil(revs.length / Math.max(1, t.reviewsPerPage || 5)));
+
+    function repaint() {
+      var body = render_(t, d, ctx, data.placeId);
+      var showBtn = data.style !== 'full_wall';
+      el.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;margin:' + t.margin + 'px">' +
+        body + (showBtn ? writeReviewButton(t, data.placeId) : '') + '</div>';
+      el.style.display = 'block';
+      attachHandlers();
+    }
+
+    function goToPage(p) {
+      if (!serverPaged) {
+        ctx.wallPage = p;
+        repaint();
+        return;
+      }
+      var url = '/apps/review?type=google-reviews&locale=' + encodeURIComponent(locale) +
+        '&page=' + p + '&perPage=' + (data.perPage || 5);
+      fetch(url).then(function (r) { return r.json(); }).then(function (nextData) {
+        if (nextData && nextData.configured) render(nextData);
+      }).catch(function (e) { console.error('Google Reviews widget error:', e); });
+    }
+
+    function attachHandlers() {
+      var prevBtn = el.querySelector('.gr-slider-prev');
+      var nextBtn = el.querySelector('.gr-slider-next');
+      if (prevBtn) prevBtn.addEventListener('click', function () {
+        ctx.sliderIndex = (ctx.sliderIndex - 1 + revs.length) % revs.length;
+        repaint();
+      });
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        ctx.sliderIndex = (ctx.sliderIndex + 1) % revs.length;
+        repaint();
+      });
+
+      var wallPrev = el.querySelector('.gr-wall-prev');
+      var wallNext = el.querySelector('.gr-wall-next');
+      var wallPages = el.querySelectorAll('.gr-wall-page');
+      if (wallPrev) wallPrev.addEventListener('click', function () {
+        goToPage(Math.max(0, (ctx.wallPage || 0) - 1));
+      });
+      if (wallNext) wallNext.addEventListener('click', function () {
+        goToPage(Math.min(pageCount - 1, (ctx.wallPage || 0) + 1));
+      });
+      wallPages.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          goToPage(parseInt(btn.getAttribute('data-page'), 10) || 0);
+        });
+      });
+    }
+
+    repaint();
+  }
+
+  fetch('/apps/review?type=google-reviews&locale=' + encodeURIComponent(locale))
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data || !data.configured) return;
+      render(data);
+    })
+    .catch(function (e) { console.error('Google Reviews widget error:', e); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Google Reviews",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

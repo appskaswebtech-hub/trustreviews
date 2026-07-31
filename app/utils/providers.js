@@ -1,0 +1,54 @@
+// app/utils/providers.js
+// Client-safe metadata only — no fetch/secrets here. Server-only test
+// functions live in integrations.server.js and must never be imported
+// from a route component (only from a loader/action).
+export const PROVIDER_META = {
+  klaviyo: {
+    label: "Klaviyo",
+    description: "Send review events to Klaviyo as metrics. Use them to trigger email flows, SMS, and segments.",
+    icon: "📨",
+    bg: "linear-gradient(135deg,#e6e6ff,#c7c1ff)",
+    keyLabel: "Private API Key",
+    keyPlaceholder: "pk_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+    keyHelp: "Klaviyo → Settings → API Keys → Create Private API Key. Use a Private key (not Public).",
+    requiresKey: true,
+    requiresListId: false,
+  },
+  mailchimp: {
+    label: "Mailchimp",
+    description: "Subscribe reviewers to a Mailchimp audience and add tags. Trigger automations when a tag like 'Review Submitted' is added.",
+    icon: "🐵",
+    bg: "linear-gradient(135deg,#fff3d6,#ffe3a3)",
+    keyLabel: "API Key",
+    keyPlaceholder: "32characterkey-us6",
+    keyHelp: "Mailchimp → Account → Extras → API keys. The key must include the datacenter suffix (e.g. -us6).",
+    requiresKey: true,
+    requiresListId: true,
+    listIdLabel: "Audience (List) ID",
+    listIdHelp: "Mailchimp → Audience → Manage Audience → Settings → Audience name and defaults → Audience ID.",
+    listIdPlaceholder: "abc12345",
+  },
+  google_merchant: {
+    label: "Google Merchant Center",
+    description: "Push approved product reviews straight to Google Merchant Center so star ratings can show up on Google Shopping ads and product listings (Product Ratings program).",
+    icon: "🛒",
+    bg: "linear-gradient(135deg,#e8f0fe,#c2d9fc)",
+    keyLabel: "Merchant Center ID",
+    keyPlaceholder: "123456789",
+    keyHelp: "First add our service account as a user on your Merchant Center account (Settings → Account access → Add user — see the email above). Then paste your numeric Merchant Center ID here (Settings → Business information).",
+    requiresKey: true,
+    requiresListId: false,
+  },
+  shopify_flow: {
+    label: "Shopify Flow",
+    description: "Fire Shopify Flow triggers when reviews are submitted or approved. Build automations in Shopify admin — send emails via Shopify Email, Klaviyo, Mailchimp, or any Flow-compatible app. No API key needed.",
+    icon: "⚡",
+    bg: "linear-gradient(135deg,#d1fae5,#a7f3d0)",
+    requiresKey: false,
+    requiresListId: false,
+    triggers: [
+      { handle: "review-submitted", label: "Review Submitted", description: "Fires when a customer submits a new review (pending or auto-approved)." },
+      { handle: "review-approved",  label: "Review Approved",  description: "Fires when a review status is changed to 'approved'." },
+    ],
+  },
+};

@@ -1,0 +1,394 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Store {
+  id           Int            @id @default(autoincrement())
+  shop         String         @unique
+  language     String?
+  autoPublish  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  products     Product[]
+  reviews      Review[]
+  questions    Question[]
+  aiSummaries  AiSummary[]
+  reviewGroups ProductGroup[]
+}
+
+model Product {
+  id               Int          @id @default(autoincrement())
+  storeId          Int
+  store            Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  shopifyProductId String
+  groupId          Int?
+  group            ProductGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt        DateTime     @default(now())
+  reviews          Review[]
+  questions        Question[]
+  aiSummaries      AiSummary[]
+
+  @@unique([storeId, shopifyProductId])
+  @@index([groupId])
+}
+
+// Lets a merchant pool reviews from several products (variants, duplicate
+// listings, etc.) so they all display the combined set of reviews together.
+model ProductGroup {
+  id        Int       @id @default(autoincrement())
+  storeId   Int
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@index([storeId])
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+model Review {
+  id          Int          @id @default(autoincrement())
+  storeId     Int
+  productId   Int?
+  store       Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product     Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  email       String?
+  title       String?
+  rating      Int
+  comment     String   @db.Text
+  customer    String
+  likes       Int          @default(0)
+  status      ReviewStatus @default(pending)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  mediaUrl    String?
+  mediaType   String?
+  fileName    String?
+
+  reply       String?      @db.Text   // merchant's public reply to the review
+  repliedAt   DateTime?
+  hideReason  String?                 // set when status=rejected via the "hide with reason" flow
+  tags        String?                 // comma-separated free-form tags
+  source      String       @default("storefront") // "storefront" | "imported"
+  sentiment   String?                 // "positive" | "neutral" | "negative" — set by AI sentiment analysis
+  sentimentAt DateTime?
+
+  @@index([storeId, status, createdAt])
+  @@index([storeId, productId, status, createdAt])
+}
+enum QuestionStatus {
+  pending
+  answered
+  rejected
+}
+
+model Question {
+  id         Int            @id @default(autoincrement())
+  storeId    Int
+  productId  Int
+  store      Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer   String
+  email      String?
+  question   String
+  answer     String?
+  status     QuestionStatus @default(pending)
+  createdAt  DateTime       @default(now())
+  answeredAt DateTime?
+
+  @@index([storeId, productId, status])
+}
+
+model AiSummary {
+  id          String   @id @default(cuid())
+  storeId     Int
+  productId   Int
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  summary     String
+  reviewCount Int
+  generatedAt DateTime @default(now())
+
+  @@unique([storeId, productId])
+}
+
+model WidgetInstall {
+  id          Int      @id @default(autoincrement())
+  shop        String
+  widgetKey   String
+  installedAt DateTime @default(now())
+
+  @@unique([shop, widgetKey])
+}
+
+model ReviewFormSettings {
+  id              String   @id @default(cuid())
+  shop            String   @unique
+  accentColor     String   @default("#1a1a1a")
+  fontFamily      String   @default("inherit")
+  backgroundColor String   @default("#FFFFFF")
+  borderRadius    Int      @default(3)
+  buttonTextColor String   @default("#FFFFFF")
+  showWriteReview Boolean  @default(true) // hides (not removes) the button/form on the storefront when off
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ReviewListSettings {
+  id              String   @id @default(cuid())
+  shop            String   @unique
+  listStyle       String   @default("list")     // "list" | "grid" | "compact"
+  cardBackground  String   @default("#FFFFFF")
+  cardBorderColor String   @default("#000000")
+  cardTextColor   String   @default("#333333")
+  accentColor     String   @default("#1a1a1a")  // stars, avatar background, helpful check
+  reviewsPerPage  Int      @default(10)
+  showAllProducts Boolean  @default(false)       // show reviews from every product in the store, not just the current one
+  customCardHTML  String?  @db.Text
+  customCardCSS   String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ShopPlan {
+  id               Int       @id @default(autoincrement())
+  shop             String    @unique
+  plan             String    @default("free")   // "free" | "advanced"
+  subscriptionId   String?
+  status           String    @default("active") // "active" | "cancelled" | "expired"
+  trialEndsAt      DateTime?
+  billingStartedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([shop])
+}
+
+model WidgetSettings {
+  id            String   @id @default(cuid())
+  shop          String   @unique
+  starColor     String   @default("#F59E0B")
+  starSize      Int      @default(15)
+  countColor    String   @default("#6B7280")
+  countFontSize Int      @default(12)
+  showEmpty     Boolean  @default(false)
+  borderRadius  Int      @default(4)
+  background    String   @default("#FFFFFF")
+  widgetStyle   String   @default("compact")   // ← NEW
+  secondaryStat String?                        // ← NEW — optional stat shown after a divider in the Text style
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Integration {
+  id            String    @id @default(cuid())
+  shop          String
+  provider      String    // "klaviyo" | "mailchimp" | "shopify_flow"
+  apiKey        String    @default("")
+  listId        String?   // Mailchimp audience/list ID
+  connected     Boolean   @default(false)
+  lastError     String?
+  lastCheckedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([shop, provider])
+}
+
+model GoogleReviewsWidget {
+  id                String    @id @default(cuid())
+  shop              String    @unique
+  placeId           String?
+  style             String    @default("minimal_badge")
+  accentColor       String    @default("#1a1a1a")
+  starColor         String    @default("#FBBC05")
+  backgroundColor   String    @default("#FFFFFF")
+  textColor         String    @default("#1c1b1a")
+
+  fontFamily            String  @default("inherit")
+  fontSize              Int     @default(14)
+  headingFontSize       Int     @default(28)
+  starSize              Int     @default(14)
+  padding               Int     @default(16)
+  margin                Int     @default(0)
+  gap                   Int     @default(12)
+  borderRadius          Int     @default(10)
+  borderColor           String  @default("#E5E5E5")
+  borderWidth           Int     @default(1)
+  maxWidth              Int     @default(0)
+  minHeight             Int     @default(0)
+  showWriteReviewButton Boolean @default(true)
+  writeReviewButtonText String  @default("Write a review on Google")
+  reviewsPerPage        Int     @default(5)
+
+  cachedDisplayName String?
+  cachedRating      Float?
+  cachedReviewCount Int?
+  cachedReviews     Json?
+  lastFetchedAt     DateTime?
+  lastFetchError    String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model GoogleBusinessConnection {
+  id             String    @id @default(cuid())
+  shop           String    @unique
+  accessToken    String    @db.Text
+  refreshToken   String    @db.Text
+  tokenExpiresAt DateTime?
+  accountId      String?
+  locationId     String?
+  locationName   String?
+  connected      Boolean   @default(false)
+  lastSyncedAt   DateTime?
+  lastSyncError  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model GoogleOAuthState {
+  state     String   @id
+  shop      String
+  createdAt DateTime @default(now())
+}
+
+model GoogleFullReview {
+  id         String    @id @default(cuid())
+  shop       String
+  reviewId   String
+  authorName String
+  rating     Int
+  text       String    @db.Text
+  createTime DateTime?
+  updateTime DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([shop, reviewId])
+  @@index([shop])
+}
+
+model StoreCustomCode {
+  id        String   @id @default(cuid())
+  shop      String   @unique
+  customCss String?  @db.Text
+  customJs  String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WidgetTemplate {
+  id        String   @id @default(cuid())
+  shop      String
+  name      String   @default("Untitled Template")
+  blocks    Json
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shop])
+}
+
+model Widget {
+  id            Int    @id @default(autoincrement())
+  shop          String
+  widgetKey     String @default("review_widget")
+  contentFilter String @default("all") // all | video | photo
+
+  // Widget style & appearance
+  defaultStyle String   @default("dark_grid")
+  accentColor  String   @default("#6B1A2C")
+  starColor    String   @default("#F59E0B")
+  starGap         Int      @default(2)
+  textAlign       String   @default("left")
+  summaryPosition String   @default("left")    // "left" | "right" | "top" | "bottom"
+  showWriteReviewBtn Boolean @default(false)
+  heading      String   @default("Ce qu'en disent ceux qui l'ont essayé.")
+
+  // Typography
+  fontFamily   String?  @default("inherit")
+  headingSize  Int      @default(32)
+  reviewSize   Int      @default(16)
+  metaSize     Int      @default(13)
+
+  // Colors
+  backgroundColor String @default("#FFFFFF")
+  cardBackground  String @default("#FFFFFF")
+  textColor       String @default("#333333")
+  borderColor     String @default("#E5E5E5")
+
+  // Display toggles
+  showVerified Boolean @default(true)
+  showAvatar   Boolean @default(true)
+  showDate     Boolean @default(true)
+
+  // Layout
+  maxReviews   Int     @default(6)
+
+  columns      Int     @default(3)
+  tabletColumns Int    @default(2)
+  mobileColumns Int    @default(1)
+
+  // Spacing
+  paddingTop    Int    @default(40)
+  paddingBottom Int    @default(40)
+
+  cardPadding   Int    @default(16)
+  cardGap       Int    @default(16)
+
+  // Border & Shadow
+  borderRadius  Int    @default(10)
+  showShadow    Boolean @default(true)
+
+  // Slider Settings
+  autoplay      Boolean @default(true)
+  autoplaySpeed Int     @default(3000)
+
+  showArrows    Boolean @default(true)
+  showDots      Boolean @default(true)
+
+  // Popup Settings
+  popupEnabled  Boolean @default(false)
+  popupDelay    Int     @default(5000)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([shop, widgetKey])
+  @@map("Widget")
+}

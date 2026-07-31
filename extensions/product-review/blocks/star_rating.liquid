@@ -1,0 +1,65 @@
+<span style="color:{{ block.settings.colour }}">
+  <span id="api-star-rating-{{ block.id }}">☆☆☆☆☆</span>
+</span>
+
+<span id="api-avg-rating-{{ block.id }}">0.0</span>/5
+
+<script>
+  (function () {
+    const productId = "{{ block.settings.product.id | default: product.id }}";
+    const ratingEl = document.getElementById("api-star-rating-{{ block.id }}");
+    const avgEl = document.getElementById("api-avg-rating-{{ block.id }}");
+
+    if (!productId || !ratingEl || !avgEl) return;
+
+    async function loadAverageRating() {
+      try {
+        const res = await fetch(`/apps/review?productId=${encodeURIComponent(productId)}`);
+        if (!res.ok) throw new Error("Unable to load rating");
+
+        const data = await res.json();
+
+        const total = Number(data.total || 0);
+        const avgValue = Number(data.averageRating || 0);
+        const roundedRating = Math.round(avgValue);
+
+        avgEl.innerText = total ? avgValue.toFixed(1) : "0.0";
+
+        let stars = "";
+        for (let i = 1; i <= 5; i++) {
+          stars += i <= roundedRating ? "★" : "☆";
+        }
+
+        ratingEl.innerText = stars;
+      } catch (error) {
+        console.error("Average rating error:", error);
+      }
+    }
+
+    loadAverageRating();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Star Rating",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "autofill": true
+    },
+    {
+      "type": "color",
+      "id": "colour",
+      "label": "Star Colour",
+      "default": "#ff0000"
+    }
+  ]
+}
+{% endschema %}

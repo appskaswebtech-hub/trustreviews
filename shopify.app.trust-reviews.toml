@@ -1,0 +1,45 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a9de282fd154860a2049ad3fdaaf6100"
+name = "Trust reviews"
+application_url = "https://trustreviews.kaswebtechsolutions.com"
+embedded = true
+
+[webhooks]
+api_version = "2026-01"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/app/billing/webhook"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_app_proxy,write_app_proxy,read_customers,write_metaobject_definitions,write_metaobjects,read_orders,write_orders,read_products,write_products,read_script_tags,write_script_tags"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://trustreviews.kaswebtechsolutions.com/auth/callback",
+  "https://trustreviews.kaswebtechsolutions.com/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://trustreviews.kaswebtechsolutions.com/api/review"
+subpath = "review"
+prefix = "apps"
+
+[build]
+automatically_update_urls_on_dev = true

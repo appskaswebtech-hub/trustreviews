@@ -1,0 +1,114 @@
+{% comment %}
+  extensions/trust-reviews/blocks/reviews-widget.liquid
+{% endcomment %}
+
+{{ 'reviews-widget.css' | asset_url | stylesheet_tag }}
+
+<div
+  id="trust-reviews-widget-{{ block.id }}"
+  class="trust-reviews-widget"
+  data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-block-id="{{ block.id }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+  data-style="{{ block.settings.widget_style }}"
+  data-color="{{ block.settings.accent_color }}"
+  data-columns="{{ block.settings.columns }}"
+  data-max="{{ block.settings.max_reviews }}"
+  data-verified="{{ block.settings.show_verified }}"
+  data-avatar="{{ block.settings.show_avatar }}"
+  data-date="{{ block.settings.show_date }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-widget-key="{{ block.settings.widget_key }}"
+>
+  <h2 class="trust-reviews__heading">{{ block.settings.heading }}</h2>
+  <div class="trust-reviews__loading">Loading reviews...</div>
+  <div class="trust-reviews__container"></div>
+</div>
+
+<button
+  id="trust-reviews-popup-btn-{{ block.id }}"
+  class="trust-reviews__popup-fab"
+  aria-label="Read reviews"
+  style="display:none"
+>
+  Reviews
+</button>
+
+<div id="trust-reviews-popup-{{ block.id }}" class="trust-reviews__popup-overlay" role="dialog" aria-modal="true" style="display:none">
+  <div class="trust-reviews__popup-modal">
+    <button class="trust-reviews__popup-close" aria-label="Close">&times;</button>
+    <h3 class="trust-reviews__popup-title">Customer Reviews</h3>
+    <div class="trust-reviews__popup-body"></div>
+  </div>
+</div>
+
+<script src="{{ 'reviews-widget.js' | asset_url }}" defer></script>
+
+
+
+{% schema %}
+{
+  "name": "Trust Reviews",
+  "target": "section",
+  "settings": [
+    { "type": "header", "content": "Widget Style" },
+    {
+      "type": "select",
+      "id": "widget_key",
+      "label": "Saved widget",
+      "default": "review_widget",
+      "info": "Pick which widget from the Widgets gallery in your admin this block should display — each has its own saved colors/fonts/layout.",
+      "options": [
+        { "value": "custom_template",       "label": "Custom Template (Customize)"  },
+        { "value": "review_widget",         "label": "Review Widget"                },
+        { "value": "cards_carousel",        "label": "Cards Carousel"               },
+        { "value": "testimonial_carousel",  "label": "Testimonial Carousel"         },
+        { "value": "videos_carousel",       "label": "Videos Carousel"              },
+        { "value": "popup_reviews",         "label": "Pop-up Reviews"               },
+        { "value": "single_review",         "label": "Single Review"                },
+        { "value": "reviews_grid",          "label": "Reviews Grid"                 },
+        { "value": "happy_customers",       "label": "Happy Customers widget"       },
+        { "value": "review_snippets",       "label": "Review Snippets"              },
+        { "value": "classic_list",          "label": "Classic Reviews List"         },
+        { "value": "summary_list",          "label": "Summary + List"               }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "widget_style",
+      "label": "Widget Design",
+      "default": "dark_grid",
+      "options": [
+        { "value": "dark_grid",    "label": "Dark Grid"            },
+        { "value": "minimal_grid", "label": "Minimal Grid"         },
+        { "value": "slider",       "label": "Slider"               },
+        { "value": "star_summary", "label": "Star Summary Grid"    },
+        { "value": "accent_wall",  "label": "Accent Wall"          },
+        { "value": "list_view",    "label": "Review List"          },
+        { "value": "editorial",    "label": "Editorial Magazine"   },
+        { "value": "scroll_strip", "label": "Horizontal Scroll"    },
+        { "value": "popup",        "label": "Popup Widget"         },
+        { "value": "badge_strip",  "label": "Badge Strip"          },
+        { "value": "quote_fade",    "label": "Quote Fade"           },
+        { "value": "masonry_wall",  "label": "Masonry Wall"         },
+        { "value": "classic_list",  "label": "Classic List"         },
+        { "value": "summary_side",  "label": "Summary + List"       },
+        { "value": "photo_masonry", "label": "Photo Masonry"         }
+      ]
+    },
+    { "type": "header",   "content": "Appearance" },
+    { "type": "text",     "id": "heading",      "label": "Section Heading", "default": "What our customers say" },
+    { "type": "color",    "id": "accent_color", "label": "Accent Color",    "default": "#6B1A2C" },
+    { "type": "header",   "content": "Display Options" },
+    { "type": "range",    "id": "max_reviews",  "label": "Max reviews",  "min": 2, "max": 20, "step": 1, "default": 6 },
+    { "type": "range",    "id": "columns",      "label": "Columns / Cards per slide", "info": "Used by the grid styles for column count, and by Slider for how many reviews show per slide.", "min": 1, "max": 4,  "step": 1, "default": 3 },
+    { "type": "checkbox", "id": "show_verified","label": "Show verified badge",   "default": true },
+    { "type": "checkbox", "id": "show_avatar",  "label": "Show reviewer avatar",  "default": true },
+    { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
+  ]
+}
+{% endschema %}
