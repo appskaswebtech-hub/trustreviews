@@ -13,6 +13,27 @@ function hashParts(parts) {
   return crypto.createHash("sha1").update(parts.join("")).digest("hex");
 }
 
+// Azure's free (F0) tier caps requests/sec very low, and a busy storefront
+// can have several widgets independently asking to translate the same
+// product's reviews within the same page load. Without this, every one of
+// those requests re-hits Azure and gets 429'd again, since a failed call
+// never reaches the point where it would populate the cache. Once a shop
+// gets rate-limited, skip calling Azure for it until the cooldown Azure told
+// us about (via Retry-After) elapses — stale/uncached text is just served
+// untranslated in the meantime.
+const DEFAULT_RATE_LIMIT_COOLDOWN_MS = 5 * 60_000;
+const rateLimitedUntil = new Map();
+
+function isRateLimited(shop) {
+  const until = rateLimitedUntil.get(shop);
+  return until != null && until > Date.now();
+}
+
+function markIfRateLimited(shop, error) {
+  if (error.status !== 429) return;
+  rateLimitedUntil.set(shop, Date.now() + (error.retryAfterMs || DEFAULT_RATE_LIMIT_COOLDOWN_MS));
+}
+
 async function getAzureCreds(shop) {
   const integration = await db.integration.findUnique({
     where: { shop_provider: { shop, provider: "azure_translator" } },
@@ -38,6 +59,10 @@ export async function translateReviews(shop, reviews, targetLang, baseLang = "en
     return !c || c.sourceHash !== hashes.get(r.id);
   });
 
+  if (stale.length && isRateLimited(shop)) {
+    return reviews;
+  }
+
   if (stale.length) {
     const texts = [];
     const slots = [];
@@ -51,6 +76,7 @@ export async function translateReviews(shop, reviews, targetLang, baseLang = "en
     try {
       translated = await translateTexts(creds.apiKey, creds.region, texts, targetLang);
     } catch (error) {
+      markIfRateLimited(shop, error);
       console.error("[azure translator] review batch failed, serving original text:", error.message);
       return reviews;
     }
@@ -102,6 +128,10 @@ export async function translateQuestions(shop, questions, targetLang, baseLang =
     return !c || c.sourceHash !== hashes.get(q.id);
   });
 
+  if (stale.length && isRateLimited(shop)) {
+    return questions;
+  }
+
   if (stale.length) {
     const texts = [];
     const slots = [];
@@ -114,6 +144,7 @@ export async function translateQuestions(shop, questions, targetLang, baseLang =
     try {
       translated = await translateTexts(creds.apiKey, creds.region, texts, targetLang);
     } catch (error) {
+      markIfRateLimited(shop, error);
       console.error("[azure translator] Q&A batch failed, serving original text:", error.message);
       return questions;
     }

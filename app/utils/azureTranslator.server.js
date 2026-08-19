@@ -27,7 +27,16 @@ async function callAzure(apiKey, region, texts, targetLang) {
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(`Azure Translator returned status ${response.status}: ${body.slice(0, 200)}`);
+    const err = new Error(`Azure Translator returned status ${response.status}: ${body.slice(0, 200)}`);
+    err.status = response.status;
+    // On a 429, Azure tells us how long to back off via Retry-After (seconds).
+    // Fall back to a conservative guess when the header is missing so callers
+    // still get a sane cooldown instead of retrying immediately.
+    if (response.status === 429) {
+      const retryAfterSec = Number(response.headers.get("retry-after"));
+      err.retryAfterMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0 ? retryAfterSec * 1000 : 5 * 60_000;
+    }
+    throw err;
   }
 
   const data = await response.json();
