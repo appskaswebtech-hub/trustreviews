@@ -62,7 +62,9 @@ export const action = async ({ request, params }) => {
   if (!meta || !test) throw redirect("/app/integrations");
 
   const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
-  if (!isGooglePro(plan)) return { ok: false, message: "Upgrade to Google Reviews Pro to use integrations." };
+  if (providerKey !== "azure_translator" && !isGooglePro(plan)) {
+    return { ok: false, message: "Upgrade to Google Reviews Pro to use integrations." };
+  }
 
   const formData = await request.formData();
   const actionType = formData.get("actionType");
@@ -109,7 +111,7 @@ export const action = async ({ request, params }) => {
     const apiKey = String(formData.get("apiKey") || "").trim();
     const listId = String(formData.get("listId") || "").trim();
     if (!apiKey) return { ok: false, message: "Enter an API key." };
-    if (meta.requiresListId && !listId) return { ok: false, message: "Enter an Audience ID." };
+    if (meta.requiresListId && !listId) return { ok: false, message: `Enter your ${meta.listIdLabel || "value"}.` };
 
     await db.integration.upsert({
       where,
@@ -123,7 +125,7 @@ export const action = async ({ request, params }) => {
     const integration = await db.integration.findUnique({ where });
     if (!integration?.apiKey) return { ok: false, message: "Save an API key first." };
 
-    const result = await test(integration.apiKey);
+    const result = await test(integration.apiKey, integration.listId);
     await db.integration.update({
       where,
       data: { connected: result.ok, lastError: result.ok ? null : result.error, lastCheckedAt: new Date() },
@@ -337,6 +339,19 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         {lastCheckedAt && <span style={{ fontSize: 12, color: C.muted }}>· last checked {new Date(lastCheckedAt).toLocaleString()}</span>}
       </div>
 
+      {/* Azure Translator: where to get a key/region, and a link to pricing */}
+      {providerKey === "azure_translator" && (
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+          <strong style={{ fontSize: 12, color: "#1e40af", display: "block", marginBottom: 4 }}>Step 1 — create a Translator resource in Azure</strong>
+          <p style={{ fontSize: 11.5, color: "#1e3a8a", margin: "0 0 8px", lineHeight: 1.6 }}>
+            Azure Portal → Create a resource → "Translator" → deploy it, then open Keys and Endpoint to copy KEY 1 and the Region below. Azure bills per character translated (a free tier is included).
+          </p>
+          <a href={provider.pricingUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "#1e40af", fontWeight: 700 }}>
+            View Azure Translator pricing ↗
+          </a>
+        </div>
+      )}
+
       {/* Google Merchant: service account email to add as a Merchant Center user */}
       {providerKey === "google_merchant" && (
         <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
@@ -418,13 +433,29 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         </div>
       )}
 
-      {/* Events that fire */}
+      {/* Events that fire / what gets translated */}
       <div style={{ marginTop: 20, padding: "14px 16px", background: "#f8f9fc", borderRadius: 10, border: `1px solid ${C.border}` }}>
-        <strong style={{ fontSize: 12, color: C.text, display: "block", marginBottom: 8 }}>Events sent to {provider.label}</strong>
-        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
-          <li><strong>Review Submitted</strong> — fires when a customer submits a new review</li>
-          <li><strong>Review Approved</strong> — fires when you approve a review in the dashboard</li>
-        </ul>
+        {providerKey === "azure_translator" ? (
+          <>
+            <strong style={{ fontSize: 12, color: C.text, display: "block", marginBottom: 8 }}>What gets translated</strong>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
+              <li>Review title and comment text, shown to each shopper in their storefront language</li>
+              <li>Your store reply to a review</li>
+              <li>Questions &amp; Answers content</li>
+            </ul>
+            <p style={{ fontSize: 11.5, color: C.muted, margin: "10px 0 0" }}>
+              Only the customer-facing display changes — the original text saved in your dashboard is never modified. Each piece of text is translated once per language and cached, so editing a review or reply is the only thing that re-triggers a translation.
+            </p>
+          </>
+        ) : (
+          <>
+            <strong style={{ fontSize: 12, color: C.text, display: "block", marginBottom: 8 }}>Events sent to {provider.label}</strong>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
+              <li><strong>Review Submitted</strong> — fires when a customer submits a new review</li>
+              <li><strong>Review Approved</strong> — fires when you approve a review in the dashboard</li>
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );
@@ -454,7 +485,7 @@ export default function IntegrationSettingsPage() {
   const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail, isPro } = useLoaderData();
   const fetcher = useFetcher();
 
-  if (!isPro) {
+  if (!isPro && providerKey !== "azure_translator") {
     return (
       <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
         <IntegrationPaywall provider={provider} />

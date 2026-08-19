@@ -1,0 +1,6 @@
+customer,email,product_id,rating,title,comment,status
+Cora Patel,cora.patel@example.com,,5,Fast shipping and great quality,"Ordered on Monday, arrived Thursday. Packaging was excellent and the product matched the photos exactly.",approved
+Russ Simmons,russ.simmons@example.com,,5,Will definitely shop here again,"Customer service answered my question within an hour. Really smooth experience from browsing to checkout.",approved
+Amara Osei,amara.osei@example.com,,4,Solid store overall,"A few minor delays with tracking updates, but the product itself was great and support was helpful when I asked.",approved
+Liam Chen,liam.chen@example.com,123456789,5,Exactly as described,"This is my third order from this store and every time the quality has been consistent. Highly recommend.",approved
+Jamie Fox,jamie.fox@example.com,123456789,4,Great value for money,"Was skeptical at first but the quality exceeded my expectations for the price.",approved

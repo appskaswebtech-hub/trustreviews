@@ -359,7 +359,9 @@ export const action = async ({ request }) => {
     for (const row of rows) {
       // No product ID? Import anyway with productId left unassigned — it'll
       // show up under "Unassigned" in the dashboard for the merchant to pick
-      // a product for later, instead of silently dropping the review.
+      // a product for later, instead of silently dropping the review. Tag it
+      // "Home" so the Homepage Reviews widget (which now filters on this tag)
+      // picks it up without touching how product-tied imports behave.
       const productId = await ensureProduct(importStore.id, row.productid || row.productId);
       await db.review.create({
         data: {
@@ -372,6 +374,7 @@ export const action = async ({ request }) => {
           comment:  normalizeComment(row.comment),
           status:   normalizeStatus(row.status),
           source:   "imported",
+          tags:     productId ? null : "Home",
           mediaUrl:  row.mediaUrl  || null,
           mediaType: row.mediaType || null,
           fileName:  row.fileName  || null,

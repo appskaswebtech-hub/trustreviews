@@ -380,7 +380,7 @@
     // Fetch review data in parallel with the style settings instead of
     // waiting for settings to resolve first — the review fetch doesn't
     // depend on anything in the settings response.
-    var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews';
+    var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews&locale=' + encodeURIComponent(locale);
     Promise.all([
       fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
       fetch(reviewUrl, { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
