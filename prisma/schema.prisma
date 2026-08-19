@@ -108,9 +108,31 @@ model Review {
   sentiment   String?                 // "positive" | "neutral" | "negative" — set by AI sentiment analysis
   sentimentAt DateTime?
 
+  translations ReviewTranslation[]
+
   @@index([storeId, status, createdAt])
   @@index([storeId, productId, status, createdAt])
 }
+
+// Cached machine translations of a review's title/comment/reply, one row per
+// (review, target language). Storefront-display only — never overwrites the
+// original text on Review. sourceHash detects when the merchant edits the
+// original text (or writes/edits a reply) so the cache is regenerated.
+model ReviewTranslation {
+  id         Int      @id @default(autoincrement())
+  reviewId   Int
+  review     Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  language   String
+  title      String?
+  comment    String   @db.Text
+  reply      String?  @db.Text
+  sourceHash String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([reviewId, language])
+}
+
 enum QuestionStatus {
   pending
   answered
@@ -131,7 +153,25 @@ model Question {
   createdAt  DateTime       @default(now())
   answeredAt DateTime?
 
+  translations QuestionTranslation[]
+
   @@index([storeId, productId, status])
+}
+
+// Cached machine translations of a Q&A question/answer pair — same
+// storefront-display-only caching approach as ReviewTranslation.
+model QuestionTranslation {
+  id           Int      @id @default(autoincrement())
+  questionId   Int
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  language     String
+  questionText String   @db.Text
+  answerText   String?  @db.Text
+  sourceHash   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([questionId, language])
 }
 
 model AiSummary {
@@ -218,9 +258,9 @@ model WidgetSettings {
 model Integration {
   id            String    @id @default(cuid())
   shop          String
-  provider      String    // "klaviyo" | "mailchimp" | "shopify_flow"
+  provider      String    // "klaviyo" | "mailchimp" | "shopify_flow" | "google_merchant" | "azure_translator"
   apiKey        String    @default("")
-  listId        String?   // Mailchimp audience/list ID
+  listId        String?   // Mailchimp audience/list ID; also reused as the Azure Translator resource region
   connected     Boolean   @default(false)
   lastError     String?
   lastCheckedAt DateTime?

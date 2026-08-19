@@ -16,6 +16,12 @@ export const PLANS = {
   },
 };
 
+/** Check if the shop is on the Advanced plan (or higher) */
+export function isAdvancedOrHigher(shopPlan) {
+  if (shopPlan?.status !== "active") return false;
+  return shopPlan?.plan === "advanced";
+}
+
 /** Check if the shop is a development store — dev stores skip billing */
 export async function isDevStore(admin) {
   // Local-testing escape hatch: force the real (non-dev) billing flow even on a

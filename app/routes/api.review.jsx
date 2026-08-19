@@ -4,7 +4,10 @@ import { authenticate } from "../shopify.server";
 import fs from "fs";
 import path from "path";
 import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage } from "../utils/widgetTranslations.server";
+import { translateReviews, translateQuestions } from "../utils/reviewTranslation.server";
 import { notifyIntegrations } from "../utils/events.server";
+import { PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
+import { isAdvancedOrHigher } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -168,7 +171,9 @@ export async function loader({ request }) {
       orderBy: { answeredAt: "desc" },
     });
 
-    return Response.json({ questions, language: qaLanguage, translations: qaTranslations });
+    const translatedQuestions = await translateQuestions(shop, questions, qaLanguage, langStore.language || "en");
+
+    return Response.json({ questions: translatedQuestions, language: qaLanguage, translations: qaTranslations });
   }
 
   // ── AI Reviews Summary (cached, for storefront display) ───────────────────
@@ -446,8 +451,19 @@ export async function loader({ request }) {
       },
     });
 
+    // If the saved layout is Advanced-plan-only and the shop isn't currently
+    // on that plan (e.g. it saved it, then downgraded), silently substitute
+    // the free default instead of serving the locked layout.
+    let finalSettings = settings || {};
+    if (finalSettings.defaultStyle && PRO_LAYOUT_VALUES.has(finalSettings.defaultStyle)) {
+      const plan = await prisma.shopPlan.findUnique({ where: { shop } });
+      if (!isAdvancedOrHigher(plan)) {
+        finalSettings = { ...finalSettings, defaultStyle: DEFAULT_FREE_LAYOUT };
+      }
+    }
+
     return Response.json({
-      settings: settings || {},
+      settings: finalSettings,
       language: widgetLanguage,
       translations: SLIDER_TRANSLATIONS[widgetLanguage] || SLIDER_TRANSLATIONS.en,
     });
@@ -480,9 +496,21 @@ export async function loader({ request }) {
   // No productId = store-wide request (homepage widget / review wall)
   if (!productId) {
     const storeLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") || "24")));
+
+    // The Homepage Reviews widget specifically shows only reviews tagged
+    // "Home" (set automatically on product-less CSV imports, or manually by
+    // the merchant from any review's tag editor). Every other store-wide
+    // consumer — the Review Wall widget, or this same endpoint called
+    // without a widgetKey — keeps pooling all approved reviews as before.
+    const widgetKey = url.searchParams.get("widgetKey");
+    const storeWhere = { storeId: store.id, status: "approved" };
+    if (widgetKey === "homepage_reviews") {
+      storeWhere.tags = { contains: "Home" };
+    }
+
     const [reviews, total, summary] = await Promise.all([
       prisma.review.findMany({
-        where: { storeId: store.id, status: "approved" },
+        where: storeWhere,
         select: {
           id: true, rating: true, comment: true, customer: true,
           title: true, likes: true, createdAt: true,
@@ -492,11 +520,12 @@ export async function loader({ request }) {
         orderBy: { createdAt: "desc" },
         take: storeLimit,
       }),
-      prisma.review.count({ where: { storeId: store.id, status: "approved" } }),
-      prisma.review.aggregate({ where: { storeId: store.id, status: "approved" }, _avg: { rating: true } }),
+      prisma.review.count({ where: storeWhere }),
+      prisma.review.aggregate({ where: storeWhere, _avg: { rating: true } }),
     ]);
+    const translatedReviews = await translateReviews(shop, reviews, language, store.language || "en");
     return Response.json({
-      reviews, total,
+      reviews: translatedReviews, total,
       averageRating: summary._avg.rating || 0,
       page: 1, limit: reviews.length,
       language, translations: reviewTranslations, listSettings,
@@ -556,8 +585,10 @@ export async function loader({ request }) {
     prisma.review.aggregate({ where, _avg: { rating: true } }),
   ]);
 
+  const translatedReviews = await translateReviews(shop, reviews, language, store.language || "en");
+
   return Response.json({
-    reviews,
+    reviews: translatedReviews,
     total,
     averageRating: summary._avg.rating || 0,
     page:  1,
