@@ -34,6 +34,22 @@ function markIfRateLimited(shop, error) {
   rateLimitedUntil.set(shop, Date.now() + (error.retryAfterMs || DEFAULT_RATE_LIMIT_COOLDOWN_MS));
 }
 
+// A page load can fire several concurrent requests that each need
+// translation for the same shop (e.g. two widgets on one page). Checking
+// isRateLimited() before each independent Azure call isn't enough on its
+// own — if both checks run before either call has failed, both still slip
+// through and both get 429'd. Queuing all Azure calls for a shop through
+// here means each one re-checks isRateLimited() only once it's actually its
+// turn, after any earlier call in the queue has already recorded a failure.
+const shopQueues = new Map();
+
+function runExclusive(shop, fn) {
+  const prev = (shopQueues.get(shop) || Promise.resolve()).catch(() => {});
+  const result = prev.then(fn);
+  shopQueues.set(shop, result.catch(() => {}));
+  return result;
+}
+
 async function getAzureCreds(shop) {
   const integration = await db.integration.findUnique({
     where: { shop_provider: { shop, provider: "azure_translator" } },
@@ -59,10 +75,6 @@ export async function translateReviews(shop, reviews, targetLang, baseLang = "en
     return !c || c.sourceHash !== hashes.get(r.id);
   });
 
-  if (stale.length && isRateLimited(shop)) {
-    return reviews;
-  }
-
   if (stale.length) {
     const texts = [];
     const slots = [];
@@ -72,31 +84,35 @@ export async function translateReviews(shop, reviews, targetLang, baseLang = "en
       slots.push({ reviewId: r.id, field: "reply" });   texts.push(r.reply || "");
     });
 
-    let translated;
-    try {
-      translated = await translateTexts(creds.apiKey, creds.region, texts, targetLang);
-    } catch (error) {
-      markIfRateLimited(shop, error);
-      console.error("[azure translator] review batch failed, serving original text:", error.message);
-      return reviews;
-    }
-
-    const byReview = new Map();
-    slots.forEach((slot, i) => {
-      const entry = byReview.get(slot.reviewId) || {};
-      entry[slot.field] = translated[i];
-      byReview.set(slot.reviewId, entry);
+    const translated = await runExclusive(shop, async () => {
+      if (isRateLimited(shop)) return null;
+      try {
+        return await translateTexts(creds.apiKey, creds.region, texts, targetLang);
+      } catch (error) {
+        markIfRateLimited(shop, error);
+        console.error("[azure translator] review batch failed, serving original text:", error.message);
+        return null;
+      }
     });
 
-    await Promise.all(stale.map(async (r) => {
-      const t = byReview.get(r.id) || {};
-      const row = await db.reviewTranslation.upsert({
-        where: { reviewId_language: { reviewId: r.id, language: targetLang } },
-        update: { title: t.title || null, comment: t.comment || r.comment, reply: t.reply || null, sourceHash: hashes.get(r.id) },
-        create: { reviewId: r.id, language: targetLang, title: t.title || null, comment: t.comment || r.comment, reply: t.reply || null, sourceHash: hashes.get(r.id) },
+    if (translated) {
+      const byReview = new Map();
+      slots.forEach((slot, i) => {
+        const entry = byReview.get(slot.reviewId) || {};
+        entry[slot.field] = translated[i];
+        byReview.set(slot.reviewId, entry);
       });
-      cacheByReviewId.set(r.id, row);
-    }));
+
+      await Promise.all(stale.map(async (r) => {
+        const t = byReview.get(r.id) || {};
+        const row = await db.reviewTranslation.upsert({
+          where: { reviewId_language: { reviewId: r.id, language: targetLang } },
+          update: { title: t.title || null, comment: t.comment || r.comment, reply: t.reply || null, sourceHash: hashes.get(r.id) },
+          create: { reviewId: r.id, language: targetLang, title: t.title || null, comment: t.comment || r.comment, reply: t.reply || null, sourceHash: hashes.get(r.id) },
+        });
+        cacheByReviewId.set(r.id, row);
+      }));
+    }
   }
 
   return reviews.map((r) => {
@@ -128,10 +144,6 @@ export async function translateQuestions(shop, questions, targetLang, baseLang =
     return !c || c.sourceHash !== hashes.get(q.id);
   });
 
-  if (stale.length && isRateLimited(shop)) {
-    return questions;
-  }
-
   if (stale.length) {
     const texts = [];
     const slots = [];
@@ -140,31 +152,35 @@ export async function translateQuestions(shop, questions, targetLang, baseLang =
       slots.push({ questionId: q.id, field: "answerText" });   texts.push(q.answer || "");
     });
 
-    let translated;
-    try {
-      translated = await translateTexts(creds.apiKey, creds.region, texts, targetLang);
-    } catch (error) {
-      markIfRateLimited(shop, error);
-      console.error("[azure translator] Q&A batch failed, serving original text:", error.message);
-      return questions;
-    }
-
-    const byQuestion = new Map();
-    slots.forEach((slot, i) => {
-      const entry = byQuestion.get(slot.questionId) || {};
-      entry[slot.field] = translated[i];
-      byQuestion.set(slot.questionId, entry);
+    const translated = await runExclusive(shop, async () => {
+      if (isRateLimited(shop)) return null;
+      try {
+        return await translateTexts(creds.apiKey, creds.region, texts, targetLang);
+      } catch (error) {
+        markIfRateLimited(shop, error);
+        console.error("[azure translator] Q&A batch failed, serving original text:", error.message);
+        return null;
+      }
     });
 
-    await Promise.all(stale.map(async (q) => {
-      const t = byQuestion.get(q.id) || {};
-      const row = await db.questionTranslation.upsert({
-        where: { questionId_language: { questionId: q.id, language: targetLang } },
-        update: { questionText: t.questionText || q.question, answerText: t.answerText || null, sourceHash: hashes.get(q.id) },
-        create: { questionId: q.id, language: targetLang, questionText: t.questionText || q.question, answerText: t.answerText || null, sourceHash: hashes.get(q.id) },
+    if (translated) {
+      const byQuestion = new Map();
+      slots.forEach((slot, i) => {
+        const entry = byQuestion.get(slot.questionId) || {};
+        entry[slot.field] = translated[i];
+        byQuestion.set(slot.questionId, entry);
       });
-      cacheByQuestionId.set(q.id, row);
-    }));
+
+      await Promise.all(stale.map(async (q) => {
+        const t = byQuestion.get(q.id) || {};
+        const row = await db.questionTranslation.upsert({
+          where: { questionId_language: { questionId: q.id, language: targetLang } },
+          update: { questionText: t.questionText || q.question, answerText: t.answerText || null, sourceHash: hashes.get(q.id) },
+          create: { questionId: q.id, language: targetLang, questionText: t.questionText || q.question, answerText: t.answerText || null, sourceHash: hashes.get(q.id) },
+        });
+        cacheByQuestionId.set(q.id, row);
+      }));
+    }
   }
 
   return questions.map((q) => {
