@@ -138,8 +138,8 @@ const FONT_OPTIONS = [
 function PaywallPage() {
   return (
     <div style={{ textAlign: "center", padding: "60px 24px", maxWidth: 500, margin: "0 auto" }}>
-      <div style={{ fontSize: 52, marginBottom: 16 }}>🔒</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: SHELL_C.text, marginBottom: 8 }}>Google Reviews Widget — Advanced Plan</div>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: SHELL_C.accent, marginBottom: 14 }}>Locked</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: SHELL_C.text, marginBottom: 8 }}>Google Reviews Widget — Advanced Plan</div>
       <div style={{ fontSize: 13.5, color: SHELL_C.muted, lineHeight: 1.75, marginBottom: 28 }}>
         Pull your store's own Google rating and reviews (via your Google Business Profile) straight onto your storefront — 15 designs to choose from.
       </div>
@@ -151,7 +151,7 @@ function PaywallPage() {
         ))}
       </div>
       <Link to="/app/billing" style={{
-        display: "inline-flex", padding: "13px 32px", borderRadius: 10, fontSize: 14, fontWeight: 800,
+        display: "inline-flex", padding: "13px 32px", borderRadius: 10, fontSize: 14, fontWeight: 600,
         background: SHELL_C.accent, color: "#fff", textDecoration: "none", boxShadow: "0 3px 12px rgba(81,69,229,.3)",
       }}>
         Upgrade to Advanced — $9.99/mo
@@ -310,7 +310,7 @@ export default function GoogleReviewsWidgetPage() {
                     rel="noreferrer"
                     style={{
                       display: "inline-block", border: "none", borderRadius: 8, padding: "8px 16px",
-                      fontSize: 12.5, fontWeight: 700, background: SHELL_C.accent, color: "#fff", textDecoration: "none",
+                      fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: "#fff", textDecoration: "none",
                     }}
                   >
                     Connect Google Business Profile ↗
@@ -320,7 +320,7 @@ export default function GoogleReviewsWidgetPage() {
                       <button
                         onClick={handleListLocations}
                         disabled={businessBusy}
-                        style={{ border: `1px solid ${SHELL_C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 700, background: "#fff", color: SHELL_C.text, cursor: businessBusy ? "default" : "pointer" }}
+                        style={{ border: `1px solid ${SHELL_C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, background: "#fff", color: SHELL_C.text, cursor: businessBusy ? "default" : "pointer" }}
                       >
                         {businessBusy ? "Loading…" : "Load your business locations"}
                       </button>
@@ -344,7 +344,7 @@ export default function GoogleReviewsWidgetPage() {
               ) : (
                 <>
                   <div style={{ fontSize: 12.5, color: SHELL_C.text, marginBottom: 4 }}>
-                    ✅ Connected — <strong>{businessConnection.locationName}</strong>
+                    ✓ Connected — <strong>{businessConnection.locationName}</strong>
                   </div>
                   <div style={{ fontSize: 11.5, color: SHELL_C.muted, marginBottom: 10 }}>
                     {fullReviewCount} review(s) synced
@@ -353,7 +353,7 @@ export default function GoogleReviewsWidgetPage() {
                   <button
                     onClick={handleSyncBusiness}
                     disabled={businessBusy}
-                    style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 700, background: SHELL_C.accent, color: "#fff", cursor: businessBusy ? "default" : "pointer" }}
+                    style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: "#fff", cursor: businessBusy ? "default" : "pointer" }}
                   >
                     {businessBusy ? "Syncing…" : "Sync all reviews now"}
                   </button>
@@ -388,7 +388,7 @@ export default function GoogleReviewsWidgetPage() {
                   disabled={connecting || !mapsUrl}
                   style={{
                     border: "none", borderRadius: 8, padding: "8px 16px",
-                    fontSize: 12.5, fontWeight: 700, cursor: connecting || !mapsUrl ? "default" : "pointer",
+                    fontSize: 12.5, fontWeight: 600, cursor: connecting || !mapsUrl ? "default" : "pointer",
                     background: SHELL_C.accent, color: "#fff", opacity: !mapsUrl ? 0.5 : 1,
                   }}
                 >
@@ -417,7 +417,7 @@ export default function GoogleReviewsWidgetPage() {
                   disabled={refreshing || !placeId}
                   style={{
                     border: `1px solid ${SHELL_C.border}`, borderRadius: 8, padding: "8px 16px",
-                    fontSize: 12.5, fontWeight: 700, cursor: refreshing || !placeId ? "default" : "pointer",
+                    fontSize: 12.5, fontWeight: 600, cursor: refreshing || !placeId ? "default" : "pointer",
                     background: "#fff", color: SHELL_C.text, opacity: !placeId ? 0.5 : 1,
                   }}
                 >

@@ -5,12 +5,12 @@ import { useState, useEffect, useRef } from "react";
 import { useAdminT } from "../utils/adminTranslations";
 
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280",
-  accent: "#5145e5", accentLt: "#eeecfd",
-  green: "#16a34a", greenLt: "#dcfce7",
-  red: "#dc2626", redLt: "#fee2e2",
-  amber: "#d97706", amberLt: "#fef3c7",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78",
+  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
+  red: "#a5423b", redLt: "#f7eae8",
+  amber: "#a3690f", amberLt: "#f7f0e2",
 };
 
 export async function loader({ request }) {
@@ -139,7 +139,6 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
   return (
     <div ref={wrapRef} style={{ position: "relative", flex: 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f9fafb", border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 12px" }}>
-        <span style={{ fontSize: 14, color: C.muted }}>🔍</span>
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
@@ -183,7 +182,7 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
                 style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 7, border: `1px solid ${C.border}`, flexShrink: 0 }}
               />
               <span style={{ fontSize: 13, fontWeight: 600, color: C.text, flex: 1 }}>{p.title}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: C.accent, background: C.accentLt, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>+ Add</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.accent, background: C.accentLt, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>+ Add</span>
             </div>
           ))}
         </div>
@@ -203,7 +202,7 @@ function ProductChip({ product, onRemove }) {
     }}>
       {product.isPrimary && (
         <span style={{
-          position: "absolute", top: -7, left: 8, fontSize: 10, fontWeight: 700,
+          position: "absolute", top: -7, left: 8, fontSize: 10, fontWeight: 600,
           background: C.accent, color: "#fff", borderRadius: 20, padding: "1px 7px",
         }}>{t.primary}</span>
       )}
@@ -255,17 +254,17 @@ function GroupCard({ group, onAddProduct, onRemoveProduct, onDeleteGroup, onRena
               onChange={(e) => setNameVal(e.target.value)}
               onBlur={submitRename}
               onKeyDown={(e) => { if (e.key === "Enter") submitRename(); if (e.key === "Escape") { setNameVal(group.name); setRenaming(false); } }}
-              style={{ fontSize: 15, fontWeight: 700, border: `1px solid ${C.accent}`, borderRadius: 7, padding: "4px 10px", outline: "none", minWidth: 200 }}
+              style={{ fontSize: 15, fontWeight: 600, border: `1px solid ${C.accent}`, borderRadius: 7, padding: "4px 10px", outline: "none", minWidth: 200 }}
             />
           ) : (
-            <span style={{ fontWeight: 800, fontSize: 15, color: C.text }}>{group.name}</span>
+            <span style={{ fontWeight: 600, fontSize: 15, color: C.text }}>{group.name}</span>
           )}
           <button onClick={() => setRenaming(true)} title="Rename"
-            style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 13, padding: "2px 6px" }}>✏️</button>
+            style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12, padding: "2px 6px", fontWeight: 600 }}>Rename</button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{
-            fontSize: 11, fontWeight: 700, background: C.accentLt, color: C.accent,
+            fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent,
             borderRadius: 20, padding: "3px 10px",
           }}>
             {group.products.length} {group.products.length === 1 ? "product" : "products"}
@@ -361,7 +360,7 @@ export default function ReviewGroupsPage() {
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 6 }}>
         <Link to="/app" style={{ fontSize: 16, color: C.text, textDecoration: "none", marginTop: 4 }}>←</Link>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>{t.groupsTitle}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }}>{t.groupsTitle}</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0", maxWidth: 560, lineHeight: 1.6 }}>
             Group products that belong together (variants, duplicate listings, bundles) so they
             share the same pool of reviews — customers on any grouped product page see all reviews.
@@ -374,7 +373,6 @@ export default function ReviewGroupsPage() {
         background: C.accentLt, border: `1px solid #c7c0fa`, borderRadius: 12,
         padding: "14px 18px", marginBottom: 22, display: "flex", gap: 12, alignItems: "flex-start",
       }}>
-        <span style={{ fontSize: 20 }}>💡</span>
         <div style={{ fontSize: 13, color: C.accent, lineHeight: 1.7 }}>
           <strong>How it works:</strong> Create a group, then search and add any products from your Shopify store.
           Reviews left on <em>any</em> product in the group will appear on <em>all</em> of them.
@@ -388,7 +386,7 @@ export default function ReviewGroupsPage() {
         padding: "18px 20px", marginBottom: 24, display: "flex", gap: 10, alignItems: "center",
       }}>
         <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: C.muted, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
             {t.groupName}
           </label>
           <input
@@ -406,7 +404,7 @@ export default function ReviewGroupsPage() {
           disabled={!newGroupName.trim()}
           style={{
             alignSelf: "flex-end", border: "none", borderRadius: 9, padding: "10px 22px",
-            fontSize: 13, fontWeight: 700, cursor: newGroupName.trim() ? "pointer" : "default",
+            fontSize: 13, fontWeight: 600, cursor: newGroupName.trim() ? "pointer" : "default",
             background: newGroupName.trim() ? C.accent : "#d1d5db", color: "#fff", whiteSpace: "nowrap",
           }}
         >{t.createGroup}</button>
@@ -418,8 +416,7 @@ export default function ReviewGroupsPage() {
           background: C.surface, borderRadius: 14, border: `1px dashed ${C.border}`,
           padding: "50px 20px", textAlign: "center",
         }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📦</div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 6 }}>{t.groupsTitle}</div>
+          <div style={{ fontWeight: 600, fontSize: 15, color: C.text, marginBottom: 6 }}>{t.groupsTitle}</div>
           <div style={{ fontSize: 13, color: C.muted }}>{t.noGroups}</div>
         </div>
       ) : (

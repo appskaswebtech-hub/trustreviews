@@ -10,7 +10,6 @@ export default function WriteReviewPreview({ settings }) {
         border: "1.5px dashed #e5e5e5", borderRadius: 8, padding: 32,
         textAlign: "center", color: "#9CA3AF", fontSize: 13,
       }}>
-        <div style={{ fontSize: 28, marginBottom: 8 }}>🙈</div>
         Hidden on your storefront — the button and form won't show, but your
         settings here are kept. Turn "Show button & form" back on to bring it back.
       </div>

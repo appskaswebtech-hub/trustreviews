@@ -7,10 +7,10 @@ export const loader = async ({ request }) => {
 };
 
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280", accent: "#5145e5",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
   yellow: "#F59E0B", yellowLt: "#fffbe6",
-  green: "#16a34a", greenLt: "#dcfce7",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
 };
 
 const CODE_BLOCK = `<div data-trust-product-id="{{ product.id }}"></div>`;
@@ -23,7 +23,7 @@ export default function InlineRatingInfoPage() {
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
         <Link to="/app/widgets" style={{ fontSize: 16, color: C.text, textDecoration: "none" }}>←</Link>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>Inline Star Rating</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }}>Inline Star Rating</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>
             A compact star rating badge you can embed anywhere on your product page.
           </p>
@@ -32,7 +32,7 @@ export default function InlineRatingInfoPage() {
 
       {/* Preview */}
       <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 24, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 12px" }}>Preview</p>
+        <p style={{ fontSize: 12, fontWeight: 600, color: C.muted, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 12px" }}>Preview</p>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", background: C.yellowLt, borderRadius: 8 }}>
           {[1,2,3,4,5].map((i) => (
             <span key={i} style={{ fontSize: 22, color: i <= 4 ? C.yellow : "#ddd", lineHeight: 1 }}>★</span>
@@ -44,7 +44,7 @@ export default function InlineRatingInfoPage() {
       {/* Step 1 — Add the block */}
       <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 24, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>1</span>
+          <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 13, flexShrink: 0 }}>1</span>
           <strong style={{ fontSize: 15 }}>Add the "Inline Star Rating" block to your theme</strong>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: "0 0 14px 38px" }}>
@@ -64,7 +64,7 @@ export default function InlineRatingInfoPage() {
       {/* Step 2 — Snippet */}
       <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 24, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>2</span>
+          <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 13, flexShrink: 0 }}>2</span>
           <strong style={{ fontSize: 15 }}>Paste the snippet wherever you want the rating to appear</strong>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: "0 0 14px 38px" }}>
@@ -82,7 +82,7 @@ export default function InlineRatingInfoPage() {
               onClick={copy}
               style={{
                 flexShrink: 0, border: "none", borderRadius: 7, padding: "7px 14px",
-                background: C.accent, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                background: C.accent, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer",
               }}
             >
               Copy
@@ -95,8 +95,7 @@ export default function InlineRatingInfoPage() {
       </div>
 
       {/* Note */}
-      <div style={{ background: C.greenLt, borderRadius: 14, border: `1px solid #bbf7d0`, padding: 18, display: "flex", gap: 12 }}>
-        <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
+      <div style={{ background: C.greenLt, borderRadius: 14, border: `1px solid #cfe3d6`, padding: 18, display: "flex", gap: 12 }}>
         <p style={{ fontSize: 13, color: C.green, margin: 0, lineHeight: 1.6 }}>
           You can place multiple <code style={{ fontFamily: "monospace", background: "rgba(0,0,0,.06)", padding: "1px 5px", borderRadius: 4 }}>data-trust-product-id</code> divs
           on the same page (e.g. in both the product header and a sticky bar) — the block script initialises all of them automatically.

@@ -1,0 +1,20 @@
+{% comment %}
+  Sitewide engine loader. Unlike the other blocks (target: "section"), this
+  one is an app EMBED — turned on once in Theme Editor → App embeds — and
+  loads on every page of the theme regardless of how that page's content was
+  built. Native theme sections, PageFly, GemPages, Shogun, or any other page
+  builder that renders Shopify's standard {{ product }} Liquid objects will
+  all pick up the same review.js engine this way, so a "Product Review Form"
+  custom-HTML snippet (see Admin → Custom Code) works no matter what built
+  the page around it — the block itself doesn't need to be manually placed.
+{% endcomment %}
+{{ 'review.css' | asset_url | stylesheet_tag }}
+<script>var locale_language = `{{ request.locale.iso_code }}`</script>
+<script src="{{ 'review.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Trust Reviews Engine",
+  "target": "body"
+}
+{% endschema %}

@@ -707,5 +707,12 @@ export async function action({ request }) {
     },
   }).catch((error) => console.error("notifyIntegrations failed:", error.message));
 
-  return Response.json({ success: true, review }, { status: 201 });
+  // Review-reward coupon: shown immediately on the thank-you state, regardless
+  // of moderation status, since the point is to reward the act of reviewing.
+  const couponSettings = await prisma.reviewCoupon.findUnique({ where: { shop } });
+  const coupon = couponSettings?.enabled && couponSettings.code
+    ? { code: couponSettings.code, message: couponSettings.message }
+    : null;
+
+  return Response.json({ success: true, review, coupon }, { status: 201 });
 }

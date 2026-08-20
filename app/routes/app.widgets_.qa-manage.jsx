@@ -168,12 +168,12 @@ export const action = async ({ request }) => {
 };
 
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280",
-  accent: "#5145e5", accentLt: "#eeecfd",
-  green: "#16a34a", greenLt: "#dcfce7",
-  amber: "#d97706", amberLt: "#fef3c7",
-  red:   "#dc2626", redLt:   "#fee2e2",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78",
+  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
+  amber: "#a3690f", amberLt: "#f7f0e2",
+  red:   "#a5423b", redLt:   "#f7eae8",
 };
 
 const statusStyle = (s) =>
@@ -191,7 +191,7 @@ function QuestionRow({ question, onAction }) {
         <div style={{
           width: 30, height: 30, borderRadius: "50%", background: C.accentLt,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontWeight: 800, fontSize: 12, color: C.accent, flexShrink: 0,
+          fontWeight: 600, fontSize: 12, color: C.accent, flexShrink: 0,
         }}>{(question.customer || "?")[0].toUpperCase()}</div>
         <strong style={{ fontSize: 13 }}>{question.customer}</strong>
         {question.email && <span style={{ color: C.muted, fontSize: 12 }}>{question.email}</span>}
@@ -237,7 +237,7 @@ function QuestionRow({ question, onAction }) {
           <button
             onClick={() => onAction("delete", question)}
             style={{ border: "none", borderRadius: 7, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", background: "#f3f4f6", color: C.muted }}
-          >🗑 Delete</button>
+          >Delete</button>
         </div>
       </div>
     </div>
@@ -257,8 +257,8 @@ function ProductGroup({ group, onAction }) {
           alt={group.productTitle}
           style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: `1px solid ${C.border}` }}
         />
-        <span style={{ flex: 1, fontWeight: 700, fontSize: 14, color: C.text }}>{group.productTitle}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, background: C.accentLt, color: C.accent, borderRadius: 20, padding: "3px 10px" }}>
+        <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: C.text }}>{group.productTitle}</span>
+        <span style={{ fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent, borderRadius: 20, padding: "3px 10px" }}>
           {group.questions.length} {group.questions.length !== 1 ? "questions" : "question"}
         </span>
       </div>
@@ -292,7 +292,7 @@ export default function QaManagePage() {
       <div style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
         <Link to="/app/widgets/qa" style={{ fontSize: 16, color: C.text, textDecoration: "none" }}>←</Link>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>Manage Questions</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }}>Manage Questions</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>Answer customer questions shown on your product pages.</p>
         </div>
       </div>
@@ -309,7 +309,7 @@ export default function QaManagePage() {
             }}
           >
             {label}
-            <span style={{ fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 7px", background: tab === key ? "rgba(255,255,255,.25)" : C.border, color: tab === key ? "#fff" : C.muted }}>{count}</span>
+            <span style={{ fontSize: 10, fontWeight: 600, borderRadius: 20, padding: "1px 7px", background: tab === key ? "rgba(255,255,255,.25)" : C.border, color: tab === key ? "#fff" : C.muted }}>{count}</span>
           </button>
         ))}
       </div>

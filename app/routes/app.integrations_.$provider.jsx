@@ -146,11 +146,11 @@ export const action = async ({ request, params }) => {
 };
 
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280", accent: "#5145e5",
-  green: "#16a34a", greenLt: "#dcfce7",
-  red: "#dc2626", redLt: "#fee2e2",
-  teal: "#0d9488", tealLt: "#ccfbf1",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
+  red: "#a5423b", redLt: "#f7eae8",
+  teal: "#0f766e", tealLt: "#e3f3f0",
 };
 
 function StatusDot({ connected }) {
@@ -183,13 +183,13 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {connected ? (
             <button onClick={() => submit("disable")} disabled={busy}
-              style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, background: "#fff", color: C.red, cursor: "pointer" }}>
+              style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, background: "#fff", color: C.red, cursor: "pointer" }}>
               Disable Flow Triggers
             </button>
           ) : (
             <button onClick={() => submit("enable")} disabled={busy}
-              style={{ border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 700, background: C.accent, color: "#fff", cursor: "pointer" }}>
-              ⚡ Enable Flow Triggers
+              style={{ border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff", cursor: "pointer" }}>
+              Enable Flow Triggers
             </button>
           )}
         </div>
@@ -201,7 +201,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
       </div>
 
       {/* Available triggers + Test buttons */}
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: C.text, margin: "0 0 10px" }}>Available Triggers</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: C.text, margin: "0 0 10px" }}>Available Triggers</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
         {provider.triggers.map((t) => {
           const isTesting = pendingAction === "test_trigger" && pendingHandle === t.handle;
@@ -210,7 +210,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, background: C.tealLt, color: C.teal, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{t.handle}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, background: C.tealLt, color: C.teal, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap" }}>{t.handle}</span>
                     <strong style={{ fontSize: 13 }}>{t.label}</strong>
                   </div>
                   <p style={{ fontSize: 12.5, color: C.muted, margin: 0 }}>{t.description}</p>
@@ -221,7 +221,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
                   title={connected ? "Fire a test event to verify the trigger works" : "Enable triggers first"}
                   style={{
                     flexShrink: 0, border: `1px solid ${C.teal}`, borderRadius: 8,
-                    padding: "6px 13px", fontSize: 12, fontWeight: 700,
+                    padding: "6px 13px", fontSize: 12, fontWeight: 600,
                     background: connected ? C.tealLt : "#f3f4f6",
                     color: connected ? C.teal : C.muted,
                     cursor: connected ? "pointer" : "default", whiteSpace: "nowrap",
@@ -242,12 +242,12 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
           target="_blank" rel="noreferrer"
           style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+            padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600,
             background: C.accent, color: "#fff", textDecoration: "none",
             boxShadow: "0 2px 8px rgba(81,69,229,.25)",
           }}
         >
-          ⚡ Open Shopify Flow ↗
+          Open Shopify Flow ↗
         </a>
         <p style={{ fontSize: 12, color: C.muted, margin: "8px 0 0" }}>
           Flow is installed — click above to open it, then follow the steps below.
@@ -269,7 +269,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
                 flexShrink: 0, width: 26, height: 26, borderRadius: "50%",
                 background: "#1e40af", color: "#fff",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 800,
+                fontSize: 12, fontWeight: 600,
               }}>{step}</span>
               <span style={{ fontSize: 12.5, color: "#1e3a8a", lineHeight: 1.6, paddingTop: 3 }}>{text}</span>
             </div>
@@ -336,7 +336,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
           <p style={{ fontSize: 11.5, color: "#1e3a8a", margin: "0 0 8px", lineHeight: 1.6 }}>
             Azure Portal → Create a resource → "Translator" → deploy it, then open Keys and Endpoint to copy KEY 1 and the Region below. Azure bills per character translated (a free tier is included).
           </p>
-          <a href={provider.pricingUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "#1e40af", fontWeight: 700 }}>
+          <a href={provider.pricingUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "#1e40af", fontWeight: 600 }}>
             View Azure Translator pricing ↗
           </a>
         </div>
@@ -391,22 +391,22 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button onClick={() => submit("save")} disabled={busy || !apiKey.trim()}
-          style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: busy || !apiKey.trim() ? "default" : "pointer", background: C.accent, color: "#fff", opacity: !apiKey.trim() ? 0.5 : 1 }}>
+          style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy || !apiKey.trim() ? "default" : "pointer", background: C.accent, color: "#fff", opacity: !apiKey.trim() ? 0.5 : 1 }}>
           {busy && pendingAction === "save" ? "Saving…" : "Save Settings"}
         </button>
         <button onClick={() => submit("test")} disabled={busy || !hasKey}
-          style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: busy || !hasKey ? "default" : "pointer", background: "#fff", color: C.text, opacity: !hasKey ? 0.5 : 1 }}>
+          style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy || !hasKey ? "default" : "pointer", background: "#fff", color: C.text, opacity: !hasKey ? 0.5 : 1 }}>
           {busy && pendingAction === "test" ? "Testing…" : "Test Connection"}
         </button>
         {providerKey === "google_merchant" && connected && (
           <button onClick={() => submit("sync_all")} disabled={busy}
-            style={{ border: `1px solid ${C.accent}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: busy ? "default" : "pointer", background: "#fff", color: C.accent }}>
+            style={{ border: `1px solid ${C.accent}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy ? "default" : "pointer", background: "#fff", color: C.accent }}>
             {busy && pendingAction === "sync_all" ? "Syncing…" : "Sync existing approved reviews now"}
           </button>
         )}
         {connected && (
           <button onClick={() => { if (window.confirm("Remove this integration?")) submit("disconnect"); }} disabled={busy}
-            style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", background: "#fff", color: C.red, marginLeft: "auto" }}>
+            style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", background: "#fff", color: C.red, marginLeft: "auto" }}>
             Disconnect
           </button>
         )}
@@ -459,10 +459,14 @@ export default function IntegrationSettingsPage() {
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
         <Link to="/app/integrations" style={{ fontSize: 16, color: C.text, textDecoration: "none" }}>←</Link>
-        <div style={{ fontSize: 28 }}>{provider.icon}</div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0 }}>{provider.label}</h1>
+        <div style={{
+          width: 34, height: 34, borderRadius: "50%", background: C.accentLt || "#eaf0ff",
+          color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 15, fontWeight: 600,
+        }}>{provider.label.charAt(0).toUpperCase()}</div>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }}>{provider.label}</h1>
         {connected && (
-          <span style={{ fontSize: 11, fontWeight: 700, background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px" }}>✓ Connected</span>
+          <span style={{ fontSize: 11, fontWeight: 600, background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px" }}>✓ Connected</span>
         )}
       </div>
       <p style={{ fontSize: 13, color: C.muted, margin: "0 0 20px 44px" }}>{provider.description}</p>

@@ -8,12 +8,12 @@ var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
 // default language instead of the customer's current one).
 var storeLocale = (reviewSection && reviewSection.dataset.locale) || locale_language || (document.documentElement.lang || "").split("-")[0] || "";
 var seoEnabled = reviewSection ? reviewSection.dataset.seoEnabled !== 'false' : true;
-let rating = 0;
-let allReviews = [];
-let currentSort = "newest";
-let searchQuery = "";
-let currentPage = 1;
-let listSettings = {
+var rating = 0;
+var allReviews = [];
+var currentSort = "newest";
+var searchQuery = "";
+var currentPage = 1;
+var listSettings = {
   listStyle: "list", cardBackground: "#FFFFFF", cardBorderColor: "#000000",
   cardTextColor: "#333333", accentColor: "#1a1a1a", reviewsPerPage: 10,
 };
@@ -22,7 +22,7 @@ let listSettings = {
 // Fallback only — the full set of languages is served by /apps/review (see
 // app/utils/widgetTranslations.server.js) to stay under Shopify's 100 KB
 // Liquid-content cap per theme app extension.
-const REVIEW_TRANSLATIONS_EN = {
+var REVIEW_TRANSLATIONS_EN = {
   basedOn: "Based on", reviewsWord: "reviews", writeReview: "Write a Review", close: "Close",
   ratingQuestion: "What would you rate this product?", reviewTitleLabel: "Review title",
   reviewTitlePlaceholder: "Summarize your experience...",
@@ -39,7 +39,7 @@ const REVIEW_TRANSLATIONS_EN = {
   prev: "← Prev", next: "Next →", page: "Page", of: "of",
   storeReplyLabel: "Store reply",
 };
-let T = REVIEW_TRANSLATIONS_EN;
+var T = REVIEW_TRANSLATIONS_EN;
 
 // The "Write a Review" button/form can be turned off per-block (see
 // show_write_review setting), so every element it touches may not exist —
@@ -107,6 +107,43 @@ function removeToast(toast) {
   if (!toast || toast.classList.contains('removing')) return;
   toast.classList.add('removing');
   setTimeout(function() { if (toast.parentElement) toast.remove(); }, 250);
+}
+
+/* ============ REVIEW-REWARD COUPON ============ */
+// Shown right after a review is submitted, when the merchant has a coupon
+// configured (Admin → Review Coupon). Purely a display + copy affordance —
+// the discount itself already exists in Shopify, this just surfaces the code.
+function showCouponModal(coupon) {
+  if (!coupon || !coupon.code) return;
+
+  var existing = document.getElementById('tr-coupon-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'tr-coupon-overlay';
+  overlay.className = 'tr-coupon-overlay';
+  overlay.innerHTML =
+    '<div class="tr-coupon-modal">' +
+      '<button class="tr-coupon-close" aria-label="Close">✕</button>' +
+      '<div class="tr-coupon-message">' + (coupon.message || 'Thanks for your review! Use the code below to save on your next order.') + '</div>' +
+      '<div class="tr-coupon-code-row">' +
+        '<span class="tr-coupon-code">' + coupon.code + '</span>' +
+        '<button class="tr-coupon-copy-btn">Copy</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  var close = function () { overlay.remove(); };
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+  overlay.querySelector('.tr-coupon-close').addEventListener('click', close);
+
+  overlay.querySelector('.tr-coupon-copy-btn').addEventListener('click', function (e) {
+    navigator.clipboard.writeText(coupon.code).then(function () {
+      e.target.textContent = 'Copied';
+      setTimeout(function () { e.target.textContent = 'Copy'; }, 2000);
+    }).catch(function () {});
+  });
 }
 
 /* ============ LIST DESIGN (layout/colors/pagination from admin) ============ */
@@ -680,6 +717,8 @@ async function submitReview() {
       throw new Error("Review submit failed");
     }
 
+    var result = await response.json();
+
     showToast("Review submitted and sent for approval.", "success");
 
     document.getElementById("name").value = "";
@@ -694,6 +733,10 @@ async function submitReview() {
 
     closeReview();
     loadReviews();
+
+    if (result && result.coupon) {
+      setTimeout(function () { showCouponModal(result.coupon); }, 400);
+    }
 
   } catch (err) {
     console.error(err);
@@ -783,4 +826,10 @@ function applyBlockSettings() {
 }
 
 /* ============ INIT ============ */
-Promise.all([loadReviews(), applyFormStyle()]).then(applyBlockSettings);
+// Guarded so this engine can safely load sitewide (via the "Trust Reviews
+// Engine" app embed, for page-builder compatibility) without firing wasted
+// fetches or console errors on pages that don't actually have the review
+// section on them.
+if (reviewSection) {
+  Promise.all([loadReviews(), applyFormStyle()]).then(applyBlockSettings);
+}

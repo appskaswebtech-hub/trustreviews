@@ -97,7 +97,7 @@ function SummaryPreview({ accentColor, textColor, fontFamily }) {
       padding: "16px 18px", borderRadius: 10, background: "#f9fafb", border: "1px solid #e5e5e5",
       fontFamily: fontFamily === "inherit" ? undefined : fontFamily,
     }}>
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".03em", textTransform: "uppercase", color: accentColor }}>✨ AI Summary</span>
+      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".03em", textTransform: "uppercase", color: accentColor }}>AI Summary</span>
       <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.6, color: textColor }}>
         Customers consistently praise this product's quality and comfort, with several reviewers highlighting fast shipping
         and accurate sizing. A few mention it runs slightly large — sizing down is recommended.
@@ -140,7 +140,7 @@ function ProductRow({ product, aiConfigured }) {
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 13.5 }}>{product.title}</div>
+            <div style={{ fontWeight: 600, fontSize: 13.5 }}>{product.title}</div>
             <div style={{ fontSize: 11.5, color: SHELL_C.muted }}>{product.reviewCount} approved reviews</div>
           </div>
           <button
@@ -156,7 +156,7 @@ function ProductRow({ product, aiConfigured }) {
           </button>
         </div>
         {summary && <p style={{ fontSize: 12.5, color: SHELL_C.text, marginTop: 8, lineHeight: 1.5 }}>{summary}</p>}
-        {error && <p style={{ fontSize: 11.5, color: "#dc2626", marginTop: 6 }}>{error}</p>}
+        {error && <p style={{ fontSize: 11.5, color: "#a5423b", marginTop: 6 }}>{error}</p>}
       </div>
     </div>
   );
@@ -215,7 +215,7 @@ export default function AiSummaryPage() {
         <div>
           <SummaryPreview accentColor={accentColor} textColor={textColor} fontFamily={fontFamily} />
           <div style={{ marginTop: 26 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>
               Products to summarize
             </div>
             {products.length === 0 ? (

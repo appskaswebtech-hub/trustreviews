@@ -61,7 +61,7 @@ export async function action({ request }) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const C = { accent: "#6B1A2C", accentL: "#f5e6e9", bg: "#f0f2f5", surface: "#fff", border: "#e4e4e4", text: "#1a1a1a", muted: "#6b7280" };
+const C = { accent: "#6B1A2C", accentL: "#f5e6e9", bg: "#f6f6f8", surface: "#fff", border: "#e5e4ec", text: "#17171c", muted: "#6b6b78" };
 let _uid = 0;
 function uid() { return "b" + (++_uid) + Math.random().toString(36).slice(2, 5); }
 
@@ -72,7 +72,7 @@ const TYPO_DEF    = { fontFamily: "inherit", fontSize: 16, fontWeight: "400", li
 // ── Block definitions ─────────────────────────────────────────────────────────
 const BLOCK_DEFS = {
   heading: {
-    label: "Heading", icon: "🔤", group: "Layout", desc: "Section title text", hasTypo: true,
+    label: "Heading", icon: "Aa", group: "Layout", desc: "Section title text", hasTypo: true,
     defaults: { text: "Customer Reviews", level: "h2", ...TYPO_DEF, fontSize: 28, fontWeight: "800" },
     props: [
       { key: "text",  label: "Text",     type: "text" },
@@ -85,7 +85,7 @@ const BLOCK_DEFS = {
     props: [{ key: "text", label: "Text", type: "textarea" }],
   },
   divider: {
-    label: "Divider", icon: "➖", group: "Layout", desc: "Horizontal line or space",
+    label: "Divider", icon: "—", group: "Layout", desc: "Horizontal line or space",
     defaults: { type: "line", height: 1, lineColor: "#e4e4e4" },
     props: [
       { key: "type",      label: "Type",      type: "select", options: [{ value: "line", label: "Line" }, { value: "space", label: "Space Only" }] },
@@ -119,7 +119,7 @@ const BLOCK_DEFS = {
     ],
   },
   summary: {
-    label: "Rating Summary", icon: "⭐", group: "Reviews", desc: "Average rating + stars",
+    label: "Rating Summary", icon: "★", group: "Reviews", desc: "Average rating + stars",
     defaults: { accentColor: "#6B1A2C", style: "compact", showTotal: true, showBreakdown: false },
     props: [
       { key: "accentColor",   label: "Star Color",     type: "color" },
@@ -129,7 +129,7 @@ const BLOCK_DEFS = {
     ],
   },
   progress_bars: {
-    label: "Progress Bars", icon: "📊", group: "Reviews", desc: "5-star rating breakdown bars",
+    label: "Progress Bars", icon: "▤", group: "Reviews", desc: "5-star rating breakdown bars",
     defaults: { accentColor: "#6B1A2C", trackColor: "#e4e4e4", barHeight: 8, barRadius: 4, showCount: true, showPercent: false },
     props: [
       { key: "accentColor", label: "Bar Color",    type: "color" },
@@ -141,7 +141,7 @@ const BLOCK_DEFS = {
     ],
   },
   stats_row: {
-    label: "Stats Counter", icon: "🔢", group: "Reviews", desc: "Large stat numbers display",
+    label: "Stats Counter", icon: "#", group: "Reviews", desc: "Large stat numbers display",
     defaults: { accentColor: "#6B1A2C", statBg: "#f9fafb", statRadius: 12, layout: "row", showTotal: true, showAvg: true, showFiveStar: true },
     props: [
       { key: "accentColor",  label: "Accent Color",    type: "color" },
@@ -154,7 +154,7 @@ const BLOCK_DEFS = {
     ],
   },
   review_list: {
-    label: "Review Cards", icon: "💬", group: "Reviews", desc: "Grid / list of review cards",
+    label: "Review Cards", icon: "☰", group: "Reviews", desc: "Grid / list of review cards",
     defaults: { layout: "grid", columns: 3, gap: 16, cardBg: "#ffffff", cardBorder: "#e4e4e4", cardRadius: 12, cardPadding: 18, accentColor: "#6B1A2C", cardShadow: "soft", showAvatar: true, showDate: true, showHelpful: true, showMedia: true, showVerified: true, perPage: 9 },
     props: [
       { key: "layout",      label: "Layout",          type: "select", options: [{ value: "grid", label: "Grid" }, { value: "list", label: "List" }, { value: "masonry", label: "Masonry" }, { value: "compact", label: "Compact" }] },
@@ -175,7 +175,7 @@ const BLOCK_DEFS = {
     ],
   },
   slider: {
-    label: "Review Slider", icon: "🎠", group: "Reviews", desc: "Horizontal scrolling carousel",
+    label: "Review Slider", icon: "◀▶", group: "Reviews", desc: "Horizontal scrolling carousel",
     defaults: { accentColor: "#6B1A2C", cardBg: "#ffffff", cardRadius: 14, cardWidth: 320, gap: 20, showArrows: true, showDots: true, autoplay: false, autoplayDelay: 4 },
     props: [
       { key: "accentColor",   label: "Accent Color", type: "color" },
@@ -190,7 +190,7 @@ const BLOCK_DEFS = {
     ],
   },
   testimonial: {
-    label: "Testimonial Spotlight", icon: "💡", group: "Reviews", desc: "Large featured single review",
+    label: "Testimonial Spotlight", icon: "❝", group: "Reviews", desc: "Large featured single review",
     defaults: { accentColor: "#6B1A2C", cardBg: "#f9fafb", textColor: "#1a1a1a", style: "card", showQuote: true, quoteSize: 48 },
     props: [
       { key: "accentColor", label: "Accent Color", type: "color" },
@@ -202,7 +202,7 @@ const BLOCK_DEFS = {
     ],
   },
   photo_grid: {
-    label: "Photo Grid", icon: "🖼️", group: "Reviews", desc: "Customer photo wall",
+    label: "Photo Grid", icon: "⊞", group: "Reviews", desc: "Customer photo wall",
     defaults: { columns: 4, gap: 8, radius: 8, aspectRatio: "1/1", overlay: true },
     props: [
       { key: "columns",     label: "Columns",      type: "range",  min: 2, max: 8 },
@@ -213,7 +213,7 @@ const BLOCK_DEFS = {
     ],
   },
   filter: {
-    label: "Rating Filter", icon: "🔢", group: "Reviews", desc: "Filter by star rating",
+    label: "Rating Filter", icon: "▾", group: "Reviews", desc: "Filter by star rating",
     defaults: { accentColor: "#6B1A2C", style: "pill", showCounts: true },
     props: [
       { key: "accentColor", label: "Active Color", type: "color" },
@@ -230,7 +230,7 @@ const BLOCK_DEFS = {
     ],
   },
   search: {
-    label: "Search Box", icon: "🔍", group: "Reviews", desc: "Full-text search input",
+    label: "Search Box", icon: "⌕", group: "Reviews", desc: "Full-text search input",
     defaults: { placeholder: "Search reviews...", shape: "pill" },
     props: [
       { key: "placeholder", label: "Placeholder", type: "text" },
@@ -238,7 +238,7 @@ const BLOCK_DEFS = {
     ],
   },
   write_review: {
-    label: "Write Review Button", icon: "✏️", group: "Actions", desc: "Opens the review form",
+    label: "Write Review Button", icon: "✎", group: "Actions", desc: "Opens the review form",
     defaults: { text: "Write a Review", bg: "#6B1A2C", color: "#ffffff", radius: 8, size: "medium", align: "left", fullWidth: false, outline: false },
     props: [
       { key: "text",      label: "Button Text",   type: "text" },
@@ -270,13 +270,13 @@ const BLOCK_DEFS = {
     ],
   },
   trust_badge: {
-    label: "Trust Badge", icon: "🏆", group: "Actions", desc: "Verified reviews badge",
+    label: "Trust Badge", icon: "✓", group: "Actions", desc: "Verified reviews badge",
     defaults: { text: "Verified Reviews", accentColor: "#6B1A2C", style: "pill", iconType: "check" },
     props: [
       { key: "text",        label: "Badge Text", type: "text" },
       { key: "accentColor", label: "Color",      type: "color" },
       { key: "style",       label: "Style",      type: "select", options: [{ value: "pill", label: "Pill" }, { value: "inline", label: "Inline" }, { value: "card", label: "Card" }] },
-      { key: "iconType",    label: "Icon",       type: "select", options: [{ value: "check", label: "✓ Check" }, { value: "shield", label: "🛡 Shield" }, { value: "star", label: "★ Star" }] },
+      { key: "iconType",    label: "Icon",       type: "select", options: [{ value: "check", label: "✓ Check" }, { value: "shield", label: "◆ Shield" }, { value: "star", label: "★ Star" }] },
     ],
   },
 };
@@ -301,7 +301,7 @@ function makeDefaultBlocks() {
 
 // ── Inputs ────────────────────────────────────────────────────────────────────
 function Lbl({ children }) {
-  return <div style={{ fontSize: 10.5, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 5 }}>{children}</div>;
+  return <div style={{ fontSize: 10.5, fontWeight: 600, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 5 }}>{children}</div>;
 }
 
 function ColorInput({ value, onChange }) {
@@ -331,7 +331,7 @@ function RangeNum({ value, onChange, min = 0, max = 100, unit = "" }) {
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <input type="range" min={min} max={max} value={value ?? min} onChange={e => onChange(Number(e.target.value))} style={{ flex: 1, accentColor: C.accent }} />
       <input type="number" min={min} max={max} value={value ?? min} onChange={e => onChange(Math.min(max, Math.max(min, Number(e.target.value))))}
-        style={{ width: 48, padding: "4px 6px", border: "1.5px solid #e4e4e4", borderRadius: 6, fontSize: 12, fontWeight: 700, textAlign: "right", outline: "none" }} />
+        style={{ width: 48, padding: "4px 6px", border: "1.5px solid #e4e4e4", borderRadius: 6, fontSize: 12, fontWeight: 600, textAlign: "right", outline: "none" }} />
       {unit && <span style={{ fontSize: 11, color: C.muted }}>{unit}</span>}
     </div>
   );
@@ -373,7 +373,7 @@ function FourSide({ label, values, onChange }) {
         ))}
         <button onClick={() => setLinked(!linked)} title={linked ? "Unlink" : "Link all"}
           style={{ padding: "5px 8px", borderRadius: 6, border: `1.5px solid ${linked ? C.accent : "#e4e4e4"}`, background: linked ? C.accentL : "#fff", cursor: "pointer", fontSize: 12, color: linked ? C.accent : C.muted, flexShrink: 0 }}>
-          {linked ? "🔗" : "⛓"}
+          {linked ? "Linked" : "Link"}
         </button>
       </div>
     </div>
@@ -407,7 +407,6 @@ function PropertiesPanel({ block, onChange }) {
 
   if (!block) return (
     <div style={{ padding: "40px 14px", textAlign: "center", color: C.muted }}>
-      <div style={{ fontSize: 32, marginBottom: 8 }}>☝️</div>
       <div style={{ fontSize: 12, lineHeight: 1.6 }}>Click a block to edit its properties</div>
     </div>
   );
@@ -426,7 +425,7 @@ function PropertiesPanel({ block, onChange }) {
     <div>
       <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, background: "#fafafa", position: "sticky", top: 0, zIndex: 1 }}>
         {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 2px", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer", background: "none", borderBottom: `2.5px solid ${tab === t ? C.accent : "transparent"}`, color: tab === t ? C.accent : C.muted, textTransform: "uppercase", letterSpacing: 0.3 }}>
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 2px", fontSize: 10, fontWeight: 600, border: "none", cursor: "pointer", background: "none", borderBottom: `2.5px solid ${tab === t ? C.accent : "transparent"}`, color: tab === t ? C.accent : C.muted, textTransform: "uppercase", letterSpacing: 0.3 }}>
             {TAB_LBL[t]}
           </button>
         ))}
@@ -435,7 +434,7 @@ function PropertiesPanel({ block, onChange }) {
       <div style={{ padding: "12px 14px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${C.border}` }}>
           <span style={{ fontSize: 18 }}>{def.icon}</span>
-          <div><div style={{ fontSize: 12.5, fontWeight: 800, color: C.text }}>{def.label}</div><div style={{ fontSize: 10.5, color: C.muted }}>{def.desc}</div></div>
+          <div><div style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{def.label}</div><div style={{ fontSize: 10.5, color: C.muted }}>{def.desc}</div></div>
         </div>
 
         {/* Content */}
@@ -553,7 +552,7 @@ function BlockMockup({ block, compact = false }) {
       case "spacer": return <div style={{ height: Math.min((st.size||32)*0.5,60), background:"repeating-linear-gradient(45deg,#f9fafb 0,#f9fafb 5px,transparent 5px,transparent 10px)", borderRadius:4 }} />;
       case "summary": return (
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <div><div style={{ fontSize:26*S, fontWeight:800, color:"#1a1a1a", lineHeight:1 }}>4.8</div><div style={{ fontSize:9*S, color:C.muted }}>out of 5</div></div>
+          <div><div style={{ fontSize:26*S, fontWeight:600, color:"#1a1a1a", lineHeight:1 }}>4.8</div><div style={{ fontSize:9*S, color:C.muted }}>out of 5</div></div>
           <div>
             <div style={{ display:"flex", gap:1, marginBottom:3 }}>{[1,2,3,4,5].map(i=><span key={i} style={{ color:st.accentColor||"#6B1A2C", fontSize:14*S }}>★</span>)}</div>
             {st.showTotal!==false && <div style={{ fontSize:9*S, color:C.muted }}>Based on 124 reviews</div>}
@@ -575,15 +574,15 @@ function BlockMockup({ block, compact = false }) {
       );
       case "stats_row": {
         const stats=[st.showTotal!==false&&{label:"Reviews",value:"124"},st.showAvg!==false&&{label:"Avg",value:"4.8"},st.showFiveStar!==false&&{label:"5-Star",value:"68%"}].filter(Boolean);
-        return <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>{stats.map(s=><div key={s.label} style={{ flex:1, minWidth:50, background:st.statBg||"#f9fafb", borderRadius:st.statRadius||12, padding:"9px 10px", textAlign:"center" }}><div style={{ fontSize:18*S, fontWeight:800, color:st.accentColor||"#6B1A2C" }}>{s.value}</div><div style={{ fontSize:9*S, color:C.muted }}>{s.label}</div></div>)}</div>;
+        return <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>{stats.map(s=><div key={s.label} style={{ flex:1, minWidth:50, background:st.statBg||"#f9fafb", borderRadius:st.statRadius||12, padding:"9px 10px", textAlign:"center" }}><div style={{ fontSize:18*S, fontWeight:600, color:st.accentColor||"#6B1A2C" }}>{s.value}</div><div style={{ fontSize:9*S, color:C.muted }}>{s.label}</div></div>)}</div>;
       }
       case "review_list": {
         const cols=Math.min(st.columns||3,compact?2:3);
-        return <div style={{ display:"grid", gridTemplateColumns:`repeat(${cols},1fr)`, gap:(st.gap||16)*(compact?0.3:0.5) }}>{["Sarah M.","John K.","Emily R."].slice(0,cols).map((name,i)=><div key={i} style={{ background:st.cardBg||"#fff", border:`1px solid ${st.cardBorder||"#e4e4e4"}`, borderRadius:(st.cardRadius||12)*0.5, padding:compact?5:9 }}>{st.showAvatar!==false&&<div style={{ width:12, height:12, borderRadius:"50%", background:st.accentColor||"#6B1A2C", marginBottom:3 }} />}<div style={{ fontSize:7, fontWeight:700 }}>{name}</div><div style={{ fontSize:8, color:st.accentColor||"#6B1A2C" }}>★★★★★</div><div style={{ fontSize:7, color:"#6b7280" }}>Great product…</div></div>)}</div>;
+        return <div style={{ display:"grid", gridTemplateColumns:`repeat(${cols},1fr)`, gap:(st.gap||16)*(compact?0.3:0.5) }}>{["Sarah M.","John K.","Emily R."].slice(0,cols).map((name,i)=><div key={i} style={{ background:st.cardBg||"#fff", border:`1px solid ${st.cardBorder||"#e4e4e4"}`, borderRadius:(st.cardRadius||12)*0.5, padding:compact?5:9 }}>{st.showAvatar!==false&&<div style={{ width:12, height:12, borderRadius:"50%", background:st.accentColor||"#6B1A2C", marginBottom:3 }} />}<div style={{ fontSize:7, fontWeight:600 }}>{name}</div><div style={{ fontSize:8, color:st.accentColor||"#6B1A2C" }}>★★★★★</div><div style={{ fontSize:7, color:"#6b7280" }}>Great product…</div></div>)}</div>;
       }
       case "slider": return (
         <div style={{ display:"flex", gap:(st.gap||20)*0.4, overflowX:"hidden", position:"relative" }}>
-          {[1,2,3].map(i=><div key={i} style={{ minWidth:(st.cardWidth||320)*0.26, background:st.cardBg||"#fff", border:"1px solid #e4e4e4", borderRadius:(st.cardRadius||14)*0.5, padding:8, flexShrink:0 }}><div style={{ display:"flex", gap:2, marginBottom:3 }}>{[1,2,3,4,5].map(j=><span key={j} style={{ color:st.accentColor||"#6B1A2C", fontSize:8 }}>★</span>)}</div><div style={{ fontSize:7, color:"#374151", lineHeight:1.4 }}>Great product, highly recommend!</div><div style={{ fontSize:7, fontWeight:700, color:"#1a1a1a", marginTop:4 }}>Sarah M.</div></div>)}
+          {[1,2,3].map(i=><div key={i} style={{ minWidth:(st.cardWidth||320)*0.26, background:st.cardBg||"#fff", border:"1px solid #e4e4e4", borderRadius:(st.cardRadius||14)*0.5, padding:8, flexShrink:0 }}><div style={{ display:"flex", gap:2, marginBottom:3 }}>{[1,2,3,4,5].map(j=><span key={j} style={{ color:st.accentColor||"#6B1A2C", fontSize:8 }}>★</span>)}</div><div style={{ fontSize:7, color:"#374151", lineHeight:1.4 }}>Great product, highly recommend!</div><div style={{ fontSize:7, fontWeight:600, color:"#1a1a1a", marginTop:4 }}>Sarah M.</div></div>)}
           {st.showArrows!==false&&<div style={{ position:"absolute", right:0, top:"50%", transform:"translateY(-50%)", fontSize:14, color:st.accentColor||"#6B1A2C", background:"#fff", borderRadius:"50%", width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 6px rgba(0,0,0,.12)", flexShrink:0 }}>›</div>}
         </div>
       );
@@ -591,7 +590,7 @@ function BlockMockup({ block, compact = false }) {
         <div style={{ background:st.cardBg||"#f9fafb", borderRadius:10, padding:compact?9:14, position:"relative" }}>
           {st.showQuote&&<div style={{ fontSize:(st.quoteSize||48)*0.3, color:st.accentColor||"#6B1A2C", lineHeight:1, opacity:0.4, marginBottom:3 }}>"</div>}
           <div style={{ fontSize:compact?7:10, color:st.textColor||"#1a1a1a", lineHeight:1.5, marginBottom:6 }}>This is the best product I've ever bought!</div>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:18, height:18, borderRadius:"50%", background:st.accentColor||"#6B1A2C", flexShrink:0 }} /><div><div style={{ fontSize:8, fontWeight:700 }}>Sarah M.</div><div style={{ fontSize:7, color:C.muted }}>Verified buyer</div></div></div>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:18, height:18, borderRadius:"50%", background:st.accentColor||"#6B1A2C", flexShrink:0 }} /><div><div style={{ fontSize:8, fontWeight:600 }}>Sarah M.</div><div style={{ fontSize:7, color:C.muted }}>Verified buyer</div></div></div>
         </div>
       );
       case "photo_grid": return <div style={{ display:"grid", gridTemplateColumns:`repeat(${Math.min(st.columns||4,4)},1fr)`, gap:st.gap||8 }}>{Array.from({length:Math.min(st.columns||4,8)}).map((_,i)=><div key={i} style={{ background:`hsl(${i*40+200},40%,85%)`, borderRadius:st.radius||8, aspectRatio:st.aspectRatio||"1/1" }} />)}</div>;
@@ -599,17 +598,17 @@ function BlockMockup({ block, compact = false }) {
       case "sort": return <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", border:"1px solid #e4e4e4", borderRadius:8, background:"#fff", fontSize:compact?9:11, color:"#374151" }}>Sort: Newest ▾</div>;
       case "search": {
         const r=st.shape==="pill"?20:st.shape==="square"?0:8;
-        return <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", border:"1px solid #e4e4e4", borderRadius:r, background:"#fff", maxWidth:220 }}><span style={{ fontSize:10, color:"#9ca3af" }}>🔍</span><span style={{ fontSize:compact?9:11, color:"#9ca3af" }}>{st.placeholder||"Search reviews..."}</span></div>;
+        return <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", border:"1px solid #e4e4e4", borderRadius:r, background:"#fff", maxWidth:220 }}><span style={{ fontSize:compact?9:11, color:"#9ca3af" }}>{st.placeholder||"Search reviews..."}</span></div>;
       }
       case "write_review": {
         const pad={small:"5px 12px",medium:"8px 18px",large:"11px 26px"};
         const fs={small:9,medium:11,large:13};
-        return <div style={{ textAlign:st.align||"left" }}><div style={{ display:"inline-flex", padding:pad[st.size]||pad.medium, borderRadius:st.radius||8, background:st.outline?"transparent":(st.bg||"#6B1A2C"), color:st.outline?(st.bg||"#6B1A2C"):(st.color||"#fff"), fontSize:(fs[st.size]||11)*S, fontWeight:700, border:st.outline?`2px solid ${st.bg||"#6B1A2C"}`:"none", width:st.fullWidth?"100%":undefined, justifyContent:"center" }}>{st.text||"Write a Review"}</div></div>;
+        return <div style={{ textAlign:st.align||"left" }}><div style={{ display:"inline-flex", padding:pad[st.size]||pad.medium, borderRadius:st.radius||8, background:st.outline?"transparent":(st.bg||"#6B1A2C"), color:st.outline?(st.bg||"#6B1A2C"):(st.color||"#fff"), fontSize:(fs[st.size]||11)*S, fontWeight:600, border:st.outline?`2px solid ${st.bg||"#6B1A2C"}`:"none", width:st.fullWidth?"100%":undefined, justifyContent:"center" }}>{st.text||"Write a Review"}</div></div>;
       }
-      case "button_group": return <div style={{ display:"flex", flexDirection:st.direction||"row", gap:st.gap||12, alignItems:"center", justifyContent:st.align==="center"?"center":st.align==="right"?"flex-end":"flex-start", flexWrap:"wrap" }}><div style={{ padding:"6px 14px", borderRadius:st.btn1Radius||8, background:st.btn1Bg||"#6B1A2C", color:st.btn1Color||"#fff", fontSize:10*S, fontWeight:700 }}>{st.btn1Text||"Write a Review"}</div><div style={{ padding:"6px 14px", borderRadius:st.btn2Radius||8, background:st.btn2Bg||"transparent", color:st.btn2Color||"#6B1A2C", fontSize:10*S, fontWeight:700, border:`1.5px solid ${st.btn2Border||"#6B1A2C"}` }}>{st.btn2Text||"See All Reviews"}</div></div>;
+      case "button_group": return <div style={{ display:"flex", flexDirection:st.direction||"row", gap:st.gap||12, alignItems:"center", justifyContent:st.align==="center"?"center":st.align==="right"?"flex-end":"flex-start", flexWrap:"wrap" }}><div style={{ padding:"6px 14px", borderRadius:st.btn1Radius||8, background:st.btn1Bg||"#6B1A2C", color:st.btn1Color||"#fff", fontSize:10*S, fontWeight:600 }}>{st.btn1Text||"Write a Review"}</div><div style={{ padding:"6px 14px", borderRadius:st.btn2Radius||8, background:st.btn2Bg||"transparent", color:st.btn2Color||"#6B1A2C", fontSize:10*S, fontWeight:600, border:`1.5px solid ${st.btn2Border||"#6B1A2C"}` }}>{st.btn2Text||"See All Reviews"}</div></div>;
       case "trust_badge": {
-        const icon=st.iconType==="shield"?"🛡":st.iconType==="star"?"★":"✓";
-        return <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:st.style==="inline"?"0":"5px 14px", borderRadius:st.style==="pill"?20:8, background:st.style==="inline"?"transparent":`${st.accentColor||"#6B1A2C"}18` }}><span style={{ fontSize:11, color:st.accentColor||"#6B1A2C" }}>{icon}</span><span style={{ fontSize:11, fontWeight:700, color:st.accentColor||"#6B1A2C" }}>124 {st.text||"Verified Reviews"}</span></div>;
+        const icon=st.iconType==="shield"?"◆":st.iconType==="star"?"★":"✓";
+        return <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:st.style==="inline"?"0":"5px 14px", borderRadius:st.style==="pill"?20:8, background:st.style==="inline"?"transparent":`${st.accentColor||"#6B1A2C"}18` }}><span style={{ fontSize:11, color:st.accentColor||"#6B1A2C" }}>{icon}</span><span style={{ fontSize:11, fontWeight:600, color:st.accentColor||"#6B1A2C" }}>124 {st.text||"Verified Reviews"}</span></div>;
       }
       default: return <div style={{ fontSize:11, color:C.muted }}>Block: {block.type}</div>;
     }
@@ -628,7 +627,7 @@ function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild,
       onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const pt=e.dataTransfer.getData("palette-type"); if(pt) onAddChild(colIdx, pt); }}>
-      <div style={{ fontSize:9.5, fontWeight:700, color:C.muted, textAlign:"center", textTransform:"uppercase", letterSpacing:0.4 }}>Col {colIdx+1}</div>
+      <div style={{ fontSize:9.5, fontWeight:600, color:C.muted, textAlign:"center", textTransform:"uppercase", letterSpacing:0.4 }}>Col {colIdx+1}</div>
       {children.map(child => {
         const def=BLOCK_DEFS[child.type];
         const sel=isChildSel(child.id);
@@ -637,7 +636,7 @@ function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild,
             style={{ background:"#fff", border:`2px solid ${sel?C.accent:C.border}`, borderRadius:8, overflow:"hidden", cursor:"pointer", boxShadow:sel?`0 0 0 3px ${C.accentL}`:"none" }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 8px", background:sel?C.accentL:"#f9fafb", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:11 }}>{def?.icon}</span>
-              <span style={{ fontSize:10, fontWeight:700, color:sel?C.accent:C.muted, flex:1 }}>{def?.label}</span>
+              <span style={{ fontSize:10, fontWeight:600, color:sel?C.accent:C.muted, flex:1 }}>{def?.label}</span>
               <button onClick={e2 => { e2.stopPropagation(); onDeleteChild(colIdx, child.id); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:12, padding:"0 2px" }}>✕</button>
             </div>
             <div style={{ padding:"7px 10px" }}><BlockMockup block={child} compact /></div>
@@ -673,7 +672,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
 
       {blocks.length === 0 ? (
         <div style={{ border:`2px dashed ${C.border}`, borderRadius:16, padding:"60px 20px", textAlign:"center", color:C.muted }}>
-          <div style={{ fontSize:36, marginBottom:10 }}>⬇️</div>
+          <div style={{ fontSize:28, marginBottom:10, color:C.muted }}>↓</div>
           <div style={{ fontSize:14, fontWeight:600 }}>Drag blocks here to build your layout</div>
           <div style={{ fontSize:12, marginTop:6 }}>or click a block in the left panel</div>
         </div>
@@ -703,7 +702,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                 <div style={{ display:"flex", alignItems:"center", gap:8, padding:"5px 10px", background:selected?C.accentL:"#f9fafb", borderBottom:`1px solid ${C.border}` }}>
                   <span style={{ cursor:"grab", color:C.muted, fontSize:15, userSelect:"none" }}>⠿</span>
                   <span style={{ fontSize:13 }}>{def?.icon}</span>
-                  <span style={{ fontSize:11.5, fontWeight:700, color:selected?C.accent:C.text, flex:1 }}>{def?.label||block.type}</span>
+                  <span style={{ fontSize:11.5, fontWeight:600, color:selected?C.accent:C.text, flex:1 }}>{def?.label||block.type}</span>
                   <button onClick={e => { e.stopPropagation(); onDelete(block.id); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:14, padding:"0 3px" }}>✕</button>
                 </div>
                 <div style={{ padding: def?.isContainer ? "10px" : "12px 14px", minHeight:44 }}>
@@ -742,14 +741,14 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
   return (
     <div style={{ padding:"12px 10px" }}>
       {colTarget && (
-        <div style={{ background:C.accentL, border:`1.5px solid ${C.accent}`, borderRadius:8, padding:"7px 10px", marginBottom:10, fontSize:11, fontWeight:700, color:C.accent, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ background:C.accentL, border:`1.5px solid ${C.accent}`, borderRadius:8, padding:"7px 10px", marginBottom:10, fontSize:11, fontWeight:600, color:C.accent, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <span>Adding to Col {colTarget.colIdx+1}</span>
           <button onClick={onClearColTarget} style={{ background:"none", border:"none", cursor:"pointer", color:C.accent, fontSize:12, padding:"0 2px" }}>✕</button>
         </div>
       )}
       {PALETTE_GROUPS.map(group => (
         <div key={group.label} style={{ marginBottom:14 }}>
-          <div style={{ fontSize:9.5, fontWeight:800, color:C.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:7 }}>{group.label}</div>
+          <div style={{ fontSize:9.5, fontWeight:600, color:C.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:7 }}>{group.label}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
             {group.types.map(type => {
               const def = BLOCK_DEFS[type];
@@ -856,10 +855,10 @@ function PageBuilder({ template, onSave, onBack }) {
       <div style={{ height:54, background:"#fff", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", padding:"0 16px", gap:12, flexShrink:0, boxShadow:"0 1px 4px rgba(0,0,0,.06)" }}>
         <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:5, background:"none", border:`1px solid ${C.border}`, cursor:"pointer", color:C.text, fontSize:12.5, fontWeight:600, padding:"6px 12px", borderRadius:8 }}>← Back</button>
         <div style={{ width:1, height:22, background:C.border }} />
-        <input value={name} onChange={e => setName(e.target.value)} style={{ padding:"6px 10px", border:"1.5px solid #e4e4e4", borderRadius:8, fontSize:13, fontWeight:700, outline:"none", minWidth:200 }} placeholder="Template name…" />
+        <input value={name} onChange={e => setName(e.target.value)} style={{ padding:"6px 10px", border:"1.5px solid #e4e4e4", borderRadius:8, fontSize:13, fontWeight:600, outline:"none", minWidth:200 }} placeholder="Template name…" />
         <div style={{ flex:1 }} />
-        <span style={{ fontSize:12, color:"#059669", fontWeight:700, opacity:flash?1:0, transition:"opacity .3s" }}>✓ Saved!</span>
-        <button onClick={handleSave} style={{ padding:"8px 22px", borderRadius:8, fontSize:13, fontWeight:800, background:C.accent, color:"#fff", border:"none", cursor:"pointer", boxShadow:"0 2px 8px rgba(107,26,44,.25)" }}>{t.save}</button>
+        <span style={{ fontSize:12, color:"#059669", fontWeight:600, opacity:flash?1:0, transition:"opacity .3s" }}>✓ Saved!</span>
+        <button onClick={handleSave} style={{ padding:"8px 22px", borderRadius:8, fontSize:13, fontWeight:600, background:C.accent, color:"#fff", border:"none", cursor:"pointer", boxShadow:"0 2px 8px rgba(107,26,44,.25)" }}>{t.save}</button>
       </div>
 
       {/* 3 panels */}
@@ -893,8 +892,8 @@ function PageBuilder({ template, onSave, onBack }) {
 function PaywallPage() {
   return (
     <div style={{ textAlign:"center", padding:"60px 24px", maxWidth:500, margin:"0 auto" }}>
-      <div style={{ fontSize:52, marginBottom:16 }}>🔒</div>
-      <div style={{ fontSize:22, fontWeight:800, color:C.text, marginBottom:8 }}>Page Builder — Advanced Plan</div>
+      <div style={{ fontSize:12, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase", color:C.accent, marginBottom:14 }}>Locked</div>
+      <div style={{ fontSize:22, fontWeight:600, color:C.text, marginBottom:8 }}>Page Builder — Advanced Plan</div>
       <div style={{ fontSize:13.5, color:C.muted, lineHeight:1.75, marginBottom:28 }}>Visual drag-and-drop builder with full design control — spacing, typography, colors, column layouts, and 20+ block types.</div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:32, textAlign:"left" }}>
         {["20+ block types","2 & 3 column layouts","Full padding & margin controls","Typography: font, size, weight","Border, shadow, radius","Progress bars & stat counters","Review slider & photo grid","Testimonial spotlight blocks"].map(f => (
@@ -903,7 +902,7 @@ function PaywallPage() {
           </div>
         ))}
       </div>
-      <Link to="/app/billing" style={{ display:"inline-flex", padding:"13px 32px", borderRadius:10, fontSize:14, fontWeight:800, background:C.accent, color:"#fff", textDecoration:"none", boxShadow:"0 3px 12px rgba(107,26,44,.3)" }}>Upgrade to Advanced — $9.99/mo</Link>
+      <Link to="/app/billing" style={{ display:"inline-flex", padding:"13px 32px", borderRadius:10, fontSize:14, fontWeight:600, background:C.accent, color:"#fff", textDecoration:"none", boxShadow:"0 3px 12px rgba(107,26,44,.3)" }}>Upgrade to Advanced — $9.99/mo</Link>
       <div style={{ fontSize:11.5, color:C.muted, marginTop:12 }}>5-day free trial · Cancel anytime</div>
     </div>
   );
@@ -914,7 +913,7 @@ function TemplateCard({ tpl, onEdit, onActivate, onDelete }) {
   const blocks = Array.isArray(tpl.blocks) ? tpl.blocks : [];
   return (
     <div style={{ background:C.surface, borderRadius:16, border:`2px solid ${tpl.isDefault?C.accent:C.border}`, overflow:"hidden", position:"relative" }}>
-      {tpl.isDefault && <div style={{ position:"absolute", top:10, right:10, zIndex:2, background:C.accent, color:"#fff", fontSize:9, fontWeight:800, padding:"3px 9px", borderRadius:20, textTransform:"uppercase" }}>Active</div>}
+      {tpl.isDefault && <div style={{ position:"absolute", top:10, right:10, zIndex:2, background:C.accent, color:"#fff", fontSize:9, fontWeight:600, padding:"3px 9px", borderRadius:20, textTransform:"uppercase" }}>Active</div>}
       <div style={{ height:140, background:"#f9fafb", padding:14, display:"flex", flexDirection:"column", gap:5, overflow:"hidden" }}>
         {blocks.slice(0,5).map((b,i) => {
           const def = BLOCK_DEFS[b.type];
@@ -924,10 +923,10 @@ function TemplateCard({ tpl, onEdit, onActivate, onDelete }) {
         {blocks.length===0 && <div style={{ fontSize:11, color:C.muted }}>Legacy template</div>}
       </div>
       <div style={{ padding:"12px 14px", borderTop:`1px solid ${C.border}` }}>
-        <div style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:10 }}>{tpl.name||"Untitled"}</div>
+        <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:10 }}>{tpl.name||"Untitled"}</div>
         <div style={{ display:"flex", gap:7 }}>
-          <button onClick={onEdit} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:700, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", color:C.text }}>Edit</button>
-          {!tpl.isDefault && <button onClick={onActivate} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:700, border:`1.5px solid ${C.accent}`, background:C.accent, cursor:"pointer", color:"#fff" }}>Activate</button>}
+          <button onClick={onEdit} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:600, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", color:C.text }}>Edit</button>
+          {!tpl.isDefault && <button onClick={onActivate} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:600, border:`1.5px solid ${C.accent}`, background:C.accent, cursor:"pointer", color:"#fff" }}>Activate</button>}
           <button onClick={onDelete} style={{ padding:"7px 10px", borderRadius:8, fontSize:12, border:"1.5px solid #fecaca", background:"#fff0f0", cursor:"pointer", color:"#dc2626" }}>✕</button>
         </div>
       </div>
@@ -987,7 +986,7 @@ function CustomHtmlEditor({ initialHtml, initialCss, onSave, onClear, justSaved,
 
   const previewSrc = renderSampleCard(html || DEFAULT_CARD_HTML, css || DEFAULT_CARD_CSS);
   const TA   = { width:"100%", fontFamily:"monospace", fontSize:12, lineHeight:1.6, border:"1.5px solid #e4e4e4", borderRadius:8, padding:"10px 12px", resize:"vertical", outline:"none", boxSizing:"border-box", background:"#1e293b", color:"#e2e8f0" };
-  const TH   = { background:"#f3f4f6", padding:"7px 10px", textAlign:"left", fontWeight:700, color:"#6b7280", fontSize:11, borderBottom:"1px solid #e4e4e4" };
+  const TH   = { background:"#f3f4f6", padding:"7px 10px", textAlign:"left", fontWeight:600, color:"#6b7280", fontSize:11, borderBottom:"1px solid #e4e4e4" };
   const TD   = { padding:"7px 10px", borderBottom:"1px solid #f3f4f6", verticalAlign:"top" };
   const CODE = { fontFamily:"monospace", background:"#f3f4f6", padding:"1px 5px", borderRadius:4, fontSize:11 };
 
@@ -1000,30 +999,30 @@ function CustomHtmlEditor({ initialHtml, initialCss, onSave, onClear, justSaved,
   return (
     <div>
       <div style={{ background:"#eff6ff", border:"1.5px solid #bfdbfe", borderRadius:12, padding:"14px 18px", marginBottom:20 }}>
-        <div style={{ fontSize:13, fontWeight:800, color:"#1e40af", marginBottom:4 }}>Custom HTML Card Template</div>
+        <div style={{ fontSize:13, fontWeight:600, color:"#1e40af", marginBottom:4 }}>Custom HTML Card Template</div>
         <div style={{ fontSize:12.5, color:"#1e3a8a", lineHeight:1.6 }}>Write your own HTML layout using <code style={{ ...CODE, background:"#dbeafe" }}>{"{{placeholder}}"}</code> tags.</div>
       </div>
-      {justSaved   && <div style={{ background:"#f0fdf4", border:"1.5px solid #bbf7d0", borderRadius:10, padding:"11px 16px", marginBottom:14, fontSize:13, fontWeight:700, color:"#166534" }}>✅ Template saved.</div>}
+      {justSaved   && <div style={{ background:"#f0fdf4", border:"1.5px solid #bbf7d0", borderRadius:10, padding:"11px 16px", marginBottom:14, fontSize:13, fontWeight:600, color:"#166534" }}>✓ Template saved.</div>}
       {justCleared && <div style={{ background:"#f9fafb", border:"1.5px solid #e4e4e4", borderRadius:10, padding:"11px 16px", marginBottom:14, fontSize:13, color:"#6b7280" }}>Cleared — reverted to default.</div>}
       {saveError   && <div style={{ background:"#fff0f0", border:"1.5px solid #fecaca", borderRadius:10, padding:"11px 16px", marginBottom:14, fontSize:13, color:"#dc2626" }}>{saveError}</div>}
       <div style={{ display:"flex", gap:18, marginBottom:16, alignItems:"flex-start" }}>
         <div style={{ flex:"0 0 52%", minWidth:0, display:"flex", flexDirection:"column", gap:12 }}>
           <div>
-            <div style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>HTML Template</div>
+            <div style={{ fontSize:11, fontWeight:600, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>HTML Template</div>
             <textarea value={html} onChange={e => setHtml(e.target.value)} placeholder={DEFAULT_CARD_HTML} rows={16} style={{ ...TA, minHeight:250 }} spellCheck={false} />
           </div>
           <div>
-            <div style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>CSS</div>
+            <div style={{ fontSize:11, fontWeight:600, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>CSS</div>
             <textarea value={css} onChange={e => setCss(e.target.value)} placeholder={DEFAULT_CARD_CSS} rows={12} style={{ ...TA, minHeight:190 }} spellCheck={false} />
           </div>
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>Live Preview</div>
+          <div style={{ fontSize:11, fontWeight:600, color:C.muted, textTransform:"uppercase", marginBottom:5 }}>Live Preview</div>
           <iframe key={previewSrc.length} srcDoc={previewSrc} sandbox="" style={{ width:"100%", minHeight:460, border:"1.5px solid #e4e4e4", borderRadius:10, background:"#f9fafb", display:"block" }} title="preview" />
         </div>
       </div>
       <div style={{ border:"1px solid #e4e4e4", borderRadius:10, marginBottom:16, overflow:"hidden" }}>
-        <button onClick={() => setShowRef(!showRef)} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#f9fafb", border:"none", cursor:"pointer", fontSize:12.5, fontWeight:800, color:C.text }}>
+        <button onClick={() => setShowRef(!showRef)} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#f9fafb", border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, color:C.text }}>
           <span>{"{{placeholder}}"} Reference</span><span style={{ fontSize:10 }}>{showRef?"▲":"▼"}</span>
         </button>
         {showRef && (
@@ -1038,11 +1037,11 @@ function CustomHtmlEditor({ initialHtml, initialCss, onSave, onClear, justSaved,
         )}
       </div>
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center" }}>
-        <button onClick={handleExport} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:700, border:"1.5px solid #e4e4e4", background:"#fff", cursor:"pointer", color:C.text }}>↓ Export Default</button>
-        <button onClick={() => { setHtml(DEFAULT_CARD_HTML); setCss(DEFAULT_CARD_CSS); }} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:700, border:"1.5px solid #e4e4e4", background:"#fff", cursor:"pointer", color:C.text }}>Load Default</button>
-        {(initialHtml||initialCss) && <button onClick={onClear} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:700, border:"1.5px solid #fecaca", background:"#fff0f0", cursor:"pointer", color:"#dc2626" }}>✕ Clear</button>}
+        <button onClick={handleExport} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:600, border:"1.5px solid #e4e4e4", background:"#fff", cursor:"pointer", color:C.text }}>↓ Export Default</button>
+        <button onClick={() => { setHtml(DEFAULT_CARD_HTML); setCss(DEFAULT_CARD_CSS); }} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:600, border:"1.5px solid #e4e4e4", background:"#fff", cursor:"pointer", color:C.text }}>Load Default</button>
+        {(initialHtml||initialCss) && <button onClick={onClear} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:600, border:"1.5px solid #fecaca", background:"#fff0f0", cursor:"pointer", color:"#dc2626" }}>✕ Clear</button>}
         <div style={{ flex:1 }} />
-        <button onClick={() => onSave(html, css)} disabled={!html.trim()} style={{ padding:"9px 26px", borderRadius:8, fontSize:13, fontWeight:800, border:"none", cursor:html.trim()?"pointer":"not-allowed", background:html.trim()?C.accent:"#d1d5db", color:"#fff" }}>{t.save}</button>
+        <button onClick={() => onSave(html, css)} disabled={!html.trim()} style={{ padding:"9px 26px", borderRadius:8, fontSize:13, fontWeight:600, border:"none", cursor:html.trim()?"pointer":"not-allowed", background:html.trim()?C.accent:"#d1d5db", color:"#fff" }}>{t.save}</button>
       </div>
     </div>
   );
@@ -1098,8 +1097,8 @@ export default function CustomizePage() {
   return (
     <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 24px", background:C.bg, minHeight:"100vh", fontFamily:"inherit" }}>
       <div style={{ display:"flex", gap:4, marginBottom:28, borderBottom:`2px solid ${C.border}` }}>
-        {[{ key:"builder", label:"🏗️ Page Builder" },{ key:"custom-html", label:"⌨️ Custom HTML" }].map(({ key, label }) => (
-          <button key={key} onClick={() => setActiveTab(key)} style={{ padding:"9px 22px", border:"none", cursor:"pointer", fontSize:13.5, fontWeight:700, background:"none", borderBottom:`3px solid ${activeTab===key?C.accent:"transparent"}`, color:activeTab===key?C.accent:C.muted, marginBottom:-2, transition:"color .15s" }}>{label}</button>
+        {[{ key:"builder", label:"Page Builder" },{ key:"custom-html", label:"Custom HTML" }].map(({ key, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)} style={{ padding:"9px 22px", border:"none", cursor:"pointer", fontSize:13.5, fontWeight:600, background:"none", borderBottom:`3px solid ${activeTab===key?C.accent:"transparent"}`, color:activeTab===key?C.accent:C.muted, marginBottom:-2, transition:"color .15s" }}>{label}</button>
         ))}
       </div>
 
@@ -1112,30 +1111,28 @@ export default function CustomizePage() {
           <div>
             {dbError && (
               <div style={{ background:"#fff7ed", border:"1.5px solid #fed7aa", borderRadius:12, padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
-                <span style={{ fontSize:20, flexShrink:0 }}>⚠️</span>
-                <div><div style={{ fontSize:13.5, fontWeight:800, color:"#9a3412", marginBottom:4 }}>Database table missing</div><code style={{ display:"inline-block", padding:"6px 12px", background:"#1e293b", color:"#e2e8f0", borderRadius:7, fontSize:12, fontFamily:"monospace" }}>npx prisma db push</code></div>
+                <div><div style={{ fontSize:13.5, fontWeight:600, color:"#9a3412", marginBottom:4 }}>Database table missing</div><code style={{ display:"inline-block", padding:"6px 12px", background:"#1e293b", color:"#e2e8f0", borderRadius:7, fontSize:12, fontFamily:"monospace" }}>npx prisma db push</code></div>
               </div>
             )}
             {actionData?.activated && (
               <div style={{ display:"flex", alignItems:"center", gap:14, background:"#f0fdf4", border:"1.5px solid #bbf7d0", borderRadius:12, padding:"14px 18px", marginBottom:20 }}>
-                <span style={{ fontSize:22 }}>✅</span>
-                <div style={{ fontSize:13.5, fontWeight:800, color:"#166534" }}>"{actionData.activated}" is now active</div>
+                <span style={{ fontSize:18, color:"#166534" }}>✓</span>
+                <div style={{ fontSize:13.5, fontWeight:600, color:"#166534" }}>"{actionData.activated}" is now active</div>
               </div>
             )}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
               <div>
-                <h1 style={{ fontSize:22, fontWeight:800, color:C.text, margin:0 }}>{t.customizeTitle}</h1>
+                <h1 style={{ fontSize:22, fontWeight:600, color:C.text, margin:0 }}>{t.customizeTitle}</h1>
                 <p style={{ fontSize:13, color:C.muted, margin:"4px 0 0" }}>20+ blocks · 2 & 3 column layouts · Full spacing, typography & style controls</p>
               </div>
-              <button onClick={() => openBuilder(null)} style={{ padding:"10px 24px", borderRadius:10, fontSize:13.5, fontWeight:700, background:C.accent, color:"#fff", border:"none", cursor:"pointer" }}>+ New Design</button>
+              <button onClick={() => openBuilder(null)} style={{ padding:"10px 24px", borderRadius:10, fontSize:13.5, fontWeight:600, background:C.accent, color:"#fff", border:"none", cursor:"pointer" }}>+ New Design</button>
             </div>
 
             {templates.length === 0 ? (
               <div style={{ textAlign:"center", padding:"80px 20px", background:C.surface, borderRadius:18, border:`2px dashed ${C.border}` }}>
-                <div style={{ fontSize:48, marginBottom:14 }}>🏗️</div>
-                <div style={{ fontSize:17, fontWeight:700, color:C.text, marginBottom:6 }}>No designs yet</div>
+                <div style={{ fontSize:17, fontWeight:600, color:C.text, marginBottom:6 }}>No designs yet</div>
                 <div style={{ fontSize:13, color:C.muted, marginBottom:24 }}>Create your first review widget layout.</div>
-                <button onClick={() => openBuilder(null)} style={{ padding:"11px 28px", borderRadius:10, fontSize:13.5, fontWeight:700, background:C.accent, color:"#fff", border:"none", cursor:"pointer" }}>+ Create First Design</button>
+                <button onClick={() => openBuilder(null)} style={{ padding:"11px 28px", borderRadius:10, fontSize:13.5, fontWeight:600, background:C.accent, color:"#fff", border:"none", cursor:"pointer" }}>+ Create First Design</button>
               </div>
             ) : (
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:20 }}>

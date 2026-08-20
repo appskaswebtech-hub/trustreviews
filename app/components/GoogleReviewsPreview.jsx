@@ -12,7 +12,7 @@ const AVATAR_COLORS = ["#c98a5e", "#5e8ac9", "#a15ec9", "#5ec98a", "#c95e5e", "#
 
 function GoogleMark({ size = 15 }) {
   return (
-    <span style={{ display: "inline-flex", fontWeight: 700, fontSize: size, letterSpacing: "-.02em" }}>
+    <span style={{ display: "inline-flex", fontWeight: 600, fontSize: size, letterSpacing: "-.02em" }}>
       {"Google".split("").map((ch, i) => (
         <span key={i} style={{ color: G_COLORS[i] }}>{ch}</span>
       ))}
@@ -36,7 +36,7 @@ function Avatar({ initial, bg, size = 30 }) {
     <div style={{
       width: size, height: size, borderRadius: "50%", background: bg, flexShrink: 0,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.4, fontWeight: 700, color: "#fff",
+      fontSize: size * 0.4, fontWeight: 600, color: "#fff",
     }}>{initial}</div>
   );
 }
@@ -66,7 +66,7 @@ function WriteReviewButton({ t, placeId }) {
   const href = placeId ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}` : "#";
   return (
     <a href={href} target="_blank" rel="noreferrer" style={{
-      alignSelf: "flex-start", fontSize: Math.max(11, t.fontSize - 2), fontWeight: 700,
+      alignSelf: "flex-start", fontSize: Math.max(11, t.fontSize - 2), fontWeight: 600,
       color: "#fff", background: t.accentColor, borderRadius: Math.min(t.borderRadius, 8),
       padding: "7px 14px", textDecoration: "none",
     }}>
@@ -123,7 +123,7 @@ function FullWall({ t, d, placeId }) {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <GoogleMark />
-          <span style={{ fontWeight: 700, fontSize: t.headingFontSize * .6 }}>{d.r.toFixed(1)}</span>
+          <span style={{ fontWeight: 600, fontSize: t.headingFontSize * .6 }}>{d.r.toFixed(1)}</span>
           <Stars rating={d.r} t={t} />
           <span style={{ opacity: .6 }}>{d.count} reviews</span>
         </div>
@@ -139,7 +139,7 @@ function FullWall({ t, d, placeId }) {
           }}>
             <Avatar initial={rv.authorName[0]} bg={AVATAR_COLORS[i % 6]} size={36} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: t.fontSize }}>{rv.authorName}</div>
+              <div style={{ fontWeight: 600, fontSize: t.fontSize }}>{rv.authorName}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "3px 0" }}>
                 <Stars rating={rv.rating} t={t} size={t.starSize - 1} />
                 {rv.relativeTime && <span style={{ fontSize: t.fontSize - 3, opacity: .55 }}>{rv.relativeTime}</span>}
@@ -188,7 +188,7 @@ const RENDERERS = {
       <GoogleMark />
       <div style={{ width: 1, height: 16, background: "#e2e2e2" }} />
       <Stars rating={d.r} t={t} />
-      <span style={{ fontWeight: 700 }}>{d.r.toFixed(1)}</span>
+      <span style={{ fontWeight: 600 }}>{d.r.toFixed(1)}</span>
       <span style={{ opacity: .6 }}>({d.count})</span>
     </Frame>
   ),
@@ -196,7 +196,7 @@ const RENDERERS = {
   star_row: (t, d) => (
     <Frame t={t} style={{ flexDirection: "row", alignItems: "center", display: "inline-flex", border: "none", padding: 0, background: "transparent" }}>
       <Stars rating={d.r} t={t} />
-      <span style={{ fontWeight: 700 }}>{d.r.toFixed(1)}</span>
+      <span style={{ fontWeight: 600 }}>{d.r.toFixed(1)}</span>
       <span style={{ opacity: .6, textDecoration: "underline" }}>{d.count} Google reviews</span>
     </Frame>
   ),
@@ -204,7 +204,7 @@ const RENDERERS = {
   corner_overlay: (t, d) => (
     <div style={{ position: "relative", width: 170, height: 130, borderRadius: t.borderRadius, overflow: "hidden", background: "linear-gradient(135deg,#dcd3c4,#b9ac93)" }}>
       <div style={{ position: "absolute", top: 9, left: 9, background: "rgba(255,255,255,.92)", borderRadius: 8, padding: "5px 9px", display: "flex", alignItems: "center", gap: 5 }}>
-        <span style={{ fontWeight: 700, fontSize: t.fontSize - 2 }}>{d.r.toFixed(1)}</span>
+        <span style={{ fontWeight: 600, fontSize: t.fontSize - 2 }}>{d.r.toFixed(1)}</span>
         <Stars rating={d.r} t={t} size={t.starSize - 4} />
       </div>
     </div>
@@ -216,7 +216,7 @@ const RENDERERS = {
       <div style={{ width: 1, height: 14, background: "#e2e2e2" }} />
       <span>{d.count} reviews</span>
       <div style={{ width: 1, height: 14, background: "#e2e2e2" }} />
-      <span style={{ fontSize: t.fontSize - 3, color: "#34A853", fontWeight: 700 }}>✓ Verified on Google</span>
+      <span style={{ fontSize: t.fontSize - 3, color: "#34A853", fontWeight: 600 }}>✓ Verified on Google</span>
     </Frame>
   ),
 
@@ -231,7 +231,7 @@ const RENDERERS = {
           <div key={i} style={{ flex: "0 0 auto", width: 160, background: "#fafaf8", border: "1px solid #ececec", borderRadius: t.borderRadius, padding: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <Avatar initial={rv.authorName[0]} bg={AVATAR_COLORS[i % 6]} />
-              <span style={{ fontWeight: 700, fontSize: t.fontSize - 2 }}>{rv.authorName}</span>
+              <span style={{ fontWeight: 600, fontSize: t.fontSize - 2 }}>{rv.authorName}</span>
             </div>
             <p style={{ fontSize: t.fontSize - 3, lineHeight: 1.5, margin: 0, opacity: .75 }}>"{rv.text}"</p>
           </div>
@@ -246,7 +246,7 @@ const RENDERERS = {
         <div key={i} style={{ background: t.backgroundColor, border: `${t.borderWidth}px solid ${t.borderColor}`, borderRadius: t.borderRadius, padding: t.padding }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
             <Avatar initial={rv.authorName[0]} bg={AVATAR_COLORS[i % 6]} size={24} />
-            <span style={{ fontWeight: 700, fontSize: t.fontSize - 3 }}>{rv.authorName}</span>
+            <span style={{ fontWeight: 600, fontSize: t.fontSize - 3 }}>{rv.authorName}</span>
           </div>
           <Stars rating={rv.rating} t={t} size={t.starSize - 3} />
           <p style={{ fontSize: t.fontSize - 3, lineHeight: 1.5, margin: "6px 0 0", opacity: .75 }}>"{rv.text}"</p>
@@ -273,16 +273,16 @@ const RENDERERS = {
         <div style={{ fontFamily: "ui-serif,Georgia,serif", fontSize: t.headingFontSize, lineHeight: 1 }}>{d.r.toFixed(1)}<span style={{ fontSize: t.headingFontSize * .45, opacity: .7 }}>/5</span></div>
         <div style={{ fontSize: t.fontSize - 1, opacity: .8 }}>from {d.count} verified Google reviews</div>
       </div>
-      <div style={{ fontSize: t.fontSize - 2, fontWeight: 700, border: `1px solid currentColor`, opacity: .9, borderRadius: 8, padding: "8px 14px", whiteSpace: "nowrap" }}>See our reviews →</div>
+      <div style={{ fontSize: t.fontSize - 2, fontWeight: 600, border: `1px solid currentColor`, opacity: .9, borderRadius: 8, padding: "8px 14px", whiteSpace: "nowrap" }}>See our reviews →</div>
     </Frame>
   ),
 
   floating: (t, d) => (
     <div style={{ position: "relative", width: "100%", height: 140, background: "repeating-linear-gradient(0deg,#fbfbf9,#fbfbf9 22px,#f2f1ed 22px,#f2f1ed 23px)", borderRadius: 10 }}>
       <div style={{ position: "absolute", bottom: 14, right: 14, background: t.backgroundColor, borderRadius: 999, boxShadow: "0 6px 18px rgba(0,0,0,.14)", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px 9px 9px" }}>
-        <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#4285F4", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>G</div>
+        <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#4285F4", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 600 }}>G</div>
         <div>
-          <div style={{ fontSize: t.fontSize - 2, fontWeight: 700, lineHeight: 1.2, color: t.textColor }}><Stars rating={d.r} t={t} size={t.starSize - 2} /> {d.r.toFixed(1)}</div>
+          <div style={{ fontSize: t.fontSize - 2, fontWeight: 600, lineHeight: 1.2, color: t.textColor }}><Stars rating={d.r} t={t} size={t.starSize - 2} /> {d.r.toFixed(1)}</div>
           <div style={{ fontSize: t.fontSize - 4, opacity: .6 }}>{d.count} reviews</div>
         </div>
       </div>
@@ -293,12 +293,12 @@ const RENDERERS = {
     <Frame t={t} style={{ maxWidth: t.maxWidth > 0 ? t.maxWidth : 230 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <GoogleMark size={12.5} />
-        <span style={{ fontSize: t.fontSize - 3, fontWeight: 700 }}><Stars rating={d.r} t={t} size={t.starSize - 2} /> {d.r.toFixed(1)}</span>
+        <span style={{ fontSize: t.fontSize - 3, fontWeight: 600 }}><Stars rating={d.r} t={t} size={t.starSize - 2} /> {d.r.toFixed(1)}</span>
       </div>
       {d.revs.slice(0, 2).map((rv, i) => (
         <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
           <Avatar initial={rv.authorName[0]} bg={AVATAR_COLORS[i % 6]} size={22} />
-          <div><p style={{ fontWeight: 700, margin: 0, fontSize: t.fontSize - 3 }}>{rv.authorName}</p><p style={{ fontSize: t.fontSize - 3.5, lineHeight: 1.5, margin: "2px 0 0", opacity: .75 }}>"{rv.text}"</p></div>
+          <div><p style={{ fontWeight: 600, margin: 0, fontSize: t.fontSize - 3 }}>{rv.authorName}</p><p style={{ fontSize: t.fontSize - 3.5, lineHeight: 1.5, margin: "2px 0 0", opacity: .75 }}>"{rv.text}"</p></div>
         </div>
       ))}
     </Frame>
@@ -364,7 +364,7 @@ const RENDERERS = {
           <Avatar initial={rv.authorName[0]} bg={AVATAR_COLORS[i % 6]} />
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <span style={{ fontWeight: 700, fontSize: t.fontSize - 1 }}>{rv.authorName}</span>
+              <span style={{ fontWeight: 600, fontSize: t.fontSize - 1 }}>{rv.authorName}</span>
               <Stars rating={rv.rating} t={t} size={t.starSize - 2} />
             </div>
             <p style={{ fontSize: t.fontSize - 2, lineHeight: 1.55, margin: "4px 0 0", opacity: .8 }}>{rv.text}</p>

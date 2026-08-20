@@ -26,13 +26,13 @@ function ListCard({ r, s }) {
       <div style={{
         width: 44, height: 44, borderRadius: "50%", background: `${s.accentColor}1a`,
         color: s.accentColor, display: "flex", alignItems: "center", justifyContent: "center",
-        fontWeight: 700, fontSize: 13, flexShrink: 0,
+        fontWeight: 600, fontSize: 13, flexShrink: 0,
       }}>
         {initials(r.customer)}
       </div>
       <div style={{ flex: 1, minWidth: 0, paddingLeft: 14, borderLeft: `1px solid ${s.cardBorderColor}` }}>
         <div style={{ fontSize: 13, marginBottom: 4 }}>{stars(r.rating, s.accentColor)}</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: s.cardTextColor, marginBottom: 4 }}>{r.title}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: s.cardTextColor, marginBottom: 4 }}>{r.title}</div>
         <div style={{ fontSize: 11.5, color: "#888", marginBottom: 6 }}>{r.customer}</div>
         <p style={{ fontSize: 13, color: s.cardTextColor, lineHeight: 1.5, margin: "0 0 8px" }}>{r.comment}</p>
         <button style={{
@@ -51,12 +51,12 @@ function GridCard({ r, s }) {
       padding: 16, display: "flex", flexDirection: "column", gap: 8,
     }}>
       <div style={{ fontSize: 13 }}>{stars(r.rating, s.accentColor)}</div>
-      <div style={{ fontSize: 13.5, fontWeight: 700, color: s.cardTextColor }}>{r.title}</div>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: s.cardTextColor }}>{r.title}</div>
       <p style={{ fontSize: 12.5, color: s.cardTextColor, lineHeight: 1.5, margin: 0, flex: 1 }}>{r.comment}</p>
       <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#888" }}>
         <div style={{
           width: 24, height: 24, borderRadius: "50%", background: s.accentColor, color: "#fff",
-          display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 10, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 10, flexShrink: 0,
         }}>
           {initials(r.customer)}
         </div>
@@ -74,7 +74,7 @@ function CompactCard({ r, s }) {
     }}>
       <div style={{
         width: 26, height: 26, borderRadius: "50%", background: s.accentColor, color: "#fff",
-        display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 10, flexShrink: 0, marginTop: 2,
+        display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 10, flexShrink: 0, marginTop: 2,
       }}>
         {initials(r.customer)}
       </div>
@@ -96,11 +96,11 @@ function MinimalCard({ r, s }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0 8px" }}>
         <span style={{
           width: 22, height: 22, borderRadius: "50%", background: "#f0f0f0",
-          display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12,
-        }}>👤</span>
+          display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "#666",
+        }}>{(r.customer || "?")[0].toUpperCase()}</span>
         <span style={{ fontSize: 12, color: "#888" }}>{r.customer}</span>
       </div>
-      <div style={{ fontSize: 13.5, fontWeight: 700, color: s.cardTextColor, marginBottom: 4 }}>{r.title}</div>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: s.cardTextColor, marginBottom: 4 }}>{r.title}</div>
       <p style={{ fontSize: 13, color: s.cardTextColor, margin: 0, lineHeight: 1.5 }}>{r.comment}</p>
     </div>
   );
@@ -110,7 +110,7 @@ function Pagination({ s }) {
   const numStyle = (active) => ({
     minWidth: 26, height: 26, borderRadius: 4, border: `1.5px solid ${active ? s.accentColor : "#ddd"}`,
     background: active ? s.accentColor : "none", color: active ? "#fff" : "#333",
-    display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700,
+    display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600,
   });
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 16, fontSize: 12, color: "#888" }}>

@@ -43,7 +43,6 @@ const WIDGETS = [
     href: "/app/widgets/review-wall",
     blockHandle: "review-wall",
     bg: "linear-gradient(135deg,#fce7f3,#f9a8d4)",
-    icon: "🧱",
     badge: "NEW",
   },
   {
@@ -53,7 +52,6 @@ const WIDGETS = [
     href: "/app/widgets/homepage_reviews",
     blockHandle: "homepage-reviews",
     bg: "linear-gradient(135deg,#fef3c7,#fde68a)",
-    icon: "🏠",
     badge: "NEW",
   },
   {
@@ -63,7 +61,6 @@ const WIDGETS = [
     href: "/app/customize",
     blockHandle: "custom-template",
     bg: "linear-gradient(135deg,#ede9fe,#c4b5fd)",
-    icon: "🎨",
     badge: "NEW",
   },
   {
@@ -73,7 +70,6 @@ const WIDGETS = [
     href: "/app/widgets/review_widget",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#dff5e1,#bfe9c6)",
-    icon: "💬",
   },
   {
     key: "inline_rating",
@@ -82,7 +78,6 @@ const WIDGETS = [
     href: "/app/widgets/inline_rating",
     blockHandle: "inline-rating",
     bg: "linear-gradient(135deg,#fffbe6,#fef08a)",
-    icon: "⭐",
   },
   {
     key: "star_rating_badge",
@@ -91,7 +86,6 @@ const WIDGETS = [
     href: "/app/widget-settings",
     blockHandle: "star_rating",
     bg: "linear-gradient(135deg,#d9ecff,#bcd9f9)",
-    icon: "★",
   },
   {
     key: "reviews_summary",
@@ -100,7 +94,6 @@ const WIDGETS = [
     href: "/app/widgets/reviews-summary",
     blockHandle: "reviews-summary",
     bg: "linear-gradient(135deg,#ede9fe,#ddd6fe)",
-    icon: "⭐",
   },
   {
     key: "write_review",
@@ -109,7 +102,6 @@ const WIDGETS = [
     href: "/app/widgets/write-review",
     blockHandle: "review",
     bg: "linear-gradient(135deg,#e8f5d0,#cfe8a8)",
-    icon: "✎",
   },
   {
     key: "review_list",
@@ -118,7 +110,6 @@ const WIDGETS = [
     href: "/app/widgets/review-list",
     blockHandle: "review",
     bg: "linear-gradient(135deg,#fde8e8,#f7c2c2)",
-    icon: "📋",
   },
   {
     key: "cards_carousel",
@@ -127,7 +118,6 @@ const WIDGETS = [
     href: "/app/widgets/cards_carousel",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#ffe9d6,#ffd2ac)",
-    icon: "🗂",
   },
   {
     key: "testimonial_carousel",
@@ -136,7 +126,6 @@ const WIDGETS = [
     href: "/app/widgets/testimonial_carousel",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#e3e0ff,#c7c1ff)",
-    icon: "❝",
   },
   {
     key: "videos_carousel",
@@ -145,7 +134,6 @@ const WIDGETS = [
     href: "/app/widgets/videos_carousel",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#ffe0ec,#ffc2d6)",
-    icon: "🎬",
   },
   {
     key: "popup_reviews",
@@ -154,7 +142,6 @@ const WIDGETS = [
     href: "/app/widgets/popup_reviews",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#d6f5f0,#aee8de)",
-    icon: "⧉",
   },
   {
     key: "ai_reviews_summary",
@@ -163,7 +150,6 @@ const WIDGETS = [
     href: "/app/widgets/ai-summary",
     blockHandle: "ai-summary",
     bg: "linear-gradient(135deg,#e0f0ff,#bcdcff)",
-    icon: "✨",
   },
   {
     key: "single_review",
@@ -172,7 +158,6 @@ const WIDGETS = [
     href: "/app/widgets/single_review",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#fef0e6,#fcd9b8)",
-    icon: "🔂",
   },
   {
     key: "summary_list",
@@ -181,7 +166,6 @@ const WIDGETS = [
     href: "/app/widgets/summary_list",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#e8fef0,#b8f5ce)",
-    icon: "📊",
   },
   {
     key: "classic_list",
@@ -190,7 +174,6 @@ const WIDGETS = [
     href: "/app/widgets/classic_list",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#e3f4ff,#b8def7)",
-    icon: "☰",
   },
   {
     key: "review_snippets",
@@ -199,7 +182,6 @@ const WIDGETS = [
     href: "/app/widgets/review_snippets",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#fff3d6,#ffe3a3)",
-    icon: "✂",
   },
   {
     key: "questions_answers",
@@ -208,7 +190,6 @@ const WIDGETS = [
     href: "/app/widgets/qa",
     blockHandle: "qa",
     bg: "linear-gradient(135deg,#d6e9ff,#aecdf5)",
-    icon: "❓",
   },
   {
     key: "happy_customers",
@@ -217,7 +198,6 @@ const WIDGETS = [
     href: "/app/widgets/happy_customers",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#dff0e3,#b9dec0)",
-    icon: "😊",
   },
   {
     key: "reviews_grid",
@@ -227,7 +207,6 @@ const WIDGETS = [
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#102a43,#1c3f5f)",
     iconColor: "#fff",
-    icon: "▦",
   },
   {
     key: "floating_reviews_tab",
@@ -236,7 +215,6 @@ const WIDGETS = [
     href: "/app/widgets/floating_reviews_tab",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#dbe9ff,#aac4f0)",
-    icon: "📌",
   },
   {
     key: "trust_medals",
@@ -245,7 +223,6 @@ const WIDGETS = [
     href: "/app/widgets/trust_medals",
     blockHandle: "trust-medals",
     bg: "linear-gradient(135deg,#e6f4ea,#bfe3cb)",
-    icon: "🏅",
   },
   {
     key: "verified_counter",
@@ -254,7 +231,6 @@ const WIDGETS = [
     href: "/app/widgets/verified_counter",
     blockHandle: "verified-counter",
     bg: "linear-gradient(135deg,#d8f3e0,#a8e0bb)",
-    icon: "✅",
   },
   {
     key: "all_reviews_counter",
@@ -263,7 +239,6 @@ const WIDGETS = [
     href: "/app/widgets/all_reviews_counter",
     blockHandle: "all-reviews-counter",
     bg: "linear-gradient(135deg,#fdeacb,#f8d59a)",
-    icon: "🔢",
   },
   {
     key: "instagram_shopping",
@@ -271,7 +246,6 @@ const WIDGETS = [
     description: "Take your favorite user-generated content from Instagram and pull it into a grid.",
     href: "/app/widgets/instagram-shopping",
     bg: "linear-gradient(135deg,#fce4ec,#f3b8cf)",
-    icon: "📷",
   },
   {
     key: "google_reviews",
@@ -280,7 +254,6 @@ const WIDGETS = [
     href: "/app/widgets/google-reviews",
     blockHandle: "google-reviews",
     bg: "linear-gradient(135deg,#e8f0fe,#c2d9fc)",
-    icon: "⭐",
     badge: "PRO",
   },
   {
@@ -289,15 +262,35 @@ const WIDGETS = [
     description: "Let customers write and view reviews, and see rewards directly on the order confirmation page.",
     href: "/app/widgets/customer-accounts",
     bg: "linear-gradient(135deg,#e8e8f0,#c5c5da)",
-    icon: "👤",
   },
 ];
 
 const C = {
-  bg: "#f4f6fb", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280", accent: "#5145e5", accentLt: "#eef0fd",
-  green: "#059669", greenLt: "#d1fae5", amber: "#d97706", amberLt: "#fef3c7",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF", accentLt: "#eaf0ff",
+  green: "#1f7a4d", greenLt: "#e7f4ec", amber: "#a3690f", amberLt: "#f7f0e2",
 };
+
+// Picks a solid color from the widget's gradient (its first stop) so the
+// letter badge reads as "colored by this card" without needing its own
+// per-widget color field.
+function swatch(bg) {
+  const match = /#[0-9a-fA-F]{3,8}/.exec(bg || "");
+  return match ? match[0] : C.accent;
+}
+
+// The card gradients are all pale pastels, so the extracted swatch color is
+// too light to read as text on its own — darken it for a solid, high-contrast
+// badge fill instead (letter stays white on top).
+function darken(hex, amount) {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.padEnd(6, "0");
+  const num = parseInt(full.slice(0, 6), 16);
+  const r = Math.max(0, Math.round(((num >> 16) & 255) * (1 - amount)));
+  const g = Math.max(0, Math.round(((num >> 8) & 255) * (1 - amount)));
+  const b = Math.max(0, Math.round((num & 255) * (1 - amount)));
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+}
 
 function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
   const navigate = useNavigate();
@@ -331,26 +324,33 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
     >
       <div style={{
         height: 106, background: widget.bg, display: "flex",
-        alignItems: "center", justifyContent: "center", fontSize: 32,
-        color: widget.iconColor || C.text, position: "relative",
+        alignItems: "center", justifyContent: "center", position: "relative",
       }}>
-        {widget.icon}
+        <div style={{
+          width: 44, height: 44, borderRadius: "50%",
+          background: darken(swatch(widget.bg), 0.4),
+          boxShadow: "0 2px 8px rgba(0,0,0,.12)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 17, fontWeight: 600, color: "#fff",
+        }}>
+          {widget.title.charAt(0).toUpperCase()}
+        </div>
         {widget.badge && !installed && (
           <span style={{
-            position: "absolute", top: 10, left: 10, fontSize: 9.5, fontWeight: 800,
+            position: "absolute", top: 10, left: 10, fontSize: 9.5, fontWeight: 600,
             background: C.amber, color: "#fff", borderRadius: 20, padding: "3px 10px",
             letterSpacing: ".04em", textTransform: "uppercase",
           }}>{widget.badge}</span>
         )}
         {installed && (
           <span style={{
-            position: "absolute", top: 10, right: 10, fontSize: 10.5, fontWeight: 700,
+            position: "absolute", top: 10, right: 10, fontSize: 10.5, fontWeight: 600,
             background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px",
           }}>✓ {t.installed}</span>
         )}
       </div>
       <div style={{ padding: "15px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, letterSpacing: "-.01em" }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: C.text, letterSpacing: "-.01em" }}>
           {widget.title}
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.55, flex: 1 }}>
@@ -364,7 +364,7 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
               rel="noreferrer"
               onClick={(e) => { e.stopPropagation(); onInstallClick(widget.key); }}
               style={{
-                fontSize: 11.5, fontWeight: 700, color: "#fff", background: C.accent,
+                fontSize: 11.5, fontWeight: 600, color: "#fff", background: C.accent,
                 borderRadius: 8, padding: "6px 13px", textDecoration: "none",
               }}
             >
@@ -375,7 +375,7 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
             to={widget.href}
             onClick={(e) => e.stopPropagation()}
             style={{
-              fontSize: 11.5, fontWeight: 700,
+              fontSize: 11.5, fontWeight: 600,
               color: installed ? "#fff" : C.accent,
               background: installed ? C.accent : C.accentLt,
               border: "none",
@@ -426,14 +426,14 @@ export default function WidgetsGalleryPage() {
           marginBottom: 24, gap: 16, flexWrap: "wrap",
         }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: 0, letterSpacing: "-.02em" }}>
+            <h1 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: 0, letterSpacing: "-.02em" }}>
               {t.widgetsTitle}
             </h1>
             <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>
               {t.widgetsSubtitle}
               {installedCount > 0 && (
                 <span style={{
-                  marginLeft: 10, fontSize: 11.5, fontWeight: 700,
+                  marginLeft: 10, fontSize: 11.5, fontWeight: 600,
                   color: C.green, background: C.greenLt,
                   padding: "2px 9px", borderRadius: 20,
                 }}>
@@ -458,7 +458,6 @@ export default function WidgetsGalleryPage() {
 
         {filteredWidgets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 20px", color: C.muted }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>No widgets found for "{search}"</div>
           </div>
         ) : (

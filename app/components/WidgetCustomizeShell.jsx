@@ -2,18 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 export const SHELL_C = {
-  bg: "#f4f6fb",
+  bg: "#f6f6f8",
   sidebar: "#ffffff",
   surface: "#ffffff",
-  border: "#e4e7ef",
-  borderLight: "#f0f2f7",
-  text: "#0f1623",
-  textSub: "#374151",
-  muted: "#6b7280",
-  accent: "#5145e5",
-  accentLt: "#eef0fd",
-  green: "#059669",
-  greenLt: "#d1fae5",
+  border: "#e5e4ec",
+  borderLight: "#eeedf3",
+  text: "#17171c",
+  textSub: "#3f3f46",
+  muted: "#6b6b78",
+  accent: "#4C6FFF",
+  accentLt: "#eaf0ff",
+  green: "#1f7a4d",
+  greenLt: "#e7f4ec",
 };
 
 export function AccordionSection({ label, defaultOpen = false, children, icon }) {
@@ -41,7 +41,7 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
             </span>
           )}
           <span style={{
-            fontSize: 12.5, fontWeight: 700,
+            fontSize: 12.5, fontWeight: 600,
             color: open ? SHELL_C.accent : SHELL_C.text,
             letterSpacing: "-.01em",
           }}>
@@ -71,8 +71,7 @@ export function InstallSection({ description, installUrl, note }) {
       background: SHELL_C.accentLt,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
-        <span style={{ fontSize: 13 }}>🔌</span>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: SHELL_C.accent }}>Installation</span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: SHELL_C.accent }}>Installation</span>
       </div>
       <p style={{ fontSize: 12, color: SHELL_C.muted, marginBottom: installUrl ? 10 : 0, lineHeight: 1.6 }}>
         {description}
@@ -80,7 +79,7 @@ export function InstallSection({ description, installUrl, note }) {
       {installUrl && (
         <a href={installUrl} target="_blank" rel="noreferrer" style={{
           display: "inline-flex", alignItems: "center", gap: 5,
-          fontSize: 12, fontWeight: 700, color: "#fff",
+          fontSize: 12, fontWeight: 600, color: "#fff",
           background: SHELL_C.accent, borderRadius: 8, padding: "7px 14px", textDecoration: "none",
         }}>
           Install to Theme ↗
@@ -91,7 +90,7 @@ export function InstallSection({ description, installUrl, note }) {
           marginTop: 10, background: "#fff", border: `1px solid ${SHELL_C.border}`,
           borderRadius: 8, padding: "9px 12px", fontSize: 11.5, color: SHELL_C.muted, lineHeight: 1.5,
         }}>
-          💡 {note}
+          {note}
         </div>
       )}
     </div>
@@ -176,7 +175,7 @@ export function RangeField({ label, value, onChange, min, max, step = 1, unit = 
         <div style={{
           minWidth: 44, height: 28, borderRadius: 7, background: SHELL_C.accentLt,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 11.5, fontWeight: 700, color: SHELL_C.accent, flexShrink: 0,
+          fontSize: 11.5, fontWeight: 600, color: SHELL_C.accent, flexShrink: 0,
         }}>
           {value}{unit}
         </div>
@@ -254,7 +253,7 @@ export default function WidgetCustomizeShell({
               Widgets
             </Link>
             <span style={{ fontSize: 13, color: SHELL_C.muted }}>/</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: SHELL_C.text }}>{title}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: SHELL_C.text }}>{title}</span>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -267,11 +266,11 @@ export default function WidgetCustomizeShell({
               ✓ Saved
             </span>
           )}
-          <span style={{ fontSize: 11.5, color: SHELL_C.muted }}>👁 Sample preview</span>
+          <span style={{ fontSize: 11.5, color: SHELL_C.muted }}>Sample preview</span>
           <button onClick={onSave} style={{
             border: "none", borderRadius: 8, padding: "8px 20px",
             background: SHELL_C.accent, color: "#fff",
-            fontWeight: 700, fontSize: 13, cursor: "pointer",
+            fontWeight: 600, fontSize: 13, cursor: "pointer",
           }}>
             Save Changes
           </button>
@@ -309,7 +308,7 @@ export default function WidgetCustomizeShell({
             }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: SHELL_C.accent }} />
               <span style={{
-                fontSize: 11, fontWeight: 700, color: SHELL_C.muted,
+                fontSize: 11, fontWeight: 600, color: SHELL_C.muted,
                 letterSpacing: ".08em", textTransform: "uppercase",
               }}>
                 Live Preview — Sample Data

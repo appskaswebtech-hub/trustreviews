@@ -158,14 +158,14 @@ const FONT_OPTIONS = [
 function ModalPreview({ accentColor, starColor }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Write a Review Modal</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Write a Review Modal</div>
       <div style={{ background: '#fff', borderRadius: 14, padding: '22px 22px 18px', maxWidth: 500, border: '1px solid #e4e4e4', boxShadow: '0 8px 32px rgba(0,0,0,.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: accentColor }}>Write a Review</h3>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: accentColor }}>Write a Review</h3>
           <span style={{ fontSize: 18, color: '#aaa', cursor: 'pointer' }}>✕</span>
         </div>
         <div style={{ marginBottom: 13 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333' }}>Your Rating <span style={{ color: 'red' }}>*</span></label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333' }}>Your Rating <span style={{ color: '#a5423b' }}>*</span></label>
           <div style={{ display: 'flex', gap: 5 }}>
             {[1,2,3,4,5].map(i => <span key={i} style={{ fontSize: 24, color: i <= 4 ? (starColor || accentColor) : '#ddd', cursor: 'pointer' }}>★</span>)}
           </div>
@@ -175,22 +175,22 @@ function ModalPreview({ accentColor, starColor }) {
           <input readOnly placeholder="Summarize your experience..." style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }} />
         </div>
         <div style={{ marginBottom: 11 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Your review <span style={{ color: 'red' }}>*</span></label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Your review <span style={{ color: '#a5423b' }}>*</span></label>
           <textarea readOnly placeholder="Share your experience..." rows={3} style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', resize: 'none', background: '#fafafa' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 15 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Your name <span style={{ color: 'red' }}>*</span></label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Your name <span style={{ color: '#a5423b' }}>*</span></label>
             <input readOnly placeholder="Name" style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Email <span style={{ color: 'red' }}>*</span></label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }}>Email <span style={{ color: '#a5423b' }}>*</span></label>
             <input readOnly placeholder="Email" style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }} />
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button style={{ padding: '9px 20px', background: '#f5f5f5', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'default', color: '#333' }}>Cancel</button>
-          <button style={{ padding: '9px 24px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'default', color: '#fff' }}>Submit Review</button>
+          <button style={{ padding: '9px 24px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'default', color: '#fff' }}>Submit Review</button>
         </div>
       </div>
     </div>
@@ -457,7 +457,7 @@ export default function WidgetCustomizePage() {
       preview={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Widget Preview</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Widget Preview</div>
             <ReviewWidgetPreview style={style} settings={previewSettings} heading={heading || "What our customers say"} />
           </div>
           <ModalPreview accentColor={accentColor} starColor={starColor} />

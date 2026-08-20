@@ -225,6 +225,20 @@ model ReviewListSettings {
   updatedAt       DateTime @updatedAt
 }
 
+// A single, merchant-set discount code shown to a customer immediately after
+// they submit a review (thank-you incentive). The code itself is created and
+// managed by the merchant in Shopify Discounts as usual — this table just
+// holds whether the reward is turned on and which code/message to display.
+model ReviewCoupon {
+  id        String   @id @default(cuid())
+  shop      String   @unique
+  enabled   Boolean  @default(false)
+  code      String   @default("")
+  message   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model ShopPlan {
   id               Int       @id @default(autoincrement())
   shop             String    @unique

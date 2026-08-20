@@ -124,7 +124,7 @@ const SAMPLES = [
   { id: 9, name: "Chloe F.", initials: "CF", rating: 5, title: "Five stars all the way",  text: "From ordering to delivery this was flawless. The product is beautiful and I could not be happier.", date: "2 months ago", abs: "Oct 5, 2024", verified: true,  helpful: 29, hasMedia: true, hasReply: false, tags: ["Great experience"] },
 ];
 
-const C = { accent: "#6B1A2C", accentL: "#f5e6e9", surface: "#fff", border: "#e4e4e4", text: "#1a1a1a", muted: "#6b7280" };
+const C = { accent: "#6B1A2C", accentL: "#f5e6e9", surface: "#fff", border: "#e5e4ec", text: "#17171c", muted: "#6b6b78" };
 
 // ─── Loader / Action ──────────────────────────────────────────────────────────
 export async function loader({ request, params }) {
@@ -175,7 +175,7 @@ function StarsRow({ rating, s, size }) {
 function VerifiedBadge({ s }) {
   if (!s.showVerified) return null;
   if (s.verifiedStyle === "badge") return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: "#f0fdf4", color: "#059669", border: "1px solid #bbf7d0", whiteSpace: "nowrap" }}>✓ Verified</span>
+    <span style={{ fontSize: 9.5, fontWeight: 600, padding: "2px 7px", borderRadius: 20, background: "#f0fdf4", color: "#059669", border: "1px solid #bbf7d0", whiteSpace: "nowrap" }}>✓ Verified</span>
   );
   if (s.verifiedStyle === "text") return <span style={{ fontSize: 10, color: "#059669", fontWeight: 600, whiteSpace: "nowrap" }}>✓ Verified Buyer</span>;
   return <span style={{ fontSize: 12, color: "#059669" }}>✓</span>;
@@ -212,7 +212,7 @@ function ReviewCard({ r, s, compact = false }) {
           {/* Header */}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
             {s.showAvatar && (
-              <div style={{ width: s.avatarSize, height: s.avatarSize, borderRadius: avatarRadius, flexShrink: 0, background: s.avatarBg, color: s.avatarColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: s.avatarSize * 0.32, fontWeight: 800 }}>
+              <div style={{ width: s.avatarSize, height: s.avatarSize, borderRadius: avatarRadius, flexShrink: 0, background: s.avatarBg, color: s.avatarColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: s.avatarSize * 0.32, fontWeight: 600 }}>
                 {r.initials}
               </div>
             )}
@@ -228,7 +228,7 @@ function ReviewCard({ r, s, compact = false }) {
 
           {/* Review title */}
           {s.showTitle && r.title && (
-            <div style={{ fontSize: s.nameSize, fontWeight: "700", color: s.nameColor, marginBottom: 5 }}>{r.title}</div>
+            <div style={{ fontSize: s.nameSize, fontWeight: 600, color: s.nameColor, marginBottom: 5 }}>{r.title}</div>
           )}
 
           {/* Body */}
@@ -243,9 +243,7 @@ function ReviewCard({ r, s, compact = false }) {
           {s.showMedia && r.hasMedia && (
             <div style={{ display: "flex", gap: 6, margin: "10px 0" }}>
               {[1, 2].map(i => (
-                <div key={i} style={{ width: 54, height: 54, borderRadius: 7, background: "linear-gradient(135deg,#e0e7ff,#c7d2fe)", border: `1px solid ${s.cardBorderColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
-                  🖼️
-                </div>
+                <div key={i} style={{ width: 54, height: 54, borderRadius: 7, background: "linear-gradient(135deg,#e0e7ff,#c7d2fe)", border: `1px solid ${s.cardBorderColor}` }} />
               ))}
             </div>
           )}
@@ -261,7 +259,7 @@ function ReviewCard({ r, s, compact = false }) {
           {(s.showHelpful || (s.showReply && r.hasReply)) && (
             <div style={{ borderTop: `1px solid ${s.cardBorderColor}`, marginTop: 10, paddingTop: 10 }}>
               {s.showHelpful && (
-                <span style={{ fontSize: 11, color: s.mutedColor, cursor: "pointer" }}>👍 Helpful ({r.helpful})</span>
+                <span style={{ fontSize: 11, color: s.mutedColor, cursor: "pointer" }}>Helpful ({r.helpful})</span>
               )}
             </div>
           )}
@@ -269,8 +267,8 @@ function ReviewCard({ r, s, compact = false }) {
           {/* Merchant reply */}
           {s.showReply && r.hasReply && (
             <div style={{ marginTop: 10, padding: "10px 12px", background: s.pageBg, borderRadius: 8, borderLeft: `3px solid ${s.accentColor}` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: s.accentColor, marginBottom: 4 }}>Reply from the store</div>
-              <div style={{ fontSize: 12, color: s.bodyColor, lineHeight: 1.5 }}>Thank you so much for your kind words! We truly appreciate your support. 🙏</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: s.accentColor, marginBottom: 4 }}>Reply from the store</div>
+              <div style={{ fontSize: 12, color: s.bodyColor, lineHeight: 1.5 }}>Thank you so much for your kind words! We truly appreciate your support.</div>
             </div>
           )}
         </>
@@ -289,7 +287,7 @@ function SummaryBar({ s }) {
     { star: 2, pct: 2 },  { star: 1, pct: 2 },
   ];
   const WriteBtn = () => s.showWriteBtn ? (
-    <button style={{ padding: "9px 18px", borderRadius: 9, background: s.accentColor, color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+    <button style={{ padding: "9px 18px", borderRadius: 9, background: s.accentColor, color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
       {s.writeBtnText}
     </button>
   ) : null;
@@ -297,7 +295,7 @@ function SummaryBar({ s }) {
   if (s.summaryStyle === "minimal") return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
       <StarsRow rating={5} s={s} size={20} />
-      <span style={{ fontSize: 20, fontWeight: 900, color: s.textColor }}>{avg}</span>
+      <span style={{ fontSize: 20, fontWeight: 600, color: s.textColor }}>{avg}</span>
       <span style={{ fontSize: 13, color: s.mutedColor }}>based on {total.toLocaleString()} reviews</span>
       <div style={{ marginLeft: "auto" }}><WriteBtn /></div>
     </div>
@@ -307,7 +305,7 @@ function SummaryBar({ s }) {
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, marginBottom: 20, padding: "16px 20px", background: s.cardBg, borderRadius: s.cardRadius, border: `${s.cardBorderWidth}px ${s.cardBorderStyle} ${s.cardBorderColor}`, flexWrap: "wrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 38, fontWeight: 900, color: s.textColor, lineHeight: 1 }}>{avg}</div>
+          <div style={{ fontSize: 38, fontWeight: 600, color: s.textColor, lineHeight: 1 }}>{avg}</div>
           <div style={{ margin: "4px 0 2px" }}><StarsRow rating={5} s={s} size={16} /></div>
           <div style={{ fontSize: 11, color: s.mutedColor }}>{total.toLocaleString()} reviews</div>
         </div>
@@ -319,7 +317,7 @@ function SummaryBar({ s }) {
   return (
     <div style={{ display: "flex", gap: 20, marginBottom: 24, padding: "20px 22px", background: s.cardBg, borderRadius: s.cardRadius, border: `${s.cardBorderWidth}px ${s.cardBorderStyle} ${s.cardBorderColor}`, boxShadow: (CARD_SHADOWS.find(x => x.key === s.cardShadow) || CARD_SHADOWS[1]).style, flexWrap: "wrap" }}>
       <div style={{ textAlign: "center", minWidth: 80 }}>
-        <div style={{ fontSize: 44, fontWeight: 900, color: s.textColor, lineHeight: 1 }}>{avg}</div>
+        <div style={{ fontSize: 44, fontWeight: 600, color: s.textColor, lineHeight: 1 }}>{avg}</div>
         <div style={{ margin: "5px 0 3px" }}><StarsRow rating={5} s={s} size={17} /></div>
         <div style={{ fontSize: 11, color: s.mutedColor }}>{total.toLocaleString()} reviews</div>
       </div>
@@ -373,7 +371,7 @@ function Pagination({ s }) {
   if (s.paginationType === "none") return null;
   if (s.paginationType === "loadmore") return (
     <div style={{ textAlign: "center", marginTop: 24 }}>
-      <button style={{ padding: "11px 32px", borderRadius: 10, background: s.accentColor, color: "#fff", border: "none", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>{s.loadMoreText}</button>
+      <button style={{ padding: "11px 32px", borderRadius: 10, background: s.accentColor, color: "#fff", border: "none", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>{s.loadMoreText}</button>
     </div>
   );
   return (
@@ -450,7 +448,7 @@ function LivePreview({ s }) {
     <div style={{ background: s.pageBg, borderRadius: 16, padding: "28px 24px", fontFamily: s.fontFamily }}>
       {/* Section heading */}
       <div style={{ textAlign: s.headingAlign, marginBottom: 20 }}>
-        <h2 style={{ fontSize: Math.min(s.headingSize, 30), fontWeight: 800, color: s.headingColor, margin: 0 }}>
+        <h2 style={{ fontSize: Math.min(s.headingSize, 30), fontWeight: 600, color: s.headingColor, margin: 0 }}>
           {s.headingText}
         </h2>
       </div>
@@ -478,7 +476,7 @@ function SettingsSidebar({ s, onChange }) {
         <button onClick={() => setOpen(isOpen ? null : id)} style={{
           width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "11px 14px",
           background: isOpen ? "#fdf2f4" : "none", border: "none",
-          fontSize: 11.5, fontWeight: 800, color: isOpen ? C.accent : C.muted,
+          fontSize: 11.5, fontWeight: 600, color: isOpen ? C.accent : C.muted,
           textTransform: "uppercase", letterSpacing: 0.5, cursor: "pointer",
         }}>
           <span style={{ fontSize: 14 }}>{emoji}</span>
@@ -493,7 +491,7 @@ function SettingsSidebar({ s, onChange }) {
   function F({ label: lbl, children }) {
     return (
       <div style={{ marginBottom: 12 }}>
-        <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>{lbl}</label>
+        <label style={{ display: "block", fontSize: 10, fontWeight: 600, color: C.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>{lbl}</label>
         {children}
       </div>
     );
@@ -545,7 +543,7 @@ function SettingsSidebar({ s, onChange }) {
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
           {options.map(o => (
             <button key={o.key || o} onClick={() => onCh(o.key || o)} style={{
-              flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 700,
+              flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 600,
               border: `1.5px solid ${value === (o.key || o) ? C.accent : C.border}`,
               background: value === (o.key || o) ? C.accentL : "#fff",
               color: value === (o.key || o) ? C.accent : C.muted,
@@ -568,7 +566,7 @@ function SettingsSidebar({ s, onChange }) {
                 padding: "8px 4px", borderRadius: 8, cursor: "pointer", textAlign: "center",
                 border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
                 background: s.layout === l.key ? C.accentL : "#fff",
-                fontSize: 10, fontWeight: 700, color: s.layout === l.key ? C.accent : C.text,
+                fontSize: 10, fontWeight: 600, color: s.layout === l.key ? C.accent : C.text,
               }}>
                 <div style={{ fontSize: 17, marginBottom: 2 }}>{l.icon}</div>
                 {l.label}
@@ -593,7 +591,7 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 2. Summary bar */}
-      <Sec id="summary" emoji="📊" label="Rating Summary">
+      <Sec id="summary" emoji="▤" label="Rating Summary">
         <Sel label="Style" value={s.summaryStyle} options={SUMMARY_STYLES} onCh={v => set("summaryStyle", v)} />
         {s.summaryStyle !== "none" && <>
           <Toggle label="Show rating breakdown bars" value={s.showRatingBars} onCh={v => set("showRatingBars", v)} />
@@ -607,14 +605,14 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 3. Card design */}
-      <Sec id="card" emoji="🃏" label="Card Design">
+      <Sec id="card" emoji="▭" label="Card Design">
         <Clr label="Card background" value={s.cardBg} onCh={v => set("cardBg", v)} />
         <Clr label="Border color" value={s.cardBorderColor} onCh={v => set("cardBorderColor", v)} />
         <F label="Border style">
           <div style={{ display: "flex", gap: 5 }}>
             {["solid","dashed","none"].map(bs => (
               <button key={bs} onClick={() => set("cardBorderStyle", bs)} style={{
-                flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 700,
+                flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 600,
                 border: `1.5px solid ${s.cardBorderStyle === bs ? C.accent : C.border}`,
                 background: s.cardBorderStyle === bs ? C.accentL : "#fff",
                 color: s.cardBorderStyle === bs ? C.accent : C.muted,
@@ -637,7 +635,7 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 5. Avatar */}
-      <Sec id="avatar" emoji="👤" label="Reviewer Avatar">
+      <Sec id="avatar" emoji="○" label="Reviewer Avatar">
         <Toggle label="Show avatar" value={s.showAvatar} onCh={v => set("showAvatar", v)} />
         {s.showAvatar && <>
           <BtnGroup label="Shape" value={s.avatarShape} options={AVATAR_SHAPES} onCh={v => set("avatarShape", v)} />
@@ -648,25 +646,25 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 6. Typography */}
-      <Sec id="type" emoji="🔤" label="Typography">
+      <Sec id="type" emoji="Aa" label="Typography">
         <Sel label="Font family" value={s.fontFamily} options={FONTS} onCh={v => set("fontFamily", v)} />
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Reviewer Name</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Reviewer Name</div>
         <Rng label="Size" value={s.nameSize} min={11} max={20} unit="px" onCh={v => set("nameSize", v)} />
         <Sel label="Weight" value={s.nameWeight} options={[{key:"400",label:"Normal"},{key:"600",label:"Semi-bold"},{key:"700",label:"Bold"},{key:"800",label:"Extra bold"}]} onCh={v => set("nameWeight", v)} />
         <Clr label="Color" value={s.nameColor} onCh={v => set("nameColor", v)} />
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Review Body</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Review Body</div>
         <Rng label="Size" value={s.bodySize} min={11} max={20} unit="px" onCh={v => set("bodySize", v)} />
         <Clr label="Color" value={s.bodyColor} onCh={v => set("bodyColor", v)} />
         <Rng label="Line height" value={s.bodyLineHeight} min={1.2} max={2.2} step={0.05} unit="×" onCh={v => set("bodyLineHeight", v)} />
         <Rng label="Max lines before truncate" value={s.bodyMaxLines} min={2} max={10} onCh={v => set("bodyMaxLines", v)} />
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Date</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "12px 0 8px", borderBottom: `1px solid ${C.border}`, paddingBottom: 5 }}>Date</div>
         <Rng label="Size" value={s.dateSize} min={9} max={14} unit="px" onCh={v => set("dateSize", v)} />
         <Clr label="Color" value={s.dateColor} onCh={v => set("dateColor", v)} />
         <BtnGroup label="Format" value={s.dateFormat} options={DATE_FORMATS} onCh={v => set("dateFormat", v)} />
       </Sec>
 
       {/* 7. Elements */}
-      <Sec id="elements" emoji="✅" label="Show / Hide">
+      <Sec id="elements" emoji="✓" label="Show / Hide">
         <Toggle label="Review title"       value={s.showTitle}    onCh={v => set("showTitle", v)} />
         <Toggle label="Verified badge"     value={s.showVerified} onCh={v => set("showVerified", v)} />
         {s.showVerified && <BtnGroup label="Badge style" value={s.verifiedStyle} options={VERIFIED_STYLES} onCh={v => set("verifiedStyle", v)} />}
@@ -679,13 +677,13 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 8. Filter & Sort */}
-      <Sec id="filter" emoji="🔍" label="Filter & Sort">
+      <Sec id="filter" emoji="▾" label="Filter & Sort">
         <Toggle label="Show star filter tabs" value={s.showFilter} onCh={v => set("showFilter", v)} />
         <Toggle label="Show sort dropdown"    value={s.showSort}   onCh={v => set("showSort", v)} />
       </Sec>
 
       {/* 9. Heading */}
-      <Sec id="heading" emoji="📝" label="Section Heading">
+      <Sec id="heading" emoji="¶" label="Section Heading">
         <F label="Heading text">
           <input type="text" value={s.headingText} onChange={e => set("headingText", e.target.value)} style={inp} />
         </F>
@@ -695,7 +693,7 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 10. Colors */}
-      <Sec id="colors" emoji="🎨" label="Global Colors">
+      <Sec id="colors" emoji="◐" label="Global Colors">
         <Clr label="Page background" value={s.pageBg}       onCh={v => set("pageBg", v)} />
         <Clr label="Accent color"    value={s.accentColor}  onCh={v => set("accentColor", v)} />
         <Clr label="Text color"      value={s.textColor}    onCh={v => set("textColor", v)} />
@@ -703,7 +701,7 @@ function SettingsSidebar({ s, onChange }) {
       </Sec>
 
       {/* 11. Advanced */}
-      <Sec id="advanced" emoji="⚙️" label="Advanced">
+      <Sec id="advanced" emoji="⚙" label="Advanced">
         <BtnGroup label="Entrance animation" value={s.animation} options={ANIMATIONS} onCh={v => set("animation", v)} />
         <F label="Custom CSS (injected into widget)">
           <textarea
@@ -748,7 +746,6 @@ export default function TemplateBuilder() {
       {/* DB error banner */}
       {actionData?.error && (
         <div style={{ background: "#fff7ed", borderBottom: "1px solid #fed7aa", padding: "10px 20px", display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "#9a3412", flexShrink: 0 }}>
-          <span>⚠️</span>
           <strong>Save failed:</strong> {actionData.error}
         </div>
       )}
@@ -758,11 +755,11 @@ export default function TemplateBuilder() {
         <Link to="/app/customize" style={{ color: C.muted, textDecoration: "none", fontSize: 13, fontWeight: 600, flexShrink: 0 }}>← Templates</Link>
         <div style={{ width: 1, height: 22, background: C.border }} />
         <input type="text" value={tplName} onChange={e => { setTplName(e.target.value); setSaved(false); }}
-          style={{ flex: 1, maxWidth: 320, padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontWeight: 700, color: C.text, background: "#fff", outline: "none" }}
+          style={{ flex: 1, maxWidth: 320, padding: "6px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontWeight: 600, color: C.text, background: "#fff", outline: "none" }}
           placeholder="Template name" />
         <div style={{ flex: 1 }} />
-        {saved && <span style={{ fontSize: 12, color: "#059669", fontWeight: 700 }}>Saved ✓</span>}
-        <button onClick={handleSave} style={{ padding: "8px 28px", borderRadius: 9, fontSize: 13.5, fontWeight: 800, background: C.accent, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(107,26,44,.28)" }}>Save</button>
+        {saved && <span style={{ fontSize: 12, color: "#059669", fontWeight: 600 }}>Saved ✓</span>}
+        <button onClick={handleSave} style={{ padding: "8px 28px", borderRadius: 9, fontSize: 13.5, fontWeight: 600, background: C.accent, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(107,26,44,.28)" }}>Save</button>
       </div>
 
       {/* Body */}
@@ -777,17 +774,17 @@ export default function TemplateBuilder() {
         <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
           <div style={{ maxWidth: 960, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <span style={{ fontSize: 10.5, fontWeight: 800, color: C.muted, letterSpacing: 0.6, textTransform: "uppercase" }}>
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: C.muted, letterSpacing: 0.6, textTransform: "uppercase" }}>
                 Live Preview · {LAYOUTS.find(l => l.key === settings.layout)?.label} layout
               </span>
               <div style={{ display: "flex", gap: 5 }}>
                 {["preview","mobile"].map(t => (
                   <button key={t} onClick={() => setActiveTab(t)} style={{
-                    padding: "4px 14px", borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: "pointer",
+                    padding: "4px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
                     border: `1.5px solid ${activeTab === t ? C.accent : C.border}`,
                     background: activeTab === t ? C.accentL : "#fff",
                     color: activeTab === t ? C.accent : C.muted,
-                  }}>{t === "preview" ? "🖥 Desktop" : "📱 Mobile"}</button>
+                  }}>{t === "preview" ? "Desktop" : "Mobile"}</button>
                 ))}
               </div>
             </div>

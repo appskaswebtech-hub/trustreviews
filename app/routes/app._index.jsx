@@ -21,9 +21,9 @@ const HIDE_REASONS = [
 ];
 
 const SENTIMENT_META = {
-  positive: { icon: "🟢", label: "Positive" },
-  neutral:  { icon: "⚪", label: "Neutral"  },
-  negative: { icon: "🔴", label: "Negative" },
+  positive: { color: "#1f7a4d", label: "Positive" },
+  neutral:  { color: "#8b8b96", label: "Neutral"  },
+  negative: { color: "#a5423b", label: "Negative" },
 };
 
 const normalizeProductId = (value) => {
@@ -140,6 +140,7 @@ export const loader = async ({ request }) => {
       shopLocale,
       grouped: [], total: 0, page, limit,
       allCount: 0, approvedCount: 0, pendingCount: 0, rejectedCount: 0,
+      ratingBreakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }, avgRating: 0, newThisWeek: 0,
       tab, search, autoPublish: false,
     };
   }
@@ -229,19 +230,32 @@ export const loader = async ({ request }) => {
   }
   if (grouped.unassigned.reviews.length === 0) delete grouped.unassigned;
 
-  const [total, approvedCount, pendingCount, rejectedCount, allCount] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const [total, approvedCount, pendingCount, rejectedCount, allCount, ratingGroups, newThisWeek] = await Promise.all([
     db.review.count({ where }),
     db.review.count({ where: { storeId: store.id, status: "approved" } }),
     db.review.count({ where: { storeId: store.id, status: "pending" } }),
     db.review.count({ where: { storeId: store.id, status: "rejected" } }),
     db.review.count({ where: { storeId: store.id } }),
+    db.review.groupBy({ by: ["rating"], where: { storeId: store.id, status: "approved" }, _count: { rating: true } }),
+    db.review.count({ where: { storeId: store.id, createdAt: { gte: sevenDaysAgo } } }),
   ]);
+
+  // Rating breakdown (bar chart) is scoped to approved reviews only — same
+  // population a "4.8 average" claim should be based on for the storefront.
+  const ratingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  ratingGroups.forEach((g) => { ratingBreakdown[g.rating] = g._count.rating; });
+  const avgRating = approvedCount
+    ? Object.entries(ratingBreakdown).reduce((sum, [star, count]) => sum + Number(star) * count, 0) / approvedCount
+    : 0;
 
   return {
     shopLocale,
     grouped: Object.values(grouped),
     total, page, limit,
     allCount, approvedCount, pendingCount, rejectedCount,
+    ratingBreakdown, avgRating, newThisWeek,
     tab, search,
     autoPublish: store.autoPublish,
   };
@@ -409,7 +423,7 @@ export const action = async ({ request }) => {
 ───────────────────────────────────────── */
 const TRANSLATIONS = {
   en: {
-    flag: "🇬🇧", label: "English",
+    label: "English",
     pageTitle: "Product Reviews",
     pageSubtitle: "Manage, moderate and export customer feedback",
     installWidget: "Install Widget",
@@ -448,7 +462,7 @@ const TRANSLATIONS = {
     gotIt: "Got it! Close",
   },
   hi: {
-    flag: "🇮🇳", label: "हिंदी",
+    label: "हिंदी",
     pageTitle: "उत्पाद समीक्षाएँ",
     pageSubtitle: "ग्राहक प्रतिक्रिया प्रबंधित करें और निर्यात करें",
     installWidget: "विजेट इंस्टॉल करें",
@@ -487,7 +501,7 @@ const TRANSLATIONS = {
     gotIt: "समझ गया! बंद करें",
   },
   es: {
-    flag: "🇪🇸", label: "Español",
+    label: "Español",
     pageTitle: "Reseñas de Productos",
     pageSubtitle: "Gestiona, modera y exporta comentarios de clientes",
     installWidget: "Instalar Widget",
@@ -526,7 +540,7 @@ const TRANSLATIONS = {
     gotIt: "¡Entendido! Cerrar",
   },
   fr: {
-    flag: "🇫🇷", label: "Français",
+    label: "Français",
     pageTitle: "Avis sur les Produits",
     pageSubtitle: "Gérez, modérez et exportez les avis clients",
     installWidget: "Installer le Widget",
@@ -565,7 +579,7 @@ const TRANSLATIONS = {
     gotIt: "Compris ! Fermer",
   },
   de: {
-    flag: "🇩🇪", label: "Deutsch",
+    label: "Deutsch",
     pageTitle: "Produktbewertungen",
     pageSubtitle: "Kundenfeedback verwalten, moderieren und exportieren",
     installWidget: "Widget installieren",
@@ -604,7 +618,7 @@ const TRANSLATIONS = {
     gotIt: "Verstanden! Schließen",
   },
   it: {
-    flag: "🇮🇹", label: "Italiano",
+    label: "Italiano",
     pageTitle: "Recensioni Prodotti",
     pageSubtitle: "Gestisci, modera ed esporta i feedback dei clienti",
     installWidget: "Installa Widget",
@@ -643,7 +657,7 @@ const TRANSLATIONS = {
     gotIt: "Capito! Chiudi",
   },
   pt: {
-    flag: "🇵🇹", label: "Português",
+    label: "Português",
     pageTitle: "Avaliações de Produtos",
     pageSubtitle: "Gerencie, modere e exporte o feedback dos clientes",
     installWidget: "Instalar Widget",
@@ -682,7 +696,7 @@ const TRANSLATIONS = {
     gotIt: "Entendi! Fechar",
   },
   nl: {
-    flag: "🇳🇱", label: "Nederlands",
+    label: "Nederlands",
     pageTitle: "Productrecensies",
     pageSubtitle: "Beheer, modereer en exporteer klantfeedback",
     installWidget: "Widget installeren",
@@ -721,7 +735,7 @@ const TRANSLATIONS = {
     gotIt: "Begrepen! Sluiten",
   },
   ar: {
-    flag: "🇸🇦", label: "العربية",
+    label: "العربية",
     pageTitle: "تقييمات المنتجات",
     pageSubtitle: "إدارة وتعديل وتصدير ملاحظات العملاء",
     installWidget: "تثبيت الودجت",
@@ -760,7 +774,7 @@ const TRANSLATIONS = {
     gotIt: "حسنًا! إغلاق",
   },
   zh: {
-    flag: "🇨🇳", label: "中文",
+    label: "中文",
     pageTitle: "产品评论",
     pageSubtitle: "管理、审核并导出客户反馈",
     installWidget: "安装小工具",
@@ -799,7 +813,7 @@ const TRANSLATIONS = {
     gotIt: "知道了！关闭",
   },
   ja: {
-    flag: "🇯🇵", label: "日本語",
+    label: "日本語",
     pageTitle: "商品レビュー",
     pageSubtitle: "顧客フィードバックの管理・承認・エクスポート",
     installWidget: "ウィジェットをインストール",
@@ -838,7 +852,7 @@ const TRANSLATIONS = {
     gotIt: "了解しました！閉じる",
   },
   ru: {
-    flag: "🇷🇺", label: "Русский",
+    label: "Русский",
     pageTitle: "Отзывы о товарах",
     pageSubtitle: "Управляйте, модерируйте и экспортируйте отзывы клиентов",
     installWidget: "Установить виджет",
@@ -877,7 +891,7 @@ const TRANSLATIONS = {
     gotIt: "Понятно! Закрыть",
   },
   tr: {
-    flag: "🇹🇷", label: "Türkçe",
+    label: "Türkçe",
     pageTitle: "Ürün Değerlendirmeleri",
     pageSubtitle: "Müşteri geri bildirimlerini yönetin, denetleyin ve dışa aktarın",
     installWidget: "Widget'ı Yükle",
@@ -916,7 +930,7 @@ const TRANSLATIONS = {
     gotIt: "Anladım! Kapat",
   },
   pl: {
-    flag: "🇵🇱", label: "Polski",
+    label: "Polski",
     pageTitle: "Opinie o Produktach",
     pageSubtitle: "Zarządzaj, moderuj i eksportuj opinie klientów",
     installWidget: "Zainstaluj Widget",
@@ -955,7 +969,7 @@ const TRANSLATIONS = {
     gotIt: "Rozumiem! Zamknij",
   },
   ko: {
-    flag: "🇰🇷", label: "한국어",
+    label: "한국어",
     pageTitle: "상품 리뷰",
     pageSubtitle: "고객 피드백을 관리, 검토 및 내보내기",
     installWidget: "위젯 설치",
@@ -999,12 +1013,12 @@ const TRANSLATIONS = {
    TOKENS
 ───────────────────────────────────────── */
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280",
-  accent: "#5145e5", accentLt: "#eeecfd",
-  green: "#16a34a", greenLt: "#dcfce7",
-  amber: "#d97706", amberLt: "#fef3c7",
-  red:   "#dc2626", redLt:   "#fee2e2",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78",
+  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
+  amber: "#a3690f", amberLt: "#f7f0e2",
+  red:   "#a5423b", redLt:   "#f7eae8",
 };
 
 const statusStyle = (s) =>
@@ -1018,24 +1032,47 @@ const stars = (n) =>
   ));
 
 /* ─────────────────────────────────────────
-   STAT CARD
+   RATING SUMMARY CARD
 ───────────────────────────────────────── */
-function StatCard({ label, value, icon, bg, color }) {
+function RatingSummaryCard({ avgRating, approvedCount, ratingBreakdown, newThisWeek }) {
+  const maxCount = Math.max(1, ...Object.values(ratingBreakdown));
   return (
     <div style={{
-      flex: "1 1 150px", background: C.surface, borderRadius: 14,
-      border: `1px solid ${C.border}`, padding: "18px 22px",
-      display: "flex", alignItems: "center", gap: 14,
-      boxShadow: "0 1px 3px rgba(0,0,0,.05)",
+      background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`,
+      padding: "22px 26px", marginBottom: 22,
+      display: "flex", alignItems: "center", gap: 36, flexWrap: "wrap",
+      boxShadow: "0 1px 2px rgba(15,15,20,.03)",
     }}>
-      <div style={{
-        width: 44, height: 44, borderRadius: 12, background: bg,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 20, flexShrink: 0,
-      }}>{icon}</div>
-      <div>
-        <div style={{ fontSize: 24, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>{label}</div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 140 }}>
+        <div style={{ fontSize: 40, fontWeight: 600, color: C.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+          {avgRating.toFixed(2)}
+        </div>
+        <div style={{ display: "flex", marginTop: 8 }}>{stars(Math.round(avgRating))}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <span style={{ fontSize: 12.5, color: C.muted }}>of {approvedCount} reviews</span>
+          {newThisWeek > 0 && (
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: C.green, background: C.greenLt,
+              borderRadius: 20, padding: "2px 9px",
+            }}>+{newThisWeek} this week</span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: 7 }}>
+        {[5, 4, 3, 2, 1].map((star) => {
+          const count = ratingBreakdown[star] || 0;
+          const pct = Math.round((count / maxCount) * 100);
+          return (
+            <div key={star} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 11.5, color: C.muted, width: 12, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{star}</span>
+              <div style={{ flex: 1, height: 6, borderRadius: 4, background: C.border, overflow: "hidden" }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: C.accent, borderRadius: 4 }} />
+              </div>
+              <span style={{ fontSize: 11.5, color: C.muted, width: 22, fontVariantNumeric: "tabular-nums" }}>{count}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1070,8 +1107,8 @@ function InstallDocsModal({ onClose, t }) {
           cursor: "pointer", fontSize: 15, color: C.muted,
         }}>✕</button>
 
-        <div style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 8 }}>
-          ✅ {t.widgetInstalled}
+        <div style={{ fontSize: 22, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+          {t.widgetInstalled}
         </div>
         <p style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>{t.widgetSubtitle}</p>
 
@@ -1079,14 +1116,14 @@ function InstallDocsModal({ onClose, t }) {
           { n: 1, title: "Go to Theme Editor", body: <>Navigate to <strong>Online Store → Themes</strong> and click <strong>Customize</strong> on your active theme.</> },
           { n: 2, title: "Find Your Product Template", body: <>In the theme editor, navigate to <strong>Products → Default Product</strong>.</> },
           { n: 3, title: "Edit Code", body: <>Click <strong>⋮</strong> → <strong>Edit code</strong>. Find <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4 }}>sections/main-product.liquid</code></> },
-          { n: 5, title: "Save & Preview", body: <>Click <strong>Save</strong>, then view any product page to see your review widget live! 🎉</> },
+          { n: 5, title: "Save & Preview", body: <>Click <strong>Save</strong>, then view any product page to see your review widget live.</> },
         ].map(({ n, title, body }) => (
           <div key={n} style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 700, color: C.text }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 600, color: C.text }}>
               <span style={{
                 width: 28, height: 28, borderRadius: "50%", background: C.accentLt,
                 color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, fontWeight: 800,
+                fontSize: 13, fontWeight: 600,
               }}>{n}</span>
               {title}
             </div>
@@ -1095,11 +1132,11 @@ function InstallDocsModal({ onClose, t }) {
         ))}
 
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 700, color: C.text }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 600, color: C.text }}>
             <span style={{
               width: 28, height: 28, borderRadius: "50%", background: C.accentLt,
               color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 800,
+              fontSize: 13, fontWeight: 600,
             }}>4</span>
             Paste the Widget Code
           </div>
@@ -1123,7 +1160,7 @@ function InstallDocsModal({ onClose, t }) {
 
         <button onClick={onClose} style={{
           width: "100%", border: "none", borderRadius: 10, padding: "12px",
-          background: C.accent, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          background: C.accent, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer",
         }}>{t.gotIt}</button>
       </div>
     </div>
@@ -1296,13 +1333,13 @@ function ImportModal({ onClose, onImport, t }) {
   };
 
   const FORMAT_META = {
-    judgeme: { icon: "⚖️", label: "Judge.me",            color: "#7c3aed", bg: "#ede9fe" },
-    loox:    { icon: "📸", label: "Loox",                 color: "#be185d", bg: "#fce7f3" },
-    yotpo:   { icon: "🟦", label: "Yotpo",                color: "#1d4ed8", bg: "#dbeafe" },
-    stamped: { icon: "🟧", label: "Stamped",              color: "#c2410c", bg: "#ffedd5" },
-    zeppo:   { icon: "⚡", label: "Zeppo / Okendo",        color: "#0369a1", bg: "#e0f2fe" },
-    native:  { icon: "🏠", label: "Native Export",         color: "#16a34a", bg: "#dcfce7" },
-    generic: { icon: "📄", label: "Generic CSV",          color: "#475569", bg: "#f1f5f9" },
+    judgeme: { label: "Judge.me",            color: "#7c3aed", bg: "#ede9fe" },
+    loox:    { label: "Loox",                 color: "#be185d", bg: "#fce7f3" },
+    yotpo:   { label: "Yotpo",                color: "#1d4ed8", bg: "#dbeafe" },
+    stamped: { label: "Stamped",              color: "#c2410c", bg: "#ffedd5" },
+    zeppo:   { label: "Zeppo / Okendo",        color: "#0369a1", bg: "#e0f2fe" },
+    native:  { label: "Native Export",         color: "#16a34a", bg: "#dcfce7" },
+    generic: { label: "Generic CSV",          color: "#475569", bg: "#f1f5f9" },
   };
 
   const fmt = FORMAT_META[detected];
@@ -1323,7 +1360,7 @@ function ImportModal({ onClose, onImport, t }) {
           cursor: "pointer", fontSize: 15, color: C.muted,
         }}>✕</button>
 
-        <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 6 }}>📥 {t.importTitle}</div>
+        <div style={{ fontSize: 20, fontWeight: 600, color: C.text, marginBottom: 6 }}>{t.importTitle}</div>
         <p style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{t.importSubtitle}</p>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
@@ -1331,7 +1368,7 @@ function ImportModal({ onClose, onImport, t }) {
             <span key={f.label} style={{
               fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 11px",
               background: f.bg, color: f.color,
-            }}>{f.icon} {f.label}</span>
+            }}>{f.label}</span>
           ))}
         </div>
 
@@ -1341,7 +1378,6 @@ function ImportModal({ onClose, onImport, t }) {
           borderRadius: 12, padding: "28px 20px", cursor: "pointer",
           background: detected ? "#faf8ff" : "#fafbff", marginBottom: 14, gap: 6,
         }}>
-          <span style={{ fontSize: 36 }}>📂</span>
           <span style={{ fontSize: 13, color: C.accent, fontWeight: 600 }}>
             {detected ? t.changeFile : t.chooseFile}
           </span>
@@ -1354,9 +1390,8 @@ function ImportModal({ onClose, onImport, t }) {
             display: "flex", alignItems: "center", gap: 10,
             background: fmt.bg, borderRadius: 10, padding: "10px 14px", marginBottom: 14,
           }}>
-            <span style={{ fontSize: 22 }}>{fmt.icon}</span>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: fmt.color }}>{fmt.label} format detected</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: fmt.color }}>{fmt.label} format detected</div>
               <div style={{ fontSize: 11, color: fmt.color, opacity: 0.8 }}>
                 {totalRows} {totalRows !== 1 ? t.reviews : t.review} found
               </div>
@@ -1369,12 +1404,12 @@ function ImportModal({ onClose, onImport, t }) {
             background: C.redLt, border: `1px solid #fca5a5`,
             borderRadius: 10, padding: "10px 14px",
             fontSize: 12, color: C.red, marginBottom: 14,
-          }}>⚠️ {error}</div>
+          }}>{error}</div>
         )}
 
         {preview.length > 0 && (
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, letterSpacing: ".07em", textTransform: "uppercase", marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: ".07em", textTransform: "uppercase", marginBottom: 8 }}>
               Preview — first {preview.length} of {totalRows} rows
             </div>
             {preview.map((row, i) => (
@@ -1387,7 +1422,7 @@ function ImportModal({ onClose, onImport, t }) {
                   <span style={{
                     width: 26, height: 26, borderRadius: "50%", background: C.accentLt,
                     color: C.accent, display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 800, flexShrink: 0,
+                    fontSize: 11, fontWeight: 600, flexShrink: 0,
                   }}>{(row.customer || "?")[0].toUpperCase()}</span>
                   <strong style={{ fontSize: 13 }}>{row.customer}</strong>
                   {row.email && <span style={{ color: C.muted, fontSize: 11 }}>{row.email}</span>}
@@ -1397,7 +1432,7 @@ function ImportModal({ onClose, onImport, t }) {
                     ))}
                   </span>
                   <span style={{
-                    fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 8px",
+                    fontSize: 10, fontWeight: 600, borderRadius: 20, padding: "2px 8px",
                     background: row.status === "approved" ? C.greenLt : C.amberLt,
                     color: row.status === "approved" ? C.green : C.amber,
                   }}>{row.status}</span>
@@ -1415,7 +1450,7 @@ function ImportModal({ onClose, onImport, t }) {
                       <img src={row.mediaUrl} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover" }} />
                     )}
                     <span style={{ fontSize: 10.5, color: C.muted }}>
-                      {row.mediaType.startsWith("video/") ? "🎬 video attached" : "🖼 image attached"}
+                      {row.mediaType.startsWith("video/") ? "Video attached" : "Image attached"}
                     </span>
                   </div>
                 )}
@@ -1431,7 +1466,7 @@ function ImportModal({ onClose, onImport, t }) {
           }}>{t.cancel}</button>
           <button onClick={handleImport} disabled={!preview.length} style={{
             border: "none", borderRadius: 10, padding: "9px 22px",
-            fontSize: 13, fontWeight: 700,
+            fontSize: 13, fontWeight: 600,
             background: preview.length ? C.accent : "#d1d5db",
             color: "#fff", cursor: preview.length ? "pointer" : "default",
           }}>
@@ -1472,6 +1507,16 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
     onAction("tag", review, { tags: tags.filter((x) => x !== tag).join(",") || null });
   };
 
+  // Quick toggle for the "Home" tag specifically — the Homepage Reviews
+  // widget shows only reviews carrying this tag, so a one-click way to add
+  // existing reviews to it (without typing into the free-text tag box) is
+  // the common case for that widget.
+  const isHomeTagged = tags.includes("Home");
+  const toggleHomeTag = () => {
+    const nextTags = isHomeTagged ? tags.filter((x) => x !== "Home") : [...tags, "Home"];
+    onAction("tag", review, { tags: nextTags.join(",") || null });
+  };
+
   const analyzeSentiment = async () => {
     setAnalyzing(true);
     try {
@@ -1505,10 +1550,19 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
             <div style={{
               width: 32, height: 32, borderRadius: "50%", background: C.accentLt,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 800, fontSize: 13, color: C.accent, flexShrink: 0,
+              fontWeight: 600, fontSize: 13, color: C.accent, flexShrink: 0,
             }}>{(review.customer || "?")[0].toUpperCase()}</div>
             <div>
-              <span style={{ fontWeight: 600, fontSize: 13, display: "block" }}>{review.customer}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontWeight: 600, fontSize: 13 }}>{review.customer}</span>
+                {review.source !== "imported" && (
+                  <span title="Submitted via storefront" style={{
+                    width: 13, height: 13, borderRadius: "50%", background: C.accent,
+                    color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 8, flexShrink: 0,
+                  }}>✓</span>
+                )}
+              </span>
               <span style={{ fontSize: 10.5, color: C.muted }}>
                 {review.source === "imported" ? "via Imported" : "via Storefront"}
               </span>
@@ -1522,14 +1576,15 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
               border: "none", background: "none", cursor: analyzing ? "default" : "pointer",
               fontSize: 11, marginTop: 4, padding: 0, color: C.muted,
             }}>
-              {SENTIMENT_META[sentiment]?.icon} {SENTIMENT_META[sentiment]?.label}
+              <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: SENTIMENT_META[sentiment]?.color, marginRight: 5 }} />
+              {SENTIMENT_META[sentiment]?.label}
             </button>
           ) : (
             <button onClick={analyzeSentiment} disabled={analyzing} style={{
               border: `1px dashed ${C.border}`, background: "none", cursor: analyzing ? "default" : "pointer",
               fontSize: 10.5, marginTop: 4, padding: "2px 6px", borderRadius: 6, color: C.muted,
             }}>
-              {analyzing ? "Analyzing…" : "✨ Analyze"}
+              {analyzing ? "Analyzing…" : "Analyze"}
             </button>
           )}
         </td>
@@ -1559,13 +1614,13 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
             onBlur={(e)  => { e.target.style.borderColor = C.border;  e.target.style.boxShadow = "none"; onAction("edit", review, { comment: e.target.value }); }}
           />
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6, alignItems: "center" }}>
-            {tags.map((tag) => (
+            {tags.filter((tag) => tag !== "Home").map((tag) => (
               <span key={tag} style={{
                 fontSize: 10.5, background: "#eef2ff", color: "#4338ca", borderRadius: 12, padding: "2px 8px",
                 display: "inline-flex", alignItems: "center", gap: 4,
               }}>
                 {tag}
-                <span onClick={() => removeTag(tag)} style={{ cursor: "pointer", fontWeight: 700 }}>×</span>
+                <span onClick={() => removeTag(tag)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>
               </span>
             ))}
             <input
@@ -1578,20 +1633,31 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
                 fontSize: 10.5, width: 60, outline: "none", background: "transparent",
               }}
             />
+            <button
+              onClick={toggleHomeTag}
+              title={isHomeTagged ? "Remove from Homepage Reviews widget" : "Show on Homepage Reviews widget"}
+              style={{
+                border: isHomeTagged ? "none" : `1px dashed ${C.border}`,
+                borderRadius: 12, padding: "2px 8px", fontSize: 10.5, fontWeight: 600,
+                cursor: "pointer", background: isHomeTagged ? C.accent : "transparent",
+                color: isHomeTagged ? "#fff" : C.muted,
+              }}
+            >
+              Home
+            </button>
           </div>
           {review.reply && !replying && (
             <div style={{ marginTop: 6, fontSize: 11.5, color: C.muted, background: "#f9fafb", borderRadius: 6, padding: "5px 8px" }}>
-              💬 <strong>Your reply:</strong> {review.reply}
+              <strong>Your reply:</strong> {review.reply}
             </div>
           )}
         </td>
         <td style={TD}>
           <span style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            background: ss.bg, color: ss.color, borderRadius: 20, padding: "3px 11px",
-            fontSize: 12, fontWeight: 600,
+            display: "inline-flex", alignItems: "center",
+            background: ss.dot, color: "#fff", borderRadius: 20, padding: "3px 12px",
+            fontSize: 11.5, fontWeight: 600,
           }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: ss.dot }} />
             {t[review.status] || review.status}
           </span>
           {review.status === "rejected" && review.hideReason && (
@@ -1627,11 +1693,11 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
                 ))}
               </select>
             )}
-            <button onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>💬 Reply</button>
+            <button onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>Reply</button>
             <button onClick={() => setPickingProduct((v) => !v)} style={ABT("neutral")}>
-              🔗 {review.productId ? "Change" : "Assign"} Product
+              {review.productId ? "Change" : "Assign"} Product
             </button>
-            <button onClick={() => onAction("delete", review)} style={ABT("delete")} title="Delete">🗑</button>
+            <button onClick={() => onAction("delete", review)} style={ABT("delete")} title="Delete">Delete</button>
           </div>
         </td>
       </tr>
@@ -1799,9 +1865,9 @@ function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggl
           alt={group.productTitle}
           style={{ width: 46, height: 46, objectFit: "cover", borderRadius: 10, flexShrink: 0, border: `1px solid ${C.border}` }}
         />
-        <span style={{ flex: 1, fontWeight: 700, fontSize: 14, color: C.text }}>{group.productTitle}</span>
+        <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: C.text }}>{group.productTitle}</span>
         <span style={{
-          fontSize: 11, fontWeight: 700, background: C.accentLt, color: C.accent,
+          fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent,
           borderRadius: 20, padding: "3px 10px",
         }}>
           {group.reviews.length} {group.reviews.length !== 1 ? t.reviews : t.review}
@@ -1817,7 +1883,7 @@ function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggl
           <thead>
             <tr>
               <th style={{
-                textAlign: "left", fontSize: 10, fontWeight: 700, color: C.muted,
+                textAlign: "left", fontSize: 10, fontWeight: 600, color: C.muted,
                 letterSpacing: ".07em", padding: "9px 16px", background: "#f8f9fc", width: 30,
               }}>
                 <SelectAllCheckbox
@@ -1827,9 +1893,9 @@ function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggl
                   accent={C.accent}
                 />
               </th>
-              {[t.customer, t.rating, "🖼", t.comment, t.status, t.date, t.actions].map((h, i) => (
+              {[t.customer, t.rating, "Media", t.comment, t.status, t.date, t.actions].map((h, i) => (
                 <th key={i} style={{
-                  textAlign: "left", fontSize: 10, fontWeight: 700, color: C.muted,
+                  textAlign: "left", fontSize: 10, fontWeight: 600, color: C.muted,
                   letterSpacing: ".07em", textTransform: "uppercase",
                   padding: "9px 16px", background: "#f8f9fc",
                 }}>{h}</th>
@@ -1857,6 +1923,7 @@ export default function ReviewsPage() {
   const {
     shopLocale, grouped, total, page, limit,
     allCount, approvedCount, pendingCount, rejectedCount,
+    ratingBreakdown, avgRating, newThisWeek,
     tab, search, autoPublish,
   } = useLoaderData();
 
@@ -2019,7 +2086,7 @@ export default function ReviewsPage() {
       {/* ── Top Bar ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0, letterSpacing: "-0.4px" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0, letterSpacing: "-0.4px" }}>
             {t.pageTitle}
           </h1>
           <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>{t.pageSubtitle}</p>
@@ -2038,7 +2105,7 @@ export default function ReviewsPage() {
               display: "flex", alignItems: "center", gap: 7,
             }}
           >
-            {installing ? `⏳ ${t.installing}` : `⚡ ${t.installWidget}`}
+            {installing ? t.installing : t.installWidget}
           </button>
 
           {installMsg && (
@@ -2049,7 +2116,8 @@ export default function ReviewsPage() {
               padding: "6px 12px", borderRadius: 8,
               display: "flex", alignItems: "center", gap: 5,
             }}>
-              {installOk ? "✅" : "❌"} {installMsg}
+              <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: installOk ? C.green : C.red }} />
+              {installMsg}
             </span>
           )}
 
@@ -2078,29 +2146,29 @@ export default function ReviewsPage() {
             border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
             fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
             color: C.text, display: "flex", alignItems: "center", gap: 7,
-          }}>📥 {t.import}</button>
+          }}>{t.import}</button>
 
           <Link to="/app/review-groups" style={{
             border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
             fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
             color: C.text, display: "flex", alignItems: "center", gap: 7, textDecoration: "none",
-          }}>🔗 Review groups</Link>
+          }}>Review groups</Link>
 
           <button onClick={exportCSV} style={{
             border: "none", borderRadius: 10, padding: "9px 18px",
-            fontSize: 13, fontWeight: 700, background: C.accent, color: "#fff",
+            fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff",
             cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
           }}>↓ {t.exportCSV}</button>
         </div>
       </div>
 
-      {/* ── Stat Cards ── */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
-        <StatCard label={t.totalReviews} value={allCount}      icon="💬" bg={C.accentLt} color={C.accent} />
-        <StatCard label={t.approved}     value={approvedCount} icon="✅" bg={C.greenLt}  color={C.green}  />
-        <StatCard label={t.pending}      value={pendingCount}  icon="⏳" bg={C.amberLt}  color={C.amber}  />
-        <StatCard label={t.rejected}     value={rejectedCount} icon="❌" bg={C.redLt}    color={C.red}    />
-      </div>
+      {/* ── Rating Summary ── */}
+      <RatingSummaryCard
+        avgRating={avgRating}
+        approvedCount={approvedCount}
+        ratingBreakdown={ratingBreakdown}
+        newThisWeek={newThisWeek}
+      />
 
       {/* ── Filter Bar ── */}
       <div style={{
@@ -2125,7 +2193,7 @@ export default function ReviewsPage() {
             >
               {label}
               <span style={{
-                fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 7px",
+                fontSize: 10, fontWeight: 600, borderRadius: 20, padding: "1px 7px",
                 background: tab === key ? "rgba(255,255,255,.25)" : C.border,
                 color: tab === key ? "#fff" : C.muted,
               }}>{count}</span>
@@ -2191,7 +2259,7 @@ export default function ReviewsPage() {
                 <span style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
                 <button onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve</button>
                 <button onClick={() => handleBulkAction("reject")}  style={ABT("reject")}>✕ Reject</button>
-                {!selectAllPages && <button onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>🔗 Assign Product</button>}
+                {!selectAllPages && <button onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>Assign Product</button>}
                 <button
                   onClick={() => {
                     const count = selectAllPages ? total : selectedIds.length;
@@ -2201,7 +2269,7 @@ export default function ReviewsPage() {
                   }}
                   style={{ ...ABT("reject"), background: "#fee2e2", color: "#b91c1c" }}
                 >
-                  🗑 Delete
+                  Delete
                 </button>
                 <button onClick={clearSelection} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12, textDecoration: "underline", marginLeft: "auto" }}>
                   Clear
@@ -2224,7 +2292,7 @@ export default function ReviewsPage() {
                 onClick={handleSelectAllPages}
                 style={{
                   border: "none", background: "none", color: "#1d4ed8",
-                  fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
+                  fontWeight: 600, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
                 }}
               >
                 Select all {total} reviews
@@ -2244,7 +2312,7 @@ export default function ReviewsPage() {
                 onClick={clearSelection}
                 style={{
                   border: "none", background: "none", color: "#1d4ed8",
-                  fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
+                  fontWeight: 600, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
                 }}
               >
                 Clear selection
@@ -2266,7 +2334,6 @@ export default function ReviewsPage() {
           background: C.surface, borderRadius: 14, border: `1px dashed ${C.border}`,
           padding: 60, textAlign: "center", color: C.muted, fontSize: 14,
         }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
           {t.noReviews}
         </div>
       ) : (

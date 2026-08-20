@@ -95,15 +95,15 @@ const DS = {
 };
 
 const C = {
-  bg: "#f0f2f7", surface: "#fff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280", accent: "#5145e5",
-  green: "#16a34a", greenLt: "#dcfce7",
+  bg: "#f6f6f8", surface: "#fff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
 };
 
 // ── Sample reviews for preview ────────────────────────────────────────────────
 const SAMPLES = [
   { name: "Cora P.", rating: 5, text: "Used on my BMW 220i no problem!", verified: true, img: true },
-  { name: "Russ S.", rating: 5, text: "Much better than the bulky locks I've had before 👍 Quality stuff", verified: true, img: true },
+  { name: "Russ S.", rating: 5, text: "Much better than the bulky locks I've had before. Quality stuff", verified: true, img: true },
   { name: "Jamie F.", rating: 5, text: "Solid bit of kit. Easy to use, no one's getting through this without a fight.", verified: true, img: true },
 ];
 
@@ -124,9 +124,9 @@ function PreviewSummaryCar({ s }) {
         background: s.panelBg, color: s.panelText, minWidth: 150, padding: "28px 20px",
         display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
       }}>
-        <div style={{ color: s.accentColor, fontWeight: 700, fontSize: 14 }}>Excellent</div>
+        <div style={{ color: s.accentColor, fontWeight: 600, fontSize: 14 }}>Excellent</div>
         <div style={{ fontSize: 18, letterSpacing: 2, color: "#fff" }}>★★★★★</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>4.9 average</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.9)" }}>4.9 average</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,.6)" }}>222 reviews</div>
       </div>
       <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 4, padding: "0 4px", overflow: "hidden", background: s.pageBg === "transparent" ? "#fafafa" : s.pageBg }}>
@@ -139,12 +139,12 @@ function PreviewSummaryCar({ s }) {
               boxShadow: s.showShadow ? "0 2px 8px rgba(0,0,0,.07)" : "none",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: 11, color: s.textColor }}>{r.name}</span>
+                <span style={{ fontWeight: 600, fontSize: 11, color: s.textColor }}>{r.name}</span>
                 <StarRow rating={r.rating} color={s.starColor} size={10} />
               </div>
               {s.showVerified && <div style={{ fontSize: 9, color: "#16a34a" }}>✓ Verified purchase</div>}
               <div style={{ fontSize: 10, color: s.textColor === "#111111" ? "#444" : s.textColor, lineHeight: 1.4 }}>{r.text.slice(0, 50)}…</div>
-              {s.showMedia && r.img && <div style={{ width: 30, height: 30, background: "#ddd", borderRadius: 4, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>🖼</div>}
+              {s.showMedia && r.img && <div style={{ width: 30, height: 30, background: "#ddd", borderRadius: 4 }} />}
             </div>
           ))}
         </div>
@@ -164,12 +164,12 @@ function PreviewGrid({ s }) {
           boxShadow: s.showShadow ? "0 2px 8px rgba(0,0,0,.07)" : "none",
         }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontWeight: 700, fontSize: 11, color: s.textColor }}>{r.name}</span>
+            <span style={{ fontWeight: 600, fontSize: 11, color: s.textColor }}>{r.name}</span>
             <StarRow rating={r.rating} color={s.starColor} size={10} />
           </div>
           {s.showVerified && <div style={{ fontSize: 9, color: "#16a34a" }}>✓ Verified purchase</div>}
           <div style={{ fontSize: 10, color: "#444", lineHeight: 1.4 }}>{r.text.slice(0, 55)}…</div>
-          {s.showMedia && r.img && <div style={{ width: 30, height: 30, background: "#ddd", borderRadius: 4, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>🖼</div>}
+          {s.showMedia && r.img && <div style={{ width: 30, height: 30, background: "#ddd", borderRadius: 4 }} />}
         </div>
       ))}
     </div>
@@ -180,7 +180,7 @@ function PreviewSpotlight({ s }) {
   return (
     <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
       <div style={{ background: s.panelBg, padding: "24px 20px", borderRadius: s.cardRadius, textAlign: "center", minWidth: 120 }}>
-        <div style={{ fontSize: 36, fontWeight: 900, color: "#fff", lineHeight: 1 }}>4.9</div>
+        <div style={{ fontSize: 36, fontWeight: 600, color: "#fff", lineHeight: 1 }}>4.9</div>
         <div style={{ fontSize: 16, color: s.accentColor, margin: "6px 0" }}>★★★★★</div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,.6)" }}>Based on 222 reviews</div>
       </div>
@@ -220,10 +220,10 @@ function PreviewTicker({ s }) {
 function PreviewHeroBanner({ s }) {
   return (
     <div style={{ background: s.panelBg, borderRadius: s.cardRadius, padding: "32px 24px", textAlign: "center", color: "#fff" }}>
-      <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>4.9<span style={{ fontSize: 18, opacity: .6 }}>/5</span></div>
+      <div style={{ fontSize: 44, fontWeight: 600, lineHeight: 1 }}>4.9<span style={{ fontSize: 18, opacity: .6 }}>/5</span></div>
       <div style={{ fontSize: 18, color: s.accentColor, margin: "8px 0" }}>★★★★★</div>
       <div style={{ fontSize: 12, opacity: .75, marginBottom: 16 }}>from 222 happy customers</div>
-      <button style={{ background: s.accentColor, color: "#111", border: "none", borderRadius: 20, padding: "8px 20px", fontSize: 12, fontWeight: 700 }}>See all reviews</button>
+      <button style={{ background: s.accentColor, color: "#111", border: "none", borderRadius: 20, padding: "8px 20px", fontSize: 12, fontWeight: 600 }}>See all reviews</button>
     </div>
   );
 }
@@ -233,7 +233,7 @@ function PreviewSplitScreen({ s }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {SAMPLES.slice(0, 2).map((r, i) => (
         <div key={i} style={{ display: "flex", flexDirection: i % 2 ? "row-reverse" : "row", gap: 16, alignItems: "center", background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, overflow: "hidden" }}>
-          <div style={{ width: 90, height: 90, background: "#ddd", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🖼</div>
+          <div style={{ width: 90, height: 90, background: "#ddd", flexShrink: 0 }} />
           <div style={{ padding: "8px 14px" }}>
             <StarRow rating={r.rating} color={s.starColor} size={11} />
             <div style={{ fontSize: 11, color: "#444", margin: "4px 0" }}>{r.text.slice(0, 60)}…</div>
@@ -267,7 +267,7 @@ function PreviewVideoShowcase({ s }) {
           <span style={{ fontSize: 22, color: "rgba(255,255,255,.5)" }}>▶</span>
           <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "6px 8px", background: "linear-gradient(transparent,rgba(0,0,0,.75))", color: "#fff" }}>
             <StarRow rating={r.rating} color={s.starColor} size={9} />
-            <div style={{ fontSize: 9, fontWeight: 700 }}>{r.name}</div>
+            <div style={{ fontSize: 9, fontWeight: 600 }}>{r.name}</div>
           </div>
         </div>
       ))}
@@ -304,7 +304,7 @@ function PreviewStatsDashboard({ s }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
         {stats.map((st) => (
           <div key={st.label} style={{ background: s.cardBg, border: `1px solid ${s.cardBorder}`, borderRadius: s.cardRadius, padding: "12px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: s.accentColor }}>{st.value}</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: s.accentColor }}>{st.value}</div>
             <div style={{ fontSize: 10, color: "#888" }}>{st.label}</div>
           </div>
         ))}
@@ -347,9 +347,9 @@ function PreviewStoryCircles({ s }) {
             width: 64, height: 64, borderRadius: "50%", border: `3px solid ${s.accentColor}`, padding: 3,
             display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 6px",
           }}>
-            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#ddd", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🖼</div>
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "#ddd" }} />
           </div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: s.textColor }}>{r.name}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: s.textColor }}>{r.name}</div>
           <StarRow rating={r.rating} color={s.starColor} size={9} />
         </div>
       ))}
@@ -378,7 +378,7 @@ function LivePreview({ s }) {
   return (
     <div style={{ background: s.pageBg === "transparent" ? "#f8f8f8" : s.pageBg, padding: 24, borderRadius: 10, border: `1px solid ${C.border}` }}>
       <div style={{
-        textAlign: s.headingAlign, fontWeight: 900, letterSpacing: "0.05em", textTransform: "uppercase",
+        textAlign: s.headingAlign, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase",
         fontSize: Math.min(s.headingSize, 28) * 0.7, color: s.textColor, marginBottom: 20, fontFamily: s.fontFamily,
       }}>
         {s.headingText || "Customer Reviews"}
@@ -417,7 +417,7 @@ function Section({ title, children, open, onToggle }) {
       <button onClick={onToggle} style={{
         width: "100%", textAlign: "left", padding: "14px 16px", background: "none", border: "none",
         cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
-        fontSize: 13, fontWeight: 700, color: C.text,
+        fontSize: 13, fontWeight: 600, color: C.text,
       }}>
         {title}
         <span style={{ fontSize: 16, color: C.muted, transition: "transform .2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
@@ -498,13 +498,13 @@ export default function HomepageReviewsSettings() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link to="/app/widgets" style={{ color: C.muted, textDecoration: "none", fontSize: 13 }}>← Widgets</Link>
           <span style={{ color: C.border }}>|</span>
-          <span style={{ fontWeight: 700, fontSize: 15, color: C.text }}>Homepage Reviews</span>
+          <span style={{ fontWeight: 600, fontSize: 15, color: C.text }}>Homepage Reviews</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {saved && <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Saved</span>}
           <button onClick={save} disabled={fetcher.state !== "idle"} style={{
             background: C.accent, color: "#fff", border: "none", borderRadius: 8,
-            padding: "8px 20px", fontWeight: 700, fontSize: 13, cursor: "pointer",
+            padding: "8px 20px", fontWeight: 600, fontSize: 13, cursor: "pointer",
           }}>
             {fetcher.state !== "idle" ? "Saving…" : "Save"}
           </button>
@@ -523,8 +523,8 @@ export default function HomepageReviewsSettings() {
                   borderRadius: 8, background: s.layout === l.key ? "#f5f3ff" : C.surface,
                   cursor: "pointer", textAlign: "left",
                 }}>
-                  <div style={{ fontWeight: 700, fontSize: 12, color: s.layout === l.key ? C.accent : C.text }}>
-                    {l.pro && !isPro ? "🔒 " : ""}{l.label}{l.pro ? " (Advanced)" : ""}
+                  <div style={{ fontWeight: 600, fontSize: 12, color: s.layout === l.key ? C.accent : C.text }}>
+                    {l.label}{l.pro ? " (Advanced)" : ""}
                   </div>
                   <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{l.desc}</div>
                 </button>
@@ -535,7 +535,7 @@ export default function HomepageReviewsSettings() {
                 marginTop: 10, background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 8,
                 padding: "10px 12px", fontSize: 12, color: "#92400e",
               }}>
-                🔒 This layout needs the Advanced plan. <Link to="/app/billing" style={{ fontWeight: 700, color: "#92400e" }}>Upgrade →</Link>
+                This layout needs the Advanced plan. <Link to="/app/billing" style={{ fontWeight: 600, color: "#92400e" }}>Upgrade →</Link>
               </div>
             )}
           </Section>
@@ -646,7 +646,7 @@ export default function HomepageReviewsSettings() {
 
           {/* Install guide */}
           <div style={{ padding: 16, background: "#f5f3ff", margin: 12, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 6 }}>How to add to your home page</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 6 }}>How to add to your home page</div>
             <ol style={{ margin: 0, paddingLeft: 16, fontSize: 11, color: C.text, lineHeight: 1.8 }}>
               <li>Go to Shopify Admin → Online Store → Themes</li>
               <li>Click Customize → Home page</li>
@@ -662,16 +662,16 @@ export default function HomepageReviewsSettings() {
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, textAlign: "right" }}>Live preview · sample data</div>
             <LivePreview s={s} />
             <div style={{ marginTop: 24, padding: 16, background: C.surface, borderRadius: 10, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 8 }}>{LAYOUTS.length} Layout Designs Available</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 }}>{LAYOUTS.length} Layout Designs Available</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 10 }}>
                 {LAYOUTS.map(l => (
                   <button key={l.key} onClick={() => selectLayout(l.key)} style={{
                     position: "relative", padding: "10px 8px", borderRadius: 8, border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
                     background: s.layout === l.key ? "#f5f3ff" : C.surface, cursor: "pointer", textAlign: "center",
                   }}>
-                    {l.pro && !isPro && <span style={{ position: "absolute", top: 4, right: 4, fontSize: 10 }}>🔒</span>}
+                    {l.pro && !isPro && <span style={{ position: "absolute", top: 4, right: 4, fontSize: 9, fontWeight: 600, color: "#92400e", background: "#f7f0e2", borderRadius: 4, padding: "1px 4px" }}>Pro</span>}
                     <div style={{ fontSize: 20, marginBottom: 4 }}>{l.icon}</div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: s.layout === l.key ? C.accent : C.text }}>{l.label}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: s.layout === l.key ? C.accent : C.text }}>{l.label}</div>
                   </button>
                 ))}
               </div>

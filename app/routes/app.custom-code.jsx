@@ -50,16 +50,16 @@ export async function action({ request }) {
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const LANG_LABELS = {
-  en: "🇬🇧 English",  hi: "🇮🇳 हिंदी",     es: "🇪🇸 Español",
-  fr: "🇫🇷 Français", de: "🇩🇪 Deutsch",   it: "🇮🇹 Italiano",
-  pt: "🇵🇹 Português", nl: "🇳🇱 Nederlands", ar: "🇸🇦 العربية",
-  zh: "🇨🇳 中文",      ja: "🇯🇵 日本語",     ru: "🇷🇺 Русский",
-  tr: "🇹🇷 Türkçe",   pl: "🇵🇱 Polski",    ko: "🇰🇷 한국어",
+  en: "English",  hi: "हिंदी",     es: "Español",
+  fr: "Français", de: "Deutsch",   it: "Italiano",
+  pt: "Português", nl: "Nederlands", ar: "العربية",
+  zh: "中文",      ja: "日本語",     ru: "Русский",
+  tr: "Türkçe",   pl: "Polski",    ko: "한국어",
 };
 
 const TABS = [
   { id: "snippets", icon: "⟨/⟩" },
-  { id: "language", icon: "🌐"  },
+  { id: "language", icon: "⊙"  },
   { id: "code",     icon: "✦"   },
 ];
 
@@ -87,15 +87,15 @@ const SNIPPETS = [
     id: "review-count",
     title: "Review Count Badge",
     icon: "#",
-    accentColor: "#5145e5",
-    bgColor: "#eef0fd",
+    accentColor: "#4C6FFF",
+    bgColor: "#eaf0ff",
     code: `<span data-trust-count="{{ product.id }}"></span>`,
     description:
       "Shows only the review count as a number — e.g. '1,634 reviews'. Great for embedding inside product title sections or near the price.",
     prerequisite: "Requires the 'Inline Star Rating' block added to the same page template. The count badge is handled by the same script.",
     preview: (
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#eef0fd", borderRadius: 10, border: "1px solid #c7c3fb" }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#5145e5" }}>1,634</span>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#eaf0ff", borderRadius: 10, border: "1px solid #c7c3fb" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#4C6FFF" }}>1,634</span>
         <span style={{ fontSize: 13, color: "#6b7280" }}>reviews</span>
       </div>
     ),
@@ -121,7 +121,7 @@ function TabBar({ active, onChange }) {
             style={{
               border: "none", cursor: "pointer",
               padding: "9px 16px", borderRadius: "8px 8px 0 0",
-              fontSize: 12.5, fontWeight: isActive ? 700 : 500,
+              fontSize: 12.5, fontWeight: isActive ? 600 : 500,
               color: isActive ? SHELL_C.accent : SHELL_C.muted,
               background: isActive ? SHELL_C.bg : "transparent",
               borderBottom: isActive ? `2px solid ${SHELL_C.accent}` : "2px solid transparent",
@@ -164,19 +164,19 @@ function SnippetCard({ snippet, shop }) {
           border: `1.5px solid ${snippet.accentColor}44`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 16, color: snippet.accentColor, flexShrink: 0,
-          fontWeight: 700,
+          fontWeight: 600,
         }}>
           {snippet.icon}
         </span>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: SHELL_C.text }}>{snippet.title}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: SHELL_C.text }}>{snippet.title}</div>
           <div style={{ fontSize: 11.5, color: SHELL_C.muted, marginTop: 2, lineHeight: 1.4 }}>{snippet.description}</div>
         </div>
       </div>
 
       {/* Live preview */}
       <div style={{ padding: "18px 20px", borderBottom: `1px solid ${SHELL_C.borderLight}`, background: "#fafbfc" }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 600, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>
           Live Preview — Sample Data
         </div>
         {snippet.preview}
@@ -184,7 +184,7 @@ function SnippetCard({ snippet, shop }) {
 
       {/* Code block */}
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${SHELL_C.borderLight}` }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 600, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
           Snippet
         </div>
         <div style={{
@@ -199,7 +199,7 @@ function SnippetCard({ snippet, shop }) {
             onClick={copy}
             style={{
               border: "none", cursor: "pointer", borderRadius: 7,
-              padding: "6px 12px", fontSize: 11.5, fontWeight: 700, flexShrink: 0,
+              padding: "6px 12px", fontSize: 11.5, fontWeight: 600, flexShrink: 0,
               background: copied ? "#059669" : SHELL_C.accent,
               color: "#fff", transition: "background .2s",
             }}
@@ -211,9 +211,8 @@ function SnippetCard({ snippet, shop }) {
 
       {/* Prerequisite note */}
       <div style={{ padding: "12px 20px", background: SHELL_C.accentLt }}>
-        <div style={{ fontSize: 11.5, color: SHELL_C.accent, display: "flex", gap: 6, alignItems: "flex-start" }}>
-          <span style={{ flexShrink: 0, marginTop: 1 }}>💡</span>
-          <span style={{ lineHeight: 1.5 }}>{snippet.prerequisite}</span>
+        <div style={{ fontSize: 11.5, color: SHELL_C.accent, lineHeight: 1.5 }}>
+          {snippet.prerequisite}
         </div>
       </div>
     </div>
@@ -223,7 +222,7 @@ function SnippetCard({ snippet, shop }) {
 function CodeEditor({ label, value, onChange, placeholder, hint }) {
   return (
     <div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: SHELL_C.text, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: SHELL_C.text, marginBottom: 6 }}>{label}</div>
       {hint && <div style={{ fontSize: 11.5, color: SHELL_C.muted, marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>}
       <textarea
         value={value}
@@ -297,7 +296,7 @@ export default function CustomCodePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Link to="/app" style={{ fontSize: 13, color: SHELL_C.muted, textDecoration: "none" }}>Home</Link>
             <span style={{ fontSize: 13, color: SHELL_C.muted }}>/</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: SHELL_C.text }}>{t.customCodeTitle}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: SHELL_C.text }}>{t.customCodeTitle}</span>
           </div>
         </div>
 
@@ -317,7 +316,7 @@ export default function CustomCodePage() {
               style={{
                 border: "none", borderRadius: 8, padding: "8px 20px",
                 background: SHELL_C.accent, color: "#fff",
-                fontWeight: 700, fontSize: 13, cursor: "pointer",
+                fontWeight: 600, fontSize: 13, cursor: "pointer",
               }}
             >
               {t.saveCode}
@@ -336,7 +335,7 @@ export default function CustomCodePage() {
         {tab === "snippets" && (
           <div>
             <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: SHELL_C.text, margin: "0 0 6px" }}>
+              <h2 style={{ fontSize: 20, fontWeight: 600, color: SHELL_C.text, margin: "0 0 6px" }}>
                 Custom Shortcodes
               </h2>
               <p style={{ fontSize: 13, color: SHELL_C.muted, margin: 0, lineHeight: 1.6 }}>
@@ -356,7 +355,7 @@ export default function CustomCodePage() {
               marginTop: 28, background: SHELL_C.surface, borderRadius: 14,
               border: `1px solid ${SHELL_C.border}`, padding: "18px 20px",
             }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: SHELL_C.text, marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: SHELL_C.text, marginBottom: 12 }}>
                 How shortcodes work
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -369,7 +368,7 @@ export default function CustomCodePage() {
                     <span style={{
                       width: 24, height: 24, borderRadius: "50%", background: SHELL_C.accent,
                       color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 1,
+                      fontSize: 11, fontWeight: 600, flexShrink: 0, marginTop: 1,
                     }}>
                       {item.step}
                     </span>
@@ -385,7 +384,7 @@ export default function CustomCodePage() {
         {tab === "language" && (
           <div>
             <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: SHELL_C.text, margin: "0 0 6px" }}>
+              <h2 style={{ fontSize: 20, fontWeight: 600, color: SHELL_C.text, margin: "0 0 6px" }}>
                 {t.appLanguage}
               </h2>
               <p style={{ fontSize: 13, color: SHELL_C.muted, margin: 0, lineHeight: 1.6 }}>
@@ -413,7 +412,7 @@ export default function CustomCodePage() {
                         border: active ? `2px solid ${SHELL_C.accent}` : `1px solid ${SHELL_C.border}`,
                         background: active ? SHELL_C.accentLt : SHELL_C.bg,
                         color: active ? SHELL_C.accent : SHELL_C.text,
-                        fontSize: 13, fontWeight: active ? 700 : 400,
+                        fontSize: 13, fontWeight: active ? 600 : 400,
                         textAlign: "left", transition: "all .15s",
                       }}
                     >
@@ -437,7 +436,7 @@ export default function CustomCodePage() {
                 marginTop: 16, background: SHELL_C.accentLt, borderRadius: 10,
                 padding: "10px 14px", fontSize: 11.5, color: SHELL_C.accent, lineHeight: 1.5,
               }}>
-                💡 Changes take effect immediately on the storefront — no need to republish your theme.
+                Changes take effect immediately on the storefront — no need to republish your theme.
               </div>
             </div>
           </div>
@@ -447,7 +446,7 @@ export default function CustomCodePage() {
         {tab === "code" && (
           <div>
             <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: SHELL_C.text, margin: "0 0 6px" }}>
+              <h2 style={{ fontSize: 20, fontWeight: 600, color: SHELL_C.text, margin: "0 0 6px" }}>
                 {t.codeTab}
               </h2>
               <p style={{ fontSize: 13, color: SHELL_C.muted, margin: 0, lineHeight: 1.6 }}>
@@ -460,17 +459,13 @@ export default function CustomCodePage() {
             <div style={{
               background: "#fffbe6", borderRadius: 12, border: "1px solid #fde68a",
               padding: "14px 18px", marginBottom: 22,
-              display: "flex", gap: 10, alignItems: "flex-start",
             }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>🔌</span>
-              <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>
-                  One-time setup required
-                </div>
-                <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.6 }}>
-                  Go to your Theme Editor → add the <strong>"Trust Custom Code"</strong> block to your theme's header or footer section.
-                  This block loads your CSS and JS on every page. You only need to do this once.
-                </div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#92400e", marginBottom: 4 }}>
+                One-time setup required
+              </div>
+              <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.6 }}>
+                Go to your Theme Editor → add the <strong>"Trust Custom Code"</strong> block to your theme's header or footer section.
+                This block loads your CSS and JS on every page. You only need to do this once.
               </div>
             </div>
 
@@ -508,7 +503,7 @@ export default function CustomCodePage() {
                 style={{
                   border: "none", borderRadius: 10, padding: "10px 28px",
                   background: SHELL_C.accent, color: "#fff",
-                  fontWeight: 700, fontSize: 14, cursor: "pointer",
+                  fontWeight: 600, fontSize: 14, cursor: "pointer",
                   boxShadow: `0 2px 8px ${SHELL_C.accent}44`,
                 }}
               >

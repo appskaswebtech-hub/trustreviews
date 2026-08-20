@@ -15,13 +15,12 @@ export default function InstagramShoppingStubPage() {
         background: SHELL_C.surface, borderBottom: `1px solid ${SHELL_C.border}`,
       }}>
         <Link to="/app/widgets" style={{ fontSize: 16, color: SHELL_C.text, textDecoration: "none" }}>←</Link>
-        <span style={{ fontWeight: 700, fontSize: 15, color: SHELL_C.text }}>UCC Instagram Shopping</span>
+        <span style={{ fontWeight: 600, fontSize: 15, color: SHELL_C.text }}>UCC Instagram Shopping</span>
       </div>
 
       <div style={{ maxWidth: 640, margin: "40px auto", padding: "0 20px" }}>
         <div style={{ background: SHELL_C.surface, borderRadius: 14, border: `1px solid ${SHELL_C.border}`, padding: 28 }}>
-          <div style={{ fontSize: 32, marginBottom: 10 }}>📷</div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: SHELL_C.text, margin: "0 0 10px" }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: SHELL_C.text, margin: "0 0 10px" }}>
             Connect your Instagram account
           </h2>
           <p style={{ fontSize: 13.5, color: SHELL_C.muted, lineHeight: 1.6, marginBottom: 16 }}>
@@ -33,7 +32,7 @@ export default function InstagramShoppingStubPage() {
             disabled
             style={{
               border: "none", borderRadius: 8, padding: "10px 20px", background: "#d1d5db",
-              color: "#fff", fontWeight: 700, fontSize: 13, cursor: "default",
+              color: "#fff", fontWeight: 600, fontSize: 13, cursor: "default",
             }}
           >
             Connect Instagram Account (coming soon)

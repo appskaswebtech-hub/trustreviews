@@ -20,8 +20,7 @@ export function headers() {
 export function ErrorBoundary() {
   return (
     <div style={{ fontFamily: "sans-serif", padding: 40, textAlign: "center" }}>
-      <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
-      <div style={{ fontSize: 16, fontWeight: 600, color: "#dc2626" }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: "#a5423b" }}>
         Something went wrong on the billing page.
       </div>
     </div>
@@ -99,8 +98,8 @@ export const action = async ({ request }) => {
 
 /* ── Styles ── */
 const C = {
-  bg: "#f5f5f0", surface: "#ffffff", border: "#e8e8e4",
-  text: "#0f1623", muted: "#6b7280", accent: "#111827",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78", accent: "#111827",
 };
 
 /* ── Page ── */
@@ -136,7 +135,7 @@ export default function BillingPage() {
       padding: "48px 28px",
     }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: "0 0 8px" }}>
+        <h1 style={{ fontSize: 26, fontWeight: 600, color: C.text, margin: "0 0 8px" }}>
           Pricing
         </h1>
         <p style={{ fontSize: 13, color: C.muted, margin: "0 0 28px" }}>
@@ -149,7 +148,7 @@ export default function BillingPage() {
             padding: "12px 18px", marginBottom: 24, fontSize: 13,
             color: "#1e40af", fontWeight: 600,
           }}>
-            🛠️ Development store detected — <strong>Advanced plan is free</strong> for development and testing.
+            Development store detected — <strong>Advanced plan is free</strong> for development and testing.
           </div>
         )}
 
@@ -159,7 +158,7 @@ export default function BillingPage() {
             padding: "12px 18px", marginBottom: 24, fontSize: 13,
             color: "#065f46", fontWeight: 600,
           }}>
-            ✅ You are currently on the <strong>Advanced</strong> plan.
+            ✓ You are currently on the <strong>Advanced</strong> plan.
           </div>
         )}
 
@@ -231,7 +230,7 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }
         <span style={{
           position: "absolute", top: -11, left: 20,
           background: "#111827", color: "#fff",
-          fontSize: 11, fontWeight: 700, borderRadius: 20, padding: "3px 12px",
+          fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 12px",
           letterSpacing: ".04em",
         }}>CURRENT PLAN</span>
       )}
@@ -239,13 +238,13 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }
         <span style={{
           position: "absolute", top: -11, left: 20,
           background: "#1d4ed8", color: "#fff",
-          fontSize: 11, fontWeight: 700, borderRadius: 20, padding: "3px 12px",
+          fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 12px",
           letterSpacing: ".04em",
         }}>{badge}</span>
       )}
 
       <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 4 }}>{name}</div>
-      <div style={{ fontSize: 36, fontWeight: 800, color: "#0f1623", marginBottom: 24, lineHeight: 1.1 }}>
+      <div style={{ fontSize: 36, fontWeight: 600, color: "#17171c", marginBottom: 24, lineHeight: 1.1 }}>
         {price === null ? "Free" : (
           <>
             ${price.toFixed(2)}
@@ -254,11 +253,11 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }
         )}
       </div>
 
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#0f1623", marginBottom: 10 }}>Features</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#17171c", marginBottom: 10 }}>Features</div>
       <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 7 }}>
         {features.map((f, i) => (
           <li key={i} style={{ fontSize: 13, color: "#374151", display: "flex", alignItems: "flex-start", gap: 7 }}>
-            <span style={{ color: "#111827", fontWeight: 700, flexShrink: 0 }}>✓</span>
+            <span style={{ color: "#111827", fontWeight: 600, flexShrink: 0 }}>✓</span>
             {f}
           </li>
         ))}
@@ -274,7 +273,7 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }
             borderRadius: 9,
             padding: "10px 0",
             fontSize: 13,
-            fontWeight: 700,
+            fontWeight: 600,
             cursor: isLoading ? "wait" : "pointer",
             background: action.variant === "primary" ? "#111827" : "#fff",
             color: action.variant === "primary" ? "#fff" : "#111827",

@@ -54,17 +54,17 @@ function QaPreview({ settings }) {
   return (
     <div style={{ fontFamily: s.fontFamily === "inherit" ? undefined : s.fontFamily }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: s.textColor }}>Questions & Answers</h3>
+        <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: s.textColor }}>Questions & Answers</h3>
         <button style={{ background: s.accentColor, color: "#fff", border: "none", borderRadius: 6, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "default" }}>
           Ask a question
         </button>
       </div>
       <div style={{ paddingTop: 14, borderTop: "1px solid #eee" }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: s.textColor, margin: "0 0 6px" }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: s.textColor, margin: "0 0 6px" }}>
           <span style={{ color: "#888" }}>Q: </span>Is this moisturizer suitable for sensitive skin?
         </p>
         <p style={{ fontSize: 13, color: s.textColor, margin: "0 0 6px", lineHeight: 1.5 }}>
-          <span style={{ color: s.accentColor, fontWeight: 700 }}>A: </span>Yes, it's dermatologically tested and safe for sensitive skin.
+          <span style={{ color: s.accentColor, fontWeight: 600 }}>A: </span>Yes, it's dermatologically tested and safe for sensitive skin.
         </p>
         <div style={{ fontSize: 11, color: "#999" }}>Darlene Robertson · Jun 2, 2026</div>
       </div>
@@ -107,7 +107,7 @@ export default function QaStylePage() {
           note={
             <span>
               Need to answer pending questions?{" "}
-              <Link to="/app/widgets/qa-manage" style={{ color: SHELL_C.accent, fontWeight: 700 }}>Manage questions →</Link>
+              <Link to="/app/widgets/qa-manage" style={{ color: SHELL_C.accent, fontWeight: 600 }}>Manage questions →</Link>
             </span>
           }
         />

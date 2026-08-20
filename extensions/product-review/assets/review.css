@@ -855,3 +855,71 @@
     display: flex;
     justify-content: space-between;
 }
+
+/* ============ REVIEW-REWARD COUPON ============ */
+.tr-coupon-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 16px;
+  animation: toastIn 0.2s ease forwards;
+}
+.tr-coupon-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 28px 28px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  font-family: var(--rf-font, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+}
+.tr-coupon-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 7px;
+  color: #6b6b78;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tr-coupon-message {
+  font-size: 14px;
+  color: #17171c;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.tr-coupon-code-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px dashed var(--rf-accent, #1a1a1a);
+  border-radius: 9px;
+  padding: 10px 14px;
+}
+.tr-coupon-code {
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #17171c;
+  letter-spacing: .04em;
+}
+.tr-coupon-copy-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rf-btn-text, #fff);
+  background: var(--rf-accent, #1a1a1a);
+  cursor: pointer;
+}

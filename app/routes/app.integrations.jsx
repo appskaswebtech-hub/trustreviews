@@ -17,9 +17,9 @@ export async function loader({ request }) {
 }
 
 const C = {
-  bg: "#f0f2f7", surface: "#ffffff", border: "#e4e7ef",
-  text: "#0f1623", muted: "#6b7280",
-  green: "#16a34a", greenLt: "#dcfce7",
+  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+  text: "#17171c", muted: "#6b6b78",
+  green: "#1f7a4d", greenLt: "#e7f4ec",
 };
 
 function ProviderCard({ providerKey, provider, connected }) {
@@ -39,23 +39,28 @@ function ProviderCard({ providerKey, provider, connected }) {
         height: 100, background: provider.bg, display: "flex",
         alignItems: "center", justifyContent: "center", fontSize: 32, position: "relative",
       }}>
-        {provider.icon}
+        <span style={{
+          width: 44, height: 44, borderRadius: "50%",
+          background: "rgba(255,255,255,.55)", color: C.text,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 18, fontWeight: 600,
+        }}>{provider.label.charAt(0).toUpperCase()}</span>
         {connected && (
           <span style={{
-            position: "absolute", top: 10, right: 10, fontSize: 11, fontWeight: 700,
+            position: "absolute", top: 10, right: 10, fontSize: 11, fontWeight: 600,
             background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px",
           }}>✓ Connected</span>
         )}
       </div>
       <div style={{ padding: "16px 18px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{provider.label}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{provider.label}</div>
         <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5, flex: 1 }}>{provider.description}</div>
         <Link
           to={`/app/integrations/${providerKey}`}
           onClick={(e) => e.stopPropagation()}
           style={{
-            fontSize: 12, fontWeight: 700, color: connected ? "#fff" : "#5145e5",
-            background: connected ? "#5145e5" : "transparent",
+            fontSize: 12, fontWeight: 600, color: connected ? "#fff" : "#4C6FFF",
+            background: connected ? "#4C6FFF" : "transparent",
             border: connected ? "none" : `1px solid ${C.border}`,
             borderRadius: 8, padding: "7px 14px", textDecoration: "none", alignSelf: "flex-start",
           }}
@@ -72,7 +77,7 @@ export default function IntegrationsGalleryPage() {
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Integrations</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: "0 0 4px" }}>Integrations</h1>
       <p style={{ fontSize: 13, color: C.muted, margin: "0 0 20px" }}>
         Connect an email platform to sync review and Q&amp;A events for automations.
       </p>

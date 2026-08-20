@@ -47,6 +47,10 @@ export default function App() {
             Product Groups
           </Link>
 
+          <Link to="/app/review-coupon">
+            Review Coupon
+          </Link>
+
           {/* <Link to="/app/customize">
             Customize
           </Link> */}

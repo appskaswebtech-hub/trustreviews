@@ -72,10 +72,10 @@ export async function action({ request }) {
 }
 
 const LANG_LABELS = {
-  en: "🇬🇧 English", hi: "🇮🇳 हिंदी", es: "🇪🇸 Español", fr: "🇫🇷 Français",
-  de: "🇩🇪 Deutsch", it: "🇮🇹 Italiano", pt: "🇵🇹 Português", nl: "🇳🇱 Nederlands",
-  ar: "🇸🇦 العربية", zh: "🇨🇳 中文", ja: "🇯🇵 日本語", ru: "🇷🇺 Русский",
-  tr: "🇹🇷 Türkçe", pl: "🇵🇱 Polski", ko: "🇰🇷 한국어",
+  en: "English", hi: "हिंदी", es: "Español", fr: "Français",
+  de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands",
+  ar: "العربية", zh: "中文", ja: "日本語", ru: "Русский",
+  tr: "Türkçe", pl: "Polski", ko: "한국어",
 };
 const STYLE_OPTIONS = [
   { label: "Compact  (★★★★☆ 4.7 - 13 reviews)",              value: "compact" },
@@ -115,7 +115,7 @@ function BadgePreview({ cfg, style, average = 4.7, count = 13 }) {
     return (
       <div style={{ ...shared, background: cfg.starColor + "18", border: `1px solid ${cfg.starColor}55`, borderRadius: 999, padding: "4px 10px", gap: 4 }}>
         <span style={{ color: cfg.starColor, fontSize: cfg.starSize, lineHeight: 1 }}>★</span>
-        <span style={{ fontSize: cfg.starSize - 1, fontWeight: 700, color: "#111827" }}>{average.toFixed(1)}</span>
+        <span style={{ fontSize: cfg.starSize - 1, fontWeight: 600, color: "#111827" }}>{average.toFixed(1)}</span>
         <span style={{ fontSize: cfg.countFontSize, color: cfg.countColor }}>· {count} reviews</span>
       </div>
     );
@@ -132,7 +132,7 @@ function BadgePreview({ cfg, style, average = 4.7, count = 13 }) {
     return (
       <div style={{ ...shared, gap: 6, flexWrap: "wrap" }}>
         <StarRow average={average} cfg={cfg} />
-        <span style={{ fontSize: cfg.countFontSize + 2, fontWeight: 700, color: "#111827" }}>
+        <span style={{ fontSize: cfg.countFontSize + 2, fontWeight: 600, color: "#111827" }}>
           {average.toFixed(1)} Stars From {count.toLocaleString()} Reviews
           {cfg.secondaryStat ? <span style={{ color: cfg.countColor, fontWeight: 500 }}> | {cfg.secondaryStat}</span> : null}
         </span>
@@ -151,7 +151,7 @@ function BadgePreview({ cfg, style, average = 4.7, count = 13 }) {
 function ProductCardMockup({ cfg, widgetStyle }) {
   return (
     <div style={{ border: "1px solid #E5E7EB", borderRadius: 8, overflow: "hidden", width: 180, background: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", fontSize: 12 }}>
-      <div style={{ height: 120, background: "linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9CA3AF", fontSize: 28 }}>📦</div>
+      <div style={{ height: 120, background: "linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9CA3AF", fontSize: 11 }}>Product photo</div>
       <div style={{ padding: 10 }}>
         <div style={{ color: "#6B7280", fontSize: 10, marginBottom: 2 }}>Brand</div>
         <div style={{ fontWeight: 600, color: "#111827", marginBottom: 2, fontSize: 13 }}>Product Name</div>
@@ -267,7 +267,7 @@ export default function WidgetSettingsPage() {
           ),
         },
         {
-          key: "language", label: t.appLanguage, icon: "🌐",
+          key: "language", label: t.appLanguage, icon: "L",
           content: (
             <Field label={t.adminLangHint} helpText={t.adminLangHint}>
               <div style={{ position: "relative" }}>
@@ -296,7 +296,7 @@ export default function WidgetSettingsPage() {
       ]}
       preview={
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>
             All 5 styles — yours is highlighted
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
@@ -316,7 +316,7 @@ export default function WidgetSettingsPage() {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: SHELL_C.muted, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 10 }}>
             On a product card
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
