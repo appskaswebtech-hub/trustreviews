@@ -33,7 +33,7 @@ export async function action({ request }) {
   try {
     const client = new Anthropic();
     const completion = await client.messages.create({
-      model: "claude-opus-4-8",
+      model: "claude-opus-5",
       max_tokens: 16,
       messages: [{
         role: "user",

@@ -194,6 +194,21 @@
           break;
         }
 
+        case 'popup': {
+          el = buildPopupBlock(block, starCounts, reviews, total, avgRating, t, rlSettings, openWrite);
+          break;
+        }
+
+        case 'image': {
+          el = buildImageBlock(st);
+          break;
+        }
+
+        case 'video': {
+          el = buildVideoBlock(st);
+          break;
+        }
+
         // ── Review data blocks ─────────────────────────────────────
         case 'summary': {
           el = buildSummaryBlock(total, avgRating, st, t);
@@ -347,7 +362,12 @@
     });
   }
 
-  /* Render a single block (used for column children) */
+  /* Render a single block (used for column children — a nested column can't
+     itself contain another container, and doesn't share the interactive
+     filter/sort/search/review-list state a top-level review_list block
+     coordinates, so those 4 types are intentionally left unsupported here;
+     every other block type — including ones that only got added later — is
+     supported so a column can hold the same range of content the top level can. */
   function renderSingleBlock(block, starCounts, reviews, total, avgRating, t, rlSettings, openWrite) {
     var st = block.settings || {};
     switch (block.type) {
@@ -363,11 +383,31 @@
         p.style.cssText = 'font-size:' + (st.fontSize || 15) + 'px;color:' + (st.color || '#333') + ';line-height:1.6;margin:0 0 8px';
         return p;
       }
+      case 'divider': {
+        var d = document.createElement('div');
+        if (st.type === 'space') {
+          d.style.height = (st.height || 24) + 'px';
+        } else {
+          d.style.cssText = 'border:none;border-top:' + (st.height || 1) + 'px solid ' + (st.lineColor || '#e4e4e4') + ';margin:' + (st.marginT || 16) + 'px 0 ' + (st.marginB || 16) + 'px';
+        }
+        return d;
+      }
+      case 'spacer': {
+        var sp = document.createElement('div');
+        sp.style.height = (st.size || 32) + 'px';
+        return sp;
+      }
       case 'summary':   return buildSummaryBlock(total, avgRating, st, t);
       case 'progress_bars': return buildProgressBarsBlock(reviews, total, st, t);
       case 'stats_row': return buildStatsRowBlock(total, avgRating, starCounts, st, t);
+      case 'slider':    return buildSliderBlock(reviews, st, t);
+      case 'testimonial': return buildTestimonialBlock(reviews, st, t);
+      case 'photo_grid': return buildPhotoGridBlock(reviews, st, t);
       case 'trust_badge': return buildTrustBadgeBlock(total, avgRating, st, t);
       case 'write_review': return buildWriteBtn(st, t, openWrite);
+      case 'button_group': return buildButtonGroupBlock(st, t, openWrite);
+      case 'image': return buildImageBlock(st);
+      case 'video': return buildVideoBlock(st);
       default: return null;
     }
   }
@@ -543,15 +583,21 @@
 
   function buildSliderBlock(reviews, st, t) {
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;overflow:hidden';
+    wrap.style.cssText = 'position:relative';
     var track = document.createElement('div');
-    track.style.cssText = 'display:flex;gap:' + (st.gap || 20) + 'px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:4px 0 8px';
-    track.style.msOverflowStyle = 'none';
+    track.className = 'ct-slider';
+    track.style.setProperty('--ct-gap', (st.gap || 20) + 'px');
 
     var accent = st.accentColor || '#6B1A2C';
-    reviews.slice(0, 12).forEach(function (r) {
+    var cardWidth = st.cardWidth || 300;
+    var gap = st.gap || 20;
+    var step = cardWidth + gap;
+    var items = reviews.slice(0, 12);
+
+    items.forEach(function (r) {
       var card = document.createElement('div');
-      card.style.cssText = 'min-width:' + (st.cardWidth || 300) + 'px;max-width:' + (st.cardWidth || 300) + 'px;background:' + (st.cardBg || '#fff') + ';border-radius:' + (st.cardRadius || 14) + 'px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);scroll-snap-align:start;flex-shrink:0';
+      card.className = 'ct-card';
+      card.style.cssText = 'min-width:' + cardWidth + 'px;max-width:' + cardWidth + 'px;background:' + (st.cardBg || '#fff') + ';border-radius:' + (st.cardRadius || 14) + 'px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);scroll-snap-align:start;flex-shrink:0';
       card.innerHTML =
         '<div style="display:flex;gap:2px;margin-bottom:10px">' + starsHtml(r.rating, accent, 15) + '</div>' +
         '<p style="font-size:14px;color:#374151;line-height:1.5;margin:0 0 12px">' + escapeHTML(r.comment || '') + '</p>' +
@@ -560,6 +606,59 @@
     });
 
     wrap.appendChild(track);
+
+    var total = items.length;
+    var current = 0;
+    var dotEls = [];
+
+    function goTo(idx) {
+      current = ((idx % total) + total) % total;
+      track.scrollTo({ left: current * step, behavior: 'smooth' });
+    }
+
+    // Keep the dots in sync with manual scroll/swipe, not just arrow/dot clicks.
+    track.addEventListener('scroll', function () {
+      var idx = Math.max(0, Math.min(total - 1, Math.round(track.scrollLeft / step)));
+      if (idx !== current) {
+        current = idx;
+        dotEls.forEach(function (d, i) { d.classList.toggle('ct-active', i === current); });
+      }
+    });
+
+    if (total > 1 && st.showArrows !== false) {
+      var arrows = document.createElement('div');
+      arrows.className = 'ct-slider-arrows';
+      var prevBtn = document.createElement('button');
+      prevBtn.type = 'button'; prevBtn.className = 'ct-slider-btn'; prevBtn.innerHTML = '&#8249;'; prevBtn.style.color = accent;
+      var nextBtn = document.createElement('button');
+      nextBtn.type = 'button'; nextBtn.className = 'ct-slider-btn'; nextBtn.innerHTML = '&#8250;'; nextBtn.style.color = accent;
+      prevBtn.addEventListener('click', function () { goTo(current - 1); });
+      nextBtn.addEventListener('click', function () { goTo(current + 1); });
+      arrows.appendChild(prevBtn); arrows.appendChild(nextBtn);
+      wrap.appendChild(arrows);
+    }
+
+    if (total > 1 && st.showDots !== false) {
+      var dots = document.createElement('div');
+      dots.className = 'ct-slider-dots';
+      dots.style.setProperty('--ct-accent', accent);
+      items.forEach(function (_, i) {
+        var dot = document.createElement('span');
+        dot.className = 'ct-slider-dot' + (i === 0 ? ' ct-active' : '');
+        dot.addEventListener('click', function () { goTo(i); });
+        dots.appendChild(dot);
+        dotEls.push(dot);
+      });
+      wrap.appendChild(dots);
+    }
+
+    if (st.autoplay && total > 1) {
+      var delayMs = (st.autoplayDelay || 4) * 1000;
+      var timer = setInterval(function () { goTo(current + 1); }, delayMs);
+      wrap.addEventListener('mouseenter', function () { clearInterval(timer); });
+      wrap.addEventListener('mouseleave', function () { timer = setInterval(function () { goTo(current + 1); }, delayMs); });
+    }
+
     return wrap;
   }
 
@@ -657,6 +756,98 @@
       el.innerHTML = '<span style="color:' + color + ';font-weight:700">' + icon + '</span><span style="font-size:13px;font-weight:700;color:' + color + '">' + text + '</span>';
     }
     return el;
+  }
+
+  /* ── Popup block: trigger button + dismissible overlay holding its nested
+     content. Modeled on buildWriteModal (dynamic per-instance overlay
+     appended to document.body) rather than the static-ID-based popup used
+     by the Pop-up Reviews widget, since there can be several Popup blocks
+     on one page. ── */
+  function buildPopupBlock(block, starCounts, reviews, total, avgRating, t, rlSettings, openWrite) {
+    var st = block.settings || {};
+
+    var trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'ct-popup-trigger';
+    var pad  = st.triggerSize === 'small' ? '8px 16px' : st.triggerSize === 'large' ? '14px 32px' : '11px 24px';
+    var font = st.triggerSize === 'small' ? '12px' : st.triggerSize === 'large' ? '16px' : '14px';
+    trigger.style.cssText =
+      'padding:' + pad + ';font-size:' + font + ';border-radius:' + (st.triggerRadius != null ? st.triggerRadius : 8) + 'px;' +
+      'background:' + (st.triggerBg || '#6B1A2C') + ';color:' + (st.triggerColor || '#fff') + ';border:none;font-weight:700;cursor:pointer';
+    trigger.textContent = st.triggerText || 'View Details';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'ct-popup-overlay';
+
+    var panel = document.createElement('div');
+    panel.className = 'ct-popup-panel';
+    panel.style.maxWidth = (st.overlayWidth || 480) + 'px';
+
+    if (st.showCloseButton !== false) {
+      var closeBtn = document.createElement('button');
+      closeBtn.type = 'button'; closeBtn.className = 'ct-popup-close'; closeBtn.innerHTML = '&times;';
+      closeBtn.setAttribute('aria-label', t.close || 'Close');
+      panel.appendChild(closeBtn);
+    }
+
+    if (st.popupTitle) {
+      var title = document.createElement('h3');
+      title.className = 'ct-popup-title';
+      title.textContent = st.popupTitle;
+      panel.appendChild(title);
+    }
+
+    var body = document.createElement('div');
+    body.className = 'ct-popup-body';
+    var col = (Array.isArray(block.columns) && block.columns[0]) || [];
+    col.forEach(function (childBlock) {
+      var childEl = renderSingleBlock(childBlock, starCounts, reviews, total, avgRating, t, rlSettings, openWrite);
+      if (childEl) body.appendChild(childEl);
+    });
+    panel.appendChild(body);
+
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+
+    function openPopup()  { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function closePopup() { overlay.style.display = 'none';  document.body.style.overflow = ''; }
+
+    trigger.addEventListener('click', openPopup);
+    var closeEl = panel.querySelector('.ct-popup-close');
+    if (closeEl) closeEl.addEventListener('click', closePopup);
+    if (st.closeOnOutsideClick !== false) {
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) closePopup(); });
+    }
+
+    return trigger;
+  }
+
+  function buildImageBlock(st) {
+    if (!st.src) return null;
+    var wrap = st.linkUrl ? document.createElement('a') : document.createElement('div');
+    if (st.linkUrl) { wrap.href = st.linkUrl; }
+    var img = document.createElement('img');
+    img.src = st.src;
+    img.alt = st.alt || '';
+    img.style.cssText = 'display:block;width:100%;object-fit:' + (st.objectFit || 'cover');
+    wrap.appendChild(img);
+    return wrap;
+  }
+
+  function buildVideoBlock(st) {
+    if (!st.src) return null;
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'width:100%;aspect-ratio:' + (st.aspectRatio || '16/9') + ';overflow:hidden;border-radius:8px';
+    var video = document.createElement('video');
+    video.src = st.src;
+    video.controls = !st.autoplay;
+    video.autoplay = !!st.autoplay;
+    video.muted = st.autoplay ? true : !!st.muted;
+    video.loop = !!st.loop;
+    video.playsInline = true;
+    video.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    wrap.appendChild(video);
+    return wrap;
   }
 
   /* ── Card builder for block-based review list ── */

@@ -622,15 +622,16 @@ async function loadReviews(){
 }
 
 /* ============ RICH SNIPPETS / SEO ============ */
-function injectStructuredData(avgRating, total, reviews) {
-  if (!seoEnabled || !productTitle || !total) return;
+function injectStructuredData(avgRating, total, reviews, titleOverride) {
+  var title = titleOverride || productTitle;
+  if (!seoEnabled || !title || !total) return;
   var existing = document.getElementById("tr-ld-json");
   if (existing) existing.remove();
 
   var schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
-    "name": productTitle,
+    "name": title,
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": avgRating.toFixed(1),
@@ -832,4 +833,18 @@ function applyBlockSettings() {
 // section on them.
 if (reviewSection) {
   Promise.all([loadReviews(), applyFormStyle()]).then(applyBlockSettings);
+} else if (typeof trEmbedProductId !== 'undefined' && trEmbedProductId) {
+  // No .review-section on this page (e.g. a page-builder page with no Trust
+  // Reviews block placed on it) — the sitewide app embed still injects
+  // AggregateRating SEO schema directly, using the product context it gets
+  // straight from Liquid regardless of what built the rest of the page.
+  var embedLocale = (typeof locale_language !== 'undefined' && locale_language) || (document.documentElement.lang || '').split('-')[0] || '';
+  fetch('/apps/review?productId=' + encodeURIComponent(trEmbedProductId) + '&locale=' + encodeURIComponent(embedLocale))
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var total = Number(data.total || 0);
+      var avg = Number(data.averageRating || 0);
+      if (total) injectStructuredData(avg, total, data.reviews || [], trEmbedProductTitle);
+    })
+    .catch(function () {});
 }

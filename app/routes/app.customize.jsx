@@ -118,6 +118,24 @@ const BLOCK_DEFS = {
       { key: "alignItems", label: "Vertical Align", type: "select", options: ["start","center","end","stretch"] },
     ],
   },
+  popup: {
+    label: "Popup", icon: "▣", group: "Layout", desc: "Button that opens content in a dismissible overlay", isContainer: true, colCount: 1,
+    defaults: {
+      triggerText: "View Details", triggerBg: "#6B1A2C", triggerColor: "#ffffff", triggerRadius: 8, triggerSize: "medium",
+      popupTitle: "", overlayWidth: 480, closeOnOutsideClick: true, showCloseButton: true,
+    },
+    props: [
+      { key: "triggerText",  label: "Button Text",  type: "text" },
+      { key: "triggerBg",    label: "Button Color",     type: "color" },
+      { key: "triggerColor", label: "Button Text Color", type: "color" },
+      { key: "triggerRadius", label: "Button Radius", type: "range", min: 0, max: 40, unit: "px" },
+      { key: "triggerSize",  label: "Button Size",  type: "select", options: ["small","medium","large"] },
+      { key: "popupTitle",   label: "Popup Title (optional)", type: "text" },
+      { key: "overlayWidth", label: "Popup Width",  type: "range", min: 320, max: 900, unit: "px" },
+      { key: "closeOnOutsideClick", label: "Close on Outside Click", type: "toggle" },
+      { key: "showCloseButton",     label: "Show Close Button",     type: "toggle" },
+    ],
+  },
   summary: {
     label: "Rating Summary", icon: "★", group: "Reviews", desc: "Average rating + stars",
     defaults: { accentColor: "#6B1A2C", style: "compact", showTotal: true, showBreakdown: false },
@@ -201,6 +219,30 @@ const BLOCK_DEFS = {
       { key: "quoteSize",   label: "Quote Size",   type: "range", min: 24, max: 80, unit: "px" },
     ],
   },
+  image: {
+    label: "Image", icon: "▧", group: "Layout", desc: "A single image, uploaded or linked",
+    defaults: { src: "", alt: "", objectFit: "cover", linkUrl: "" },
+    props: [
+      { key: "src",        label: "Image",              type: "image" },
+      { key: "alt",        label: "Alt Text",           type: "text" },
+      { key: "objectFit",  label: "Fit",                type: "select", options: ["cover","contain","fill"] },
+      { key: "linkUrl",    label: "Link URL (optional)", type: "text" },
+    ],
+  },
+  video: {
+    label: "Video", icon: "▶", group: "Layout", desc: "A direct video file (mp4)",
+    defaults: { src: "", aspectRatio: "16/9", autoplay: false, muted: true, loop: false },
+    props: [
+      { key: "src",         label: "Video URL (mp4)", type: "text" },
+      { key: "aspectRatio", label: "Aspect Ratio",     type: "select", options: [
+        { value: "16/9", label: "16:9" }, { value: "4/3", label: "4:3" },
+        { value: "1/1",  label: "Square" }, { value: "9/16", label: "9:16 Vertical" },
+      ]},
+      { key: "autoplay", label: "Autoplay", type: "toggle" },
+      { key: "muted",    label: "Muted",    type: "toggle" },
+      { key: "loop",     label: "Loop",     type: "toggle" },
+    ],
+  },
   photo_grid: {
     label: "Photo Grid", icon: "⊞", group: "Reviews", desc: "Customer photo wall",
     defaults: { columns: 4, gap: 8, radius: 8, aspectRatio: "1/1", overlay: true },
@@ -282,7 +324,7 @@ const BLOCK_DEFS = {
 };
 
 const PALETTE_GROUPS = [
-  { label: "Layout",  types: ["heading","paragraph","two_col","three_col","divider","spacer"] },
+  { label: "Layout",  types: ["heading","paragraph","two_col","three_col","popup","image","video","divider","spacer"] },
   { label: "Reviews", types: ["summary","progress_bars","stats_row","review_list","slider","testimonial","photo_grid","filter","sort","search"] },
   { label: "Actions", types: ["write_review","button_group","trust_badge"] },
 ];
@@ -352,6 +394,41 @@ function TxtArea({ value, onChange }) {
   return <textarea value={value || ""} onChange={e => onChange(e.target.value)} rows={4} style={{ width: "100%", padding: "7px 9px", border: "1.5px solid #e4e4e4", borderRadius: 7, fontSize: 12.5, outline: "none", resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }} />;
 }
 
+function ImageUploadField({ value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/files", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.success && data.url) onChange(data.url);
+    } catch {
+      // Upload failed — the URL field below still works as a fallback.
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div>
+      {value && (
+        <img src={value} alt="" style={{ width: "100%", height: 90, objectFit: "cover", borderRadius: 7, marginBottom: 8, border: "1.5px solid #e4e4e4" }} />
+      )}
+      <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 10px", border: `1.5px dashed #e4e4e4`, borderRadius: 7, fontSize: 12, color: C.muted, cursor: uploading ? "default" : "pointer", marginBottom: 6 }}>
+        {uploading ? "Uploading…" : "Upload Image"}
+        <input type="file" accept="image/*" onChange={handleFile} disabled={uploading} style={{ display: "none" }} />
+      </label>
+      <TxtInput value={value} onChange={onChange} placeholder="or paste an image URL" />
+    </div>
+  );
+}
+
 function FourSide({ label, values, onChange }) {
   const [linked, setLinked] = useState(false);
   const { t = 0, r = 0, b = 0, l = 0 } = values || {};
@@ -399,6 +476,7 @@ function PropField({ prop, settings, onChange }) {
   if (prop.type === "range")    return <RangeNum value={val} onChange={u} min={prop.min} max={prop.max} unit={prop.unit} />;
   if (prop.type === "select")   return <Sel value={val} onChange={u} options={prop.options} />;
   if (prop.type === "textarea") return <TxtArea value={val} onChange={u} />;
+  if (prop.type === "image")    return <ImageUploadField value={val} onChange={u} />;
   return <TxtInput value={val} onChange={u} />;
 }
 
@@ -594,6 +672,12 @@ function BlockMockup({ block, compact = false }) {
         </div>
       );
       case "photo_grid": return <div style={{ display:"grid", gridTemplateColumns:`repeat(${Math.min(st.columns||4,4)},1fr)`, gap:st.gap||8 }}>{Array.from({length:Math.min(st.columns||4,8)}).map((_,i)=><div key={i} style={{ background:`hsl(${i*40+200},40%,85%)`, borderRadius:st.radius||8, aspectRatio:st.aspectRatio||"1/1" }} />)}</div>;
+      case "image": return st.src
+        ? <img src={st.src} alt={st.alt||""} style={{ width:"100%", maxHeight:compact?70:160, objectFit:st.objectFit||"cover", borderRadius:6, display:"block" }} />
+        : <div style={{ width:"100%", height:compact?70:120, borderRadius:6, background:"#f3f4f6", border:"1.5px dashed #e4e4e4", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, color:"#9ca3af" }}>▧</div>;
+      case "video": return <div style={{ width:"100%", aspectRatio:st.aspectRatio||"16/9", borderRadius:6, background:"#1a1a1a", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, color:"#fff", overflow:"hidden" }}>
+        {st.src ? <video src={st.src} muted style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : "▶"}
+      </div>;
       case "filter": return <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>{["All","5★","4★","3★"].map((f,i)=><div key={i} style={{ padding:"3px 9px", borderRadius:st.style==="pill"?20:6, fontSize:9, fontWeight:600, border:`1.5px solid ${i===0?(st.accentColor||"#6B1A2C"):"#e4e4e4"}`, background:i===0?(st.accentColor||"#6B1A2C"):"#fff", color:i===0?"#fff":"#374151" }}>{f}</div>)}</div>;
       case "sort": return <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", border:"1px solid #e4e4e4", borderRadius:8, background:"#fff", fontSize:compact?9:11, color:"#374151" }}>Sort: Newest ▾</div>;
       case "search": {
@@ -618,23 +702,58 @@ function BlockMockup({ block, compact = false }) {
 }
 
 // ── Column Slot ───────────────────────────────────────────────────────────────
-function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild, onDeleteChild, onSelectChild }) {
+function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild, onDeleteChild, onSelectChild, onMoveBlock, label }) {
   const [dragOver, setDragOver] = useState(false);
+  const [dragOverChildIdx, setDragOverChildIdx] = useState(null);
+  const [dragRejected, setDragRejected] = useState(false);
   const isChildSel = id => selectedPath?.parentId === parentId && selectedPath?.colIdx === colIdx && selectedPath?.childId === id;
 
+  function dropAt(e, index) {
+    e.preventDefault(); e.stopPropagation();
+    setDragOver(false); setDragOverChildIdx(null); setDragRejected(false);
+    const pt = e.dataTransfer.getData("palette-type");
+    if (pt) { onAddChild(colIdx, pt); return; }
+    const srcRaw = e.dataTransfer.getData("app/source");
+    if (srcRaw) {
+      const source = JSON.parse(srcRaw);
+      onMoveBlock(source, { scope: "col", parentId, colIdx, index });
+    }
+  }
+
+  function dragOverAt(e, accept) {
+    e.preventDefault(); e.stopPropagation();
+    // A container block (2/3-column, popup) can't be dropped into a column —
+    // show a rejected state instead of the normal accept highlight. Only
+    // `types` is readable during dragover (values need the actual drop).
+    if (e.dataTransfer.types.includes("app/is-container")) { setDragRejected(true); return; }
+    setDragRejected(false);
+    accept();
+  }
+
   return (
-    <div style={{ flex:1, minHeight:80, border:`2px dashed ${dragOver?"#93c5fd":C.border}`, borderRadius:10, padding:8, display:"flex", flexDirection:"column", gap:6, background:dragOver?"#eff6ff":"#fafafa", transition:"all .15s" }}
-      onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const pt=e.dataTransfer.getData("palette-type"); if(pt) onAddChild(colIdx, pt); }}>
-      <div style={{ fontSize:9.5, fontWeight:600, color:C.muted, textAlign:"center", textTransform:"uppercase", letterSpacing:0.4 }}>Col {colIdx+1}</div>
-      {children.map(child => {
+    <div style={{ flex:1, minHeight:80, border:`2px dashed ${dragRejected?"#dc2626":dragOver?"#93c5fd":C.border}`, borderRadius:10, padding:8, display:"flex", flexDirection:"column", gap:6, background:dragRejected?"#fef2f2":dragOver?"#eff6ff":"#fafafa", transition:"all .15s" }}
+      onDragOver={e => dragOverAt(e, () => setDragOver(true))}
+      onDragLeave={() => { setDragOver(false); setDragRejected(false); }}
+      onDrop={e => dropAt(e, children.length)}>
+      <div style={{ fontSize:9.5, fontWeight:600, color:C.muted, textAlign:"center", textTransform:"uppercase", letterSpacing:0.4 }}>{label || `Col ${colIdx+1}`}</div>
+      {children.map((child, index) => {
         const def=BLOCK_DEFS[child.type];
         const sel=isChildSel(child.id);
+        const isDragOv = dragOverChildIdx === index;
         return (
-          <div key={child.id} onClick={e => { e.stopPropagation(); onSelectChild(colIdx, child.id); }}
-            style={{ background:"#fff", border:`2px solid ${sel?C.accent:C.border}`, borderRadius:8, overflow:"hidden", cursor:"pointer", boxShadow:sel?`0 0 0 3px ${C.accentL}`:"none" }}>
+          <div key={child.id} draggable
+            onDragStart={e => {
+              e.stopPropagation();
+              e.dataTransfer.setData("app/source", JSON.stringify({ scope:"col", parentId, colIdx, index }));
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragOver={e => dragOverAt(e, () => setDragOverChildIdx(index))}
+            onDragLeave={() => setDragOverChildIdx(null)}
+            onDrop={e => dropAt(e, index)}
+            onClick={e => { e.stopPropagation(); onSelectChild(colIdx, child.id); }}
+            style={{ background:"#fff", border:`2px solid ${sel?C.accent:isDragOv?"#93c5fd":C.border}`, borderRadius:8, overflow:"hidden", cursor:"grab", boxShadow:sel?`0 0 0 3px ${C.accentL}`:isDragOv?"0 0 0 3px #dbeafe":"none" }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 8px", background:sel?C.accentL:"#f9fafb", borderBottom:`1px solid ${C.border}` }}>
+              <span style={{ fontSize:10, color:C.muted, userSelect:"none" }}>⠿</span>
               <span style={{ fontSize:11 }}>{def?.icon}</span>
               <span style={{ fontSize:10, fontWeight:600, color:sel?C.accent:C.muted, flex:1 }}>{def?.label}</span>
               <button onClick={e2 => { e2.stopPropagation(); onDeleteChild(colIdx, child.id); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:12, padding:"0 2px" }}>✕</button>
@@ -652,7 +771,7 @@ function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild,
 }
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
-function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew, onAddChild, onDeleteChild, onSelectChild, setColTarget }) {
+function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew, onAddChild, onDeleteChild, onSelectChild, setColTarget, onMoveBlock }) {
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
   function handleDrop(e, toIdx) {
@@ -660,7 +779,14 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
     const fromIdx = e.dataTransfer.getData("canvas-index");
     const pt = e.dataTransfer.getData("palette-type");
     if (pt) { onDropNew(pt, toIdx); return; }
-    if (fromIdx !== "" && parseInt(fromIdx) !== toIdx) onReorder(parseInt(fromIdx), toIdx);
+    if (fromIdx !== "" && parseInt(fromIdx) !== toIdx) { onReorder(parseInt(fromIdx), toIdx); return; }
+    // Not a top-level-originated drag (those set canvas-index above) — check
+    // whether a block is being dragged back out of a column onto the canvas.
+    const srcRaw = e.dataTransfer.getData("app/source");
+    if (srcRaw) {
+      const source = JSON.parse(srcRaw);
+      if (source.scope === "col") onMoveBlock(source, { scope: "top", index: toIdx });
+    }
   }
 
   const isTopSel = id => selectedPath?.blockId === id && !selectedPath?.childId;
@@ -686,7 +812,12 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
 
             return (
               <div key={block.id} draggable
-                onDragStart={e => { e.dataTransfer.setData("canvas-index", String(idx)); e.dataTransfer.effectAllowed="move"; }}
+                onDragStart={e => {
+                  e.dataTransfer.setData("canvas-index", String(idx));
+                  e.dataTransfer.setData("app/source", JSON.stringify({ scope:"top", index: idx }));
+                  if (def?.isContainer) e.dataTransfer.setData("app/is-container", "1");
+                  e.dataTransfer.effectAllowed="move";
+                }}
                 onDragOver={e => { e.preventDefault(); setDragOverIdx(idx); }}
                 onDragLeave={() => setDragOverIdx(null)}
                 onDrop={e => handleDrop(e, idx)}
@@ -710,12 +841,14 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                     <div style={{ display:"grid", gridTemplateColumns:st.colTemplate||`repeat(${def.colCount},1fr)`, gap:st.gap||24, alignItems:st.alignItems||"start" }}>
                       {(block.columns || Array.from({length:def.colCount},()=>[])).map((colBlocks, ci) => (
                         <ColumnSlot key={ci} children={colBlocks} colIdx={ci} parentId={block.id} selectedPath={selectedPath}
+                          label={block.type === "popup" ? "Popup Content" : undefined}
                           onAddChild={(colIdx, type) => {
                             if (type === "__palette__") { setColTarget({ parentId: block.id, colIdx }); }
                             else { onAddChild(block.id, colIdx, type); }
                           }}
                           onDeleteChild={(colIdx, childId) => onDeleteChild(block.id, colIdx, childId)}
                           onSelectChild={(colIdx, childId) => onSelectChild({ blockId: block.id, colIdx, childId })}
+                          onMoveBlock={onMoveBlock}
                         />
                       ))}
                     </div>
@@ -821,6 +954,59 @@ function PageBuilder({ template, onSave, onBack }) {
     setBlocks(prev => { const next=[...prev]; const [m]=next.splice(from,1); next.splice(to,0,m); return next; });
   }
 
+  // Generalized move for the 3 directions `reorder`/`addChildBlock` don't cover:
+  // top→col, col→top, and col↔col (including reorder within the same column).
+  // `source`/`dest` are `{ scope: "top", index }` or `{ scope: "col", parentId, colIdx, index }`.
+  function moveBlock(source, dest) {
+    const movedType = source.scope === "top"
+      ? blocks[source.index]?.type
+      : blocks.find(b => b.id === source.parentId)?.columns?.[source.colIdx]?.[source.index]?.type;
+    if (!movedType) return;
+    // Containers (2/3-column, popup) can never live inside a column — preserves
+    // the one-level-of-nesting rule the rest of the builder relies on.
+    if (dest.scope === "col" && BLOCK_DEFS[movedType]?.isContainer) return;
+
+    const next = blocks.map(b => ({ ...b, columns: b.columns ? b.columns.map(c => [...c]) : b.columns }));
+
+    let moved;
+    if (source.scope === "top") {
+      [moved] = next.splice(source.index, 1);
+    } else {
+      const parent = next.find(b => b.id === source.parentId);
+      [moved] = parent.columns[source.colIdx].splice(source.index, 1);
+    }
+    if (!moved) return;
+
+    // Removing the block shifts later indices in the *same* array down by one —
+    // adjust so dropping "before item N" still means the same visual slot.
+    let destIndex = dest.index;
+    const sameTopArray = source.scope === "top" && dest.scope === "top";
+    const sameColArray = source.scope === "col" && dest.scope === "col" &&
+      source.parentId === dest.parentId && source.colIdx === dest.colIdx;
+    if ((sameTopArray || sameColArray) && source.index < dest.index) destIndex -= 1;
+
+    if (dest.scope === "top") {
+      next.splice(destIndex, 0, moved);
+    } else {
+      const parent = next.find(b => b.id === dest.parentId);
+      if (!parent) return;
+      if (!parent.columns) parent.columns = Array.from({ length: BLOCK_DEFS[parent.type].colCount }, () => []);
+      parent.columns[dest.colIdx].splice(destIndex, 0, moved);
+    }
+
+    setBlocks(next);
+
+    const movedWasSelected = selectedPath && (
+      (selectedPath.childId && selectedPath.childId === moved.id) ||
+      (!selectedPath.childId && selectedPath.blockId === moved.id)
+    );
+    if (movedWasSelected) {
+      setSelectedPath(dest.scope === "top"
+        ? { blockId: moved.id }
+        : { blockId: dest.parentId, colIdx: dest.colIdx, childId: moved.id });
+    }
+  }
+
   function getSelectedBlock() {
     if (!selectedPath) return null;
     const top = findBlock(selectedPath.blockId);
@@ -878,6 +1064,7 @@ function PageBuilder({ template, onSave, onBack }) {
           onDropNew={(type,idx) => addBlock(type,idx)}
           onAddChild={addChildBlock} onDeleteChild={deleteChildBlock}
           onSelectChild={setSelectedPath} setColTarget={setColTarget}
+          onMoveBlock={moveBlock}
         />
 
         <div style={{ width:270, background:"#fff", borderLeft:`1px solid ${C.border}`, overflowY:"auto", flexShrink:0 }}>

@@ -167,11 +167,14 @@ export default function BillingPage() {
             name="Free"
             price={null}
             features={[
-              "Works only on Shopify development stores",
-              "Basic app functionality access",
-              "Test mode enabled for app features",
-              "Limited usage for development/testing",
-              "Suitable for app review and testing",
+              "All core review widgets & group products",
+              "Review Wall, Homepage Reviews (5 layouts)",
+              "Questions & Answers widget",
+              "CSV import/export, bulk moderation actions",
+              "15-language storefront",
+              "Custom CSS/JS code injection",
+              "PageFly & GemPages support",
+              "SEO Schema & Tags",
             ]}
             isCurrent={!isAdvanced}
             badge={null}
@@ -187,12 +190,14 @@ export default function BillingPage() {
             name="Advanced"
             price={9.99}
             features={[
-              "Full access for live Shopify stores",
-              "Unlimited feature usage",
               "Priority customer support",
               "Automatic feature updates",
               "High-performance and scalable setup",
-              "Start 5-Day Free Trial",
+              "Review-Reward Coupon thank-you discount",
+              "All integrations — Klaviyo, Mailchimp, etc.",
+              "Custom Template Builder — 20+ blocks",
+              "Everything in Free, plus:",
+              "Google Reviews — Business Profile sync",
             ]}
             isCurrent={isAdvanced}
             badge={devStore ? "FREE FOR DEV STORES" : null}
@@ -203,6 +208,7 @@ export default function BillingPage() {
                 : null
             }
             isLoading={isLoading}
+            footer="5-day free trial"
           />
         </div>
 
@@ -215,17 +221,17 @@ export default function BillingPage() {
 }
 
 /* ── Plan Card ── */
-function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }) {
+function PlanCard({ name, price, features, isCurrent, badge, action, isLoading, footer }) {
   return (
     <div style={{
       flex: "1 1 300px",
       background: "#fff",
       borderRadius: 14,
       border: `1px solid ${isCurrent ? "#111827" : "#e8e8e4"}`,
-      padding: "28px 24px",
       boxShadow: isCurrent ? "0 0 0 2px #111827" : "0 1px 4px rgba(0,0,0,.06)",
       position: "relative",
     }}>
+      <div style={{ padding: "28px 24px 24px" }}>
       {isCurrent && !badge && (
         <span style={{
           position: "absolute", top: -11, left: 20,
@@ -283,6 +289,15 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading }
         >
           {isLoading ? "Please wait…" : action.label}
         </button>
+      )}
+      </div>
+      {footer && (
+        <div style={{
+          padding: "12px 24px", background: "#f8f9fc", borderTop: "1px solid #e8e8e4",
+          fontSize: 13, color: "#6b7280", borderBottomLeftRadius: 13, borderBottomRightRadius: 13,
+        }}>
+          {footer}
+        </div>
       )}
     </div>
   );

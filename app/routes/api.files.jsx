@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { authenticate } from "../shopify.server";
 
 const uploadDir = path.join(process.cwd(), "public/uploads");
 
@@ -9,6 +10,8 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 export async function action({ request }) {
+  await authenticate.admin(request);
+
   try {
     const formData = await request.formData();
 

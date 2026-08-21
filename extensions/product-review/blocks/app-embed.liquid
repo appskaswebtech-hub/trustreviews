@@ -9,7 +9,18 @@
   the page around it — the block itself doesn't need to be manually placed.
 {% endcomment %}
 {{ 'review.css' | asset_url | stylesheet_tag }}
-<script>var locale_language = `{{ request.locale.iso_code }}`</script>
+<script>
+  var locale_language = `{{ request.locale.iso_code }}`;
+  {% if product %}
+  // Lets review.js inject Google star-rating (AggregateRating) schema on
+  // ANY product page — including ones built entirely by a page builder with
+  // no Trust Reviews block on them — since the embed itself always has
+  // access to the current product via Liquid, regardless of what built the
+  // rest of the page.
+  var trEmbedProductId = {{ product.id | json }};
+  var trEmbedProductTitle = {{ product.title | json }};
+  {% endif %}
+</script>
 <script src="{{ 'review.js' | asset_url }}" defer></script>
 
 {% schema %}
