@@ -56,6 +56,18 @@ const normalizeEmail = (value) => {
   return email || null;
 };
 
+// Lets CSV imports preserve the review's original date instead of it always
+// landing on today (the import time). Accepts ISO/most locale date strings
+// as well as Unix timestamps (seconds or milliseconds), which some exports use.
+const normalizeImportDate = (value) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (/^\d{10}$/.test(raw)) return new Date(Number(raw) * 1000);
+  if (/^\d{13}$/.test(raw)) return new Date(Number(raw));
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 async function ensureStore(shop) {
   return db.store.upsert({
     where: { shop },
@@ -392,6 +404,7 @@ export const action = async ({ request }) => {
       // "Home" so the Homepage Reviews widget (which filters on this tag)
       // picks it up without touching how product-tied imports behave.
       const productId = await ensureProduct(importStore.id, row.productid || row.productId);
+      const createdAt = normalizeImportDate(row.date);
       await db.review.create({
         data: {
           storeId:  importStore.id,
@@ -407,6 +420,7 @@ export const action = async ({ request }) => {
           mediaUrl:  row.mediaUrl  || null,
           mediaType: row.mediaType || null,
           fileName:  row.fileName  || null,
+          ...(createdAt ? { createdAt } : {}),
         },
       });
     }
@@ -1226,6 +1240,7 @@ function ImportModal({ onClose, onImport, t }) {
     comment:   ["comment", "body", "content", "message", "review", "review_content", "review_text", "review_body", "description", "text"],
     status:    ["status", "published", "curated", "approved", "review_state", "state", "verified", "verified_buyer"],
     media:     ["pics", "picture_urls", "pic_urls", "images", "image_urls", "photos", "photo_urls", "videos", "video_urls", "media_urls", "media", "attachments", "photourls", "videourls"],
+    date:      ["date", "created_at", "createdat", "review_date", "reviewdate", "date_created", "created", "submitted_at", "posted_at", "review_time", "timestamp"],
   };
 
   const pickField = (row, field) => {
@@ -1294,6 +1309,7 @@ function ImportModal({ onClose, onImport, t }) {
       mediaUrl:  media?.mediaUrl  || "",
       mediaType: media?.mediaType || "",
       fileName:  media?.fileName  || "",
+      date:      pickField(row, "date"),
     };
   };
 
