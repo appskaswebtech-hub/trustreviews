@@ -1,3 +1,4 @@
+.layout-panel-flex--column{align-items:inherit}
 .trust-reviews-widget{font-family:var(--tr-font,inherit);padding:var(--tr-pt,40px) 0 var(--tr-pb,40px);background:var(--tr-bg,transparent);box-sizing:border-box}
 .trust-reviews__heading{margin:0 0 16px;font-size:var(--tr-h-size,1.5rem);font-weight:700;color:var(--tr-accent,#6B1A2C)}
 .trust-reviews__loading{color:#888;font-size:.9rem;padding:12px 0}

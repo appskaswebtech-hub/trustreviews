@@ -1,4 +1,5 @@
 /* ── Custom Template Widget — fully independent styles ───────────────────── */
+.layout-panel-flex--column{align-items:inherit}
 .ct-widget{font-family:var(--ct-font,inherit)}
 .ct-heading{margin:0 0 24px;font-size:var(--ct-heading-size,28px);font-weight:800;color:var(--ct-text,#1a1a1a)}
 .ct-loading{color:#888;font-size:14px;padding:20px 0}

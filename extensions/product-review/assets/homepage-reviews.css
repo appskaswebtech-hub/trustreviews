@@ -1,3 +1,4 @@
+.layout-panel-flex--column{align-items:inherit}
 .hr-widget{font-family:var(--hr-font,inherit);padding:var(--hr-pt,60px) 16px var(--hr-pb,60px);background:var(--hr-bg,transparent);box-sizing:border-box}
 .hr-heading{text-align:var(--hr-h-align,center);font-size:var(--hr-h-size,2.4rem);font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--hr-text,#111);margin:0 0 40px;line-height:1.15}
 .hr-loading{color:#888;font-size:.9rem;padding:20px 0;text-align:center}

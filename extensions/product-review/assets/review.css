@@ -1,4 +1,7 @@
 /* ============ BASE ============ */
+.layout-panel-flex--column {
+  align-items: inherit;
+}
 .review-section {
   width: 100%;
   max-width: 100%;

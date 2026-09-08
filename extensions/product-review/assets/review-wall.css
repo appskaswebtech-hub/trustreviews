@@ -1,3 +1,6 @@
+.layout-panel-flex--column {
+  align-items: inherit;
+}
 .rw-widget {
   --rw-accent: #6B1A2C;
   --rw-cols: 3;
