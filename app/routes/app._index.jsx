@@ -1837,6 +1837,12 @@ const ABT = (v) => ({
     : { background: "#f3f4f6", color: C.muted }),
 });
 
+const EXPORT_ITEM = {
+  display: "block", width: "100%", textAlign: "left", border: "none",
+  background: "none", padding: "10px 14px", fontSize: 13, fontWeight: 600,
+  color: C.text, cursor: "pointer",
+};
+
 /* ─────────────────────────────────────────
    SELECT-ALL CHECKBOX (supports indeterminate)
 ───────────────────────────────────────── */
@@ -1950,6 +1956,8 @@ export default function ReviewsPage() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAllPages, setSelectAllPages] = useState(false);
   const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const lang = shopLocale || "en"; // ← persisted store language, switcher lives in Settings
 
   const [installing, setInstalling]     = useState(false);
@@ -2078,6 +2086,36 @@ export default function ReviewsPage() {
     }).click();
   };
 
+  // "selected" and "all" both need the full review data (comment, product
+  // title, etc.), not just what's loaded for the current page — so both
+  // are fetched fresh from the server instead of built from `grouped`.
+  const exportServer = async (scope, filename) => {
+    const params = new URLSearchParams({ scope });
+    if (scope === "selected") {
+      params.set("ids", selectedIds.join(","));
+    } else {
+      params.set("tab", tab);
+      params.set("search", search);
+    }
+    setExporting(true);
+    try {
+      const res = await fetch(`/app/export-reviews?${params.toString()}`);
+      if (!res.ok) throw new Error("export failed");
+      const blob = await res.blob();
+      Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(blob),
+        download: filename,
+      }).click();
+    } catch {
+      window.alert("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportSelected = () =>
+    selectAllPages ? exportServer("all", "reviews-all.csv") : exportServer("selected", "reviews-selected.csv");
+
   const go = (params) => setSearchParams(params);
   const changeTab  = (tk) => go({ tab: tk, search: searchVal, page: 1 });
   const changePage = (p)  => go({ tab, search: searchVal, page: p });
@@ -2170,11 +2208,45 @@ export default function ReviewsPage() {
             color: C.text, display: "flex", alignItems: "center", gap: 7, textDecoration: "none",
           }}>Review groups</Link>
 
-          <button onClick={exportCSV} style={{
-            border: "none", borderRadius: 10, padding: "9px 18px",
-            fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff",
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
-          }}>↓ {t.exportCSV}</button>
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setShowExportMenu((v) => !v)}
+              disabled={exporting}
+              style={{
+                border: "none", borderRadius: 10, padding: "9px 18px",
+                fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff",
+                cursor: exporting ? "default" : "pointer", opacity: exporting ? .7 : 1,
+                display: "flex", alignItems: "center", gap: 7,
+              }}
+            >↓ {exporting ? "Exporting…" : t.exportCSV} ▾</button>
+            {showExportMenu && (
+              <>
+                <div onClick={() => setShowExportMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 29 }} />
+                <div style={{
+                  position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 30,
+                  background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10,
+                  boxShadow: "0 8px 24px rgba(0,0,0,.12)", minWidth: 230, overflow: "hidden",
+                }}>
+                  <button onClick={() => { setShowExportMenu(false); exportCSV(); }} style={EXPORT_ITEM}>
+                    Export this page ({allVisibleIds.length})
+                  </button>
+                  <button
+                    onClick={() => { if (!selectedIds.length) return; setShowExportMenu(false); handleExportSelected(); }}
+                    disabled={!selectedIds.length}
+                    style={{ ...EXPORT_ITEM, borderTop: `1px solid ${C.border}`, opacity: selectedIds.length ? 1 : .45, cursor: selectedIds.length ? "pointer" : "default" }}
+                  >
+                    Export selected ({selectAllPages ? total : selectedIds.length})
+                  </button>
+                  <button
+                    onClick={() => { setShowExportMenu(false); exportServer("all", "reviews-all.csv"); }}
+                    style={{ ...EXPORT_ITEM, borderTop: `1px solid ${C.border}` }}
+                  >
+                    Export all reviews ({total})
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
