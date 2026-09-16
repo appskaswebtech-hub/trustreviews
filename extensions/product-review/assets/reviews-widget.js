@@ -348,6 +348,7 @@
       function slRenderPage(page){
         var start=page*slPerPage, pageItems=reviews.slice(start,start+slPerPage);
         listDiv.innerHTML='';
+        if(!pageItems.length){ listDiv.innerHTML='<p style="color:#888;font-size:.9rem;padding:12px 0">'+(s.t.noReviews||'No reviews yet. Be the first to write one!')+'</p>'; }
         for(var si=0;si<pageItems.length;si++){
           var r=pageItems[si], row=document.createElement('div'); row.className='trust-reviews__sl-review-row';
           var avatarHTML2=s.showAvatar?'<span class="trust-reviews__sl-row-avatar" style="background:'+s.accentColor+'">'+initials(r.customer)+'</span>':'';
@@ -724,8 +725,10 @@
     function renderReviews(apiData, s) {
       loadingEl.style.display='none';
       var reviews=apiData.reviews||[];
-      if(!reviews.length){ container.innerHTML='<p style="color:#888;font-size:.9rem">'+(s.t?s.t.noReviews:'No reviews yet.')+'</p>'; return; }
-      injectWidgetSchema(apiData.averageRating || 0, apiData.total || reviews.length, reviews);
+      // summary_side ships its own "Write a Review" button/modal, so it must render
+      // even with zero reviews — otherwise there'd be no way for a customer to add one.
+      if(!reviews.length && s.style!=='summary_side'){ container.innerHTML='<p style="color:#888;font-size:.9rem">'+(s.t?s.t.noReviews:'No reviews yet.')+'</p>'; return; }
+      if(reviews.length) injectWidgetSchema(apiData.averageRating || 0, apiData.total || reviews.length, reviews);
       applyVars(s);
       var el;
       if(s.style==='floating_tab')  { el=buildFloatingTab(reviews,s); }
