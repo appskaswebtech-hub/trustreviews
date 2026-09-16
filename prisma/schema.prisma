@@ -406,6 +406,9 @@ model Widget {
   cardBackground  String @default("#FFFFFF")
   textColor       String @default("#333333")
   borderColor     String @default("#E5E5E5")
+  mutedTextColor  String @default("#888888") // secondary text: "Based on X reviews", dates, bar counts (Summary + List widget)
+  headingColor    String @default("#333333") // widget heading, independent from body/review text color (Summary + List widget)
+  writeBtnColor   String @default("#333333") // "Write a Review" button background (Summary + List widget)
 
   // Display toggles
   showVerified Boolean @default(true)

@@ -422,6 +422,9 @@ export async function loader({ request }) {
         cardBackground:  true,
         textColor:       true,
         borderColor:     true,
+        mutedTextColor:  true,
+        headingColor:    true,
+        writeBtnColor:   true,
 
         showVerified:    true,
         showAvatar:      true,

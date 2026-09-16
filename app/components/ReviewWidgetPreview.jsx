@@ -262,9 +262,9 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
             <div style={{ fontSize: s.metaSize, fontWeight: 600, color: s.accentColor, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
               Customer reviews
             </div>
-            <h2 style={{ ...headingStyle, fontSize: Math.min(s.headingSize, 22), margin: 0 }}>{heading}</h2>
+            <h2 style={{ ...headingStyle, fontSize: Math.min(s.headingSize, 22), margin: 0, color: s.headingColor || s.textColor }}>{heading}</h2>
           </div>
-          <button style={{ flexShrink: 0, padding: "9px 20px", background: s.textColor || "#333", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+          <button style={{ flexShrink: 0, padding: "9px 20px", background: s.writeBtnColor || s.textColor || "#333", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
             Write a review
           </button>
         </div>
@@ -275,18 +275,18 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
           <div style={{ minWidth: isRow ? 190 : "100%", maxWidth: isRow ? 210 : "100%", flexShrink: 0 }}>
             <div style={{ fontSize: 48, fontWeight: 600, color: s.accentColor, lineHeight: 1, marginBottom: 4 }}>{avg.toFixed(1)}</div>
             <div style={{ fontSize: s.reviewSize * 0.85, marginBottom: 4 }}>{stars(Math.round(avg), starCol, s.starGap)}</div>
-            <div style={{ fontSize: s.metaSize, color: "#888", marginBottom: 14 }}>Based on {totalMock} reviews</div>
+            <div style={{ fontSize: s.metaSize, color: s.mutedTextColor || "#888", marginBottom: 14 }}>Based on {totalMock} reviews</div>
             {[5,4,3,2,1].map((n) => {
               const cnt = items.filter((r) => r.rating === n).length;
               const pct = Math.round((cnt / items.length) * 100) || (n === 5 ? 85 : n === 4 ? 10 : n === 3 ? 3 : 1);
               return (
                 <div key={n} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
-                  <span style={{ fontSize: 11, color: "#555", width: 12 }}>{n}</span>
+                  <span style={{ fontSize: 11, color: s.mutedTextColor || "#555", width: 12 }}>{n}</span>
                   <span style={{ fontSize: 12, color: starCol }}>★</span>
                   <div style={{ flex: 1, height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ width: `${pct}%`, height: "100%", background: s.accentColor, borderRadius: 3 }} />
                   </div>
-                  <span style={{ fontSize: 11, color: "#888", width: 24, textAlign: "right" }}>{cnt * 20 || pct}</span>
+                  <span style={{ fontSize: 11, color: s.mutedTextColor || "#888", width: 24, textAlign: "right" }}>{cnt * 20 || pct}</span>
                 </div>
               );
             })}
@@ -298,7 +298,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
               <div key={r.id} style={{ padding: "14px 0", borderTop: `1px solid ${s.borderColor}`, ...(i === items.length - 1 ? { borderBottom: `1px solid ${s.borderColor}` } : {}) }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <div style={{ fontSize: s.reviewSize * 0.85 }}>{stars(r.rating, starCol, s.starGap)}</div>
-                  {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888" }}>2 weeks ago</span>}
+                  {s.showDate && <span style={{ fontSize: s.metaSize, color: s.mutedTextColor || "#888" }}>2 weeks ago</span>}
                 </div>
                 <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 600, color: s.textColor, marginBottom: 4 }}>{r.title}</div>
                 <p style={{ fontSize: s.reviewSize, color: s.textColor, margin: "0 0 8px", lineHeight: 1.5 }}>{r.comment}</p>
@@ -313,7 +313,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
                 </div>
                 {s.showHelpfulVoting !== false && (
                   <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
-                    <span style={{ fontSize: s.metaSize, color: "#888" }}>Was this review helpful?</span>
+                    <span style={{ fontSize: s.metaSize, color: s.mutedTextColor || "#888" }}>Was this review helpful?</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 5, border: `1.2px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, color: s.textColor }}>👍 0</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 5, border: `1.2px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, color: s.textColor }}>👎 0</span>
                   </div>

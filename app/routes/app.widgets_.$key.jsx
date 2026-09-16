@@ -87,6 +87,9 @@ export async function action({ request, params }) {
     cardBackground:  form.get("cardBackground"),
     textColor:       form.get("textColor"),
     borderColor:     form.get("borderColor"),
+    mutedTextColor:  form.get("mutedTextColor") || "#888888",
+    headingColor:    form.get("headingColor")   || "#333333",
+    writeBtnColor:   form.get("writeBtnColor")  || "#333333",
 
     showVerified:    form.get("showVerified")  === "true",
     showAvatar:      form.get("showAvatar")    === "true",
@@ -233,6 +236,9 @@ export default function WidgetCustomizePage() {
   const [cardBg, setCardBg]         = useState(settings.cardBackground ?? "#FFFFFF");
   const [textColor, setTextColor]   = useState(settings.textColor ?? "#333333");
   const [borderCol, setBorderCol]   = useState(settings.borderColor ?? "#E5E5E5");
+  const [mutedTextColor, setMutedTextColor] = useState(settings.mutedTextColor ?? "#888888");
+  const [headingColor, setHeadingColor]     = useState(settings.headingColor ?? "#333333");
+  const [writeBtnColor, setWriteBtnColor]   = useState(settings.writeBtnColor ?? "#333333");
 
   const [verified, setVerified] = useState(settings.showVerified ?? true);
   const [avatar, setAvatar]     = useState(settings.showAvatar ?? true);
@@ -280,6 +286,9 @@ export default function WidgetCustomizePage() {
     fd.set("cardBackground", cardBg);
     fd.set("textColor", textColor);
     fd.set("borderColor", borderCol);
+    fd.set("mutedTextColor", mutedTextColor);
+    fd.set("headingColor", headingColor);
+    fd.set("writeBtnColor", writeBtnColor);
     fd.set("showVerified", String(verified));
     fd.set("showAvatar", String(avatar));
     fd.set("showDate", String(date));
@@ -307,6 +316,7 @@ export default function WidgetCustomizePage() {
   const previewSettings = {
     accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn, showHelpfulVoting,
     backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
+    mutedTextColor, headingColor, writeBtnColor,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
     maxReviews: maxRev, columns: Number(columns),
@@ -397,8 +407,15 @@ export default function WidgetCustomizePage() {
               <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
               <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
               <RangeField label="Max Reviews Shown" value={maxRev} onChange={setMaxRev} min={2} max={20} />
+              <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor}
+                helpText="The widget heading only — separate from the review text color above" />
+              <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
+                helpText="'Based on X reviews', dates, star-count numbers, 'No reviews yet', helpful-vote label" />
               <ToggleField label="Show 'Write a Review' button" checked={showWriteReviewBtn} onChange={setShowWriteReviewBtn}
                 helpText="Adds a button that scrolls to the write-review form on the same page" />
+              {showWriteReviewBtn && (
+                <ColorField label="'Write a Review' Button Color" value={writeBtnColor} onChange={setWriteBtnColor} />
+              )}
               <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
               <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
               <ToggleField label="Show review date"     checked={date}     onChange={setDate} />

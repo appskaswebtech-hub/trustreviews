@@ -3,6 +3,8 @@
     en: { verified: 'Verified', noReviews: 'No reviews yet.', couldNotLoad: 'Could not load reviews.', review: 'review', reviews: 'reviews', readReviews: 'Read reviews', reviewsBtn: 'Reviews', close: 'Close', customerReviews: 'Customer Reviews', previous: 'Previous', next: 'Next' }
   };
   var D_COLOR = '#6B1A2C', D_STYLE = 'dark_grid', D_COLS = '3', D_MAX = '6', D_HEADING = 'What our customers say';
+  var D_STAR_COLOR = '#F59E0B', D_TEXT_COLOR = '#333333', D_HEADING_COLOR = '#333333', D_MUTED_COLOR = '#888888',
+      D_WRITE_BTN_COLOR = '#333333', D_BORDER_COLOR = '#E5E5E5', D_BG_COLOR = '#FFFFFF', D_CARD_BG = '#FFFFFF';
 
   function initWidget(widget) {
     if (widget.dataset.trInit) return;
@@ -19,6 +21,14 @@
     var blockAvatar = widget.dataset.avatar;
     var blockDate   = widget.dataset.date;
     var blockStyle  = widget.dataset.style;
+    var blockStarColor    = widget.dataset.starColor;
+    var blockTextColor    = widget.dataset.textColor;
+    var blockHeadingColor = widget.dataset.headingColor;
+    var blockMutedColor   = widget.dataset.mutedColor;
+    var blockWriteBtnColor = widget.dataset.writeBtnColor;
+    var blockBorderColor  = widget.dataset.borderColor;
+    var blockBgColor      = widget.dataset.bgColor;
+    var blockCardBg       = widget.dataset.cardBg;
     var widgetKey   = widget.dataset.widgetKey || 'review_widget';
     var seoEnabled  = widget.dataset.seoEnabled !== 'false';
     var productTitle = widget.dataset.productTitle || '';
@@ -363,7 +373,7 @@
       function slRenderPage(page){
         var start=page*slPerPage, pageItems=reviews.slice(start,start+slPerPage);
         listDiv.innerHTML='';
-        if(!pageItems.length){ listDiv.innerHTML='<p style="color:#888;font-size:.9rem;padding:12px 0">'+(s.t.noReviews||'No reviews yet. Be the first to write one!')+'</p>'; }
+        if(!pageItems.length){ listDiv.innerHTML='<p style="color:var(--tr-muted,#888);font-size:.9rem;padding:12px 0">'+(s.t.noReviews||'No reviews yet. Be the first to write one!')+'</p>'; }
         for(var si=0;si<pageItems.length;si++){
           var r=pageItems[si], row=document.createElement('div'); row.className='trust-reviews__sl-review-row';
           var avatarHTML2=s.showAvatar?'<span class="trust-reviews__sl-row-avatar" style="background:'+s.accentColor+'">'+initials(r.customer)+'</span>':'';
@@ -458,6 +468,9 @@
       widget.style.setProperty('--tr-star-size',(s.reviewSize||16)+'px');
       widget.style.setProperty('--tr-star-gap',(s.starGap!=null?s.starGap:2)+'px');
       widget.style.setProperty('--tr-text-align',s.textAlign||'left');
+      widget.style.setProperty('--tr-muted',s.mutedTextColor||'#888888');
+      widget.style.setProperty('--tr-heading-color',s.headingColor||s.textColor||'#333333');
+      widget.style.setProperty('--tr-write-btn-color',s.writeBtnColor||s.textColor||'#333333');
       widget.style.setProperty('--tr-cols',String(s.columns)); widget.style.setProperty('--tr-cols-tablet',String(s.tabletColumns));
       widget.style.setProperty('--tr-cols-mobile',String(s.mobileColumns));
       if(headingEl) headingEl.style.color=s.accentColor;
@@ -786,8 +799,19 @@
       var showAvatar=(blockAvatar==='false')?false:(d.showAvatar!==false);
       var showDate=(blockDate==='false')?false:(d.showDate!==false);
       var showHelpfulVoting=d.showHelpfulVoting!==false;
+      // Block-level color overrides follow the same pattern as accentColor above:
+      // only win over the Saved Widget's value when the merchant has actually
+      // changed them away from the block schema's own default in Theme Editor.
+      var starColor=(blockStarColor&&blockStarColor!==D_STAR_COLOR)?blockStarColor:(d.starColor||D_STAR_COLOR);
+      var textColor=(blockTextColor&&blockTextColor!==D_TEXT_COLOR)?blockTextColor:(d.textColor||D_TEXT_COLOR);
+      var mutedTextColor=(blockMutedColor&&blockMutedColor!==D_MUTED_COLOR)?blockMutedColor:(d.mutedTextColor||D_MUTED_COLOR);
+      var headingColor=(blockHeadingColor&&blockHeadingColor!==D_HEADING_COLOR)?blockHeadingColor:(d.headingColor||d.textColor||D_HEADING_COLOR);
+      var writeBtnColor=(blockWriteBtnColor&&blockWriteBtnColor!==D_WRITE_BTN_COLOR)?blockWriteBtnColor:(d.writeBtnColor||d.textColor||D_WRITE_BTN_COLOR);
+      var borderColor=(blockBorderColor&&blockBorderColor!==D_BORDER_COLOR)?blockBorderColor:(d.borderColor||D_BORDER_COLOR);
+      var backgroundColor=(blockBgColor&&blockBgColor!==D_BG_COLOR)?blockBgColor:(d.backgroundColor||'transparent');
+      var cardBackground=(blockCardBg&&blockCardBg!==D_CARD_BG)?blockCardBg:(d.cardBackground||D_CARD_BG);
       if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
-      var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
+      var s={t:t,accentColor:accentColor,starColor:starColor,starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,mutedTextColor:mutedTextColor,headingColor:headingColor,writeBtnColor:writeBtnColor,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:backgroundColor,cardBackground:cardBackground,textColor:textColor,borderColor:borderColor,fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
       return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });
