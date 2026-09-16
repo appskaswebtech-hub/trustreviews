@@ -93,6 +93,7 @@ model Review {
   comment     String   @db.Text
   customer    String
   likes       Int          @default(0)
+  dislikes    Int          @default(0)
   status      ReviewStatus @default(pending)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -410,6 +411,7 @@ model Widget {
   showVerified Boolean @default(true)
   showAvatar   Boolean @default(true)
   showDate     Boolean @default(true)
+  showHelpfulVoting Boolean @default(true) // "Was this review helpful?" 👍/👎 voting (Summary + List widget)
 
   // Layout
   maxReviews   Int     @default(6)

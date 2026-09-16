@@ -311,6 +311,13 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
                   <span style={{ fontSize: s.metaSize, fontWeight: 600, color: s.textColor }}>{r.customer}</span>
                   {s.showVerified && <span style={{ fontSize: 10, color: "#1a7a3a" }}>✓ Verified purchase</span>}
                 </div>
+                {s.showHelpfulVoting !== false && (
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
+                    <span style={{ fontSize: s.metaSize, color: "#888" }}>Was this review helpful?</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5, border: `1.2px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, color: s.textColor }}>👍 0</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5, border: `1.2px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, color: s.textColor }}>👎 0</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>

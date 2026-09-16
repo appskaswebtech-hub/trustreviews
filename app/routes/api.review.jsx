@@ -426,6 +426,7 @@ export async function loader({ request }) {
         showVerified:    true,
         showAvatar:      true,
         showDate:        true,
+        showHelpfulVoting: true,
 
         maxReviews:      true,
 
@@ -513,7 +514,7 @@ export async function loader({ request }) {
         where: storeWhere,
         select: {
           id: true, rating: true, comment: true, customer: true,
-          title: true, likes: true, createdAt: true,
+          title: true, likes: true, dislikes: true, createdAt: true,
           mediaUrl: true, mediaType: true, fileName: true,
           reply: true, repliedAt: true,
         },
@@ -575,7 +576,7 @@ export async function loader({ request }) {
       where,
       select: {
         id: true, rating: true, comment: true, customer: true,
-        title: true, likes: true, createdAt: true,
+        title: true, likes: true, dislikes: true, createdAt: true,
         mediaUrl: true, mediaType: true, fileName: true,
         reply: true, repliedAt: true, sentiment: true,
       },
@@ -622,21 +623,22 @@ export async function action({ request }) {
 
   const data = await request.json();
 
-  // Like
-  if (data.type === "like") {
+  // Like / Dislike ("Was this review helpful?" voting)
+  if (data.type === "like" || data.type === "dislike") {
     const store = await prisma.store.findUnique({ where: { shop }, select: { id: true } });
     if (!store) return Response.json({ success: false }, { status: 404 });
 
+    const field = data.type === "like" ? "likes" : "dislikes";
     const result = await prisma.review.updateMany({
       where: { id: Number(data.id), storeId: store.id },
-      data:  { likes: { increment: 1 } },
+      data:  { [field]: { increment: 1 } },
     });
 
     if (!result.count) return Response.json({ success: false }, { status: 404 });
 
     const review = await prisma.review.findUnique({
       where:  { id: Number(data.id) },
-      select: { id: true, likes: true },
+      select: { id: true, likes: true, dislikes: true },
     });
     return Response.json({ success: true, review });
   }

@@ -4,6 +4,7 @@
   data-product-title="{{ product.title | escape }}"
   data-locale="{{ request.locale.iso_code }}"
   data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+  data-helpful-style="{{ block.settings.helpful_style }}"
   data-accent="{{ block.settings.accent_color }}"
   data-btn-text="{{ block.settings.btn_text_color }}"
   data-card-bg="{{ block.settings.card_bg }}"
@@ -146,6 +147,16 @@
   },
   "settings": [
     { "type": "checkbox", "id": "show_write_review", "label": "Show \"Write a Review\" button and form", "default": true },
+    {
+      "type": "select",
+      "id": "helpful_style",
+      "label": "Review helpfulness voting",
+      "options": [
+        { "value": "simple", "label": "Simple (single \"Helpful\" count)" },
+        { "value": "detailed", "label": "Detailed (\"Was this review helpful?\" with 👍/👎)" }
+      ],
+      "default": "simple"
+    },
     { "type": "header", "content": "Colors" },
     { "type": "color", "id": "accent_color", "label": "Accent Color (buttons & stars)", "default": "#1a1a1a" },
     { "type": "color", "id": "btn_text_color", "label": "Button Text Color", "default": "#ffffff" },

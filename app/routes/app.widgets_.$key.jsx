@@ -91,6 +91,7 @@ export async function action({ request, params }) {
     showVerified:    form.get("showVerified")  === "true",
     showAvatar:      form.get("showAvatar")    === "true",
     showDate:        form.get("showDate")      === "true",
+    showHelpfulVoting: form.get("showHelpfulVoting") === "true",
 
     maxReviews:      parseInt(form.get("maxReviews"))   || 6,
     columns:         parseInt(form.get("columns"))      || 3,
@@ -219,6 +220,7 @@ export default function WidgetCustomizePage() {
   const [textAlign, setTextAlign]           = useState(settings.textAlign ?? "left");
   const [summaryPosition, setSummaryPosition] = useState(settings.summaryPosition ?? "left");
   const [showWriteReviewBtn, setShowWriteReviewBtn] = useState(settings.showWriteReviewBtn ?? false);
+  const [showHelpfulVoting, setShowHelpfulVoting] = useState(settings.showHelpfulVoting ?? true);
   const [heading, setHeading]           = useState(settings.heading ?? "");
   const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
 
@@ -267,6 +269,7 @@ export default function WidgetCustomizePage() {
     fd.set("textAlign", textAlign);
     fd.set("summaryPosition", summaryPosition);
     fd.set("showWriteReviewBtn", String(showWriteReviewBtn));
+    fd.set("showHelpfulVoting", String(showHelpfulVoting));
     fd.set("heading", heading);
     fd.set("contentFilter", contentFilter);
     fd.set("fontFamily", fontFamily);
@@ -302,7 +305,7 @@ export default function WidgetCustomizePage() {
   };
 
   const previewSettings = {
-    accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn,
+    accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn, showHelpfulVoting,
     backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
@@ -399,6 +402,8 @@ export default function WidgetCustomizePage() {
               <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
               <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
               <ToggleField label="Show review date"     checked={date}     onChange={setDate} />
+              <ToggleField label="Show 'Was this review helpful?' voting" checked={showHelpfulVoting} onChange={setShowHelpfulVoting}
+                helpText="Lets shoppers mark each review 👍 helpful or 👎 not helpful" />
               <RangeField label="Section Top Padding"    value={paddingTop}    onChange={setPaddingTop}    min={0} max={120} step={4} unit="px" />
               <RangeField label="Section Bottom Padding" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
             </>

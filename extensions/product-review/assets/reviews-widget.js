@@ -70,6 +70,21 @@
       }
     }
 
+    function attachHelpfulVotes(root) {
+      function wire(btn, type, countSel) {
+        btn.addEventListener('click', function() {
+          if (btn.disabled) return; btn.disabled = true;
+          fetch('/apps/review?shop=' + shop, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:type, id:btn.dataset.id }) })
+          .then(function(r){ return r.json(); }).then(function(json){ if (json.success) btn.querySelector(countSel).textContent = type==='like'?json.review.likes:json.review.dislikes; })
+          .catch(function(){}).finally(function(){ btn.disabled = false; });
+        });
+      }
+      var upBtns = root.querySelectorAll('.trust-reviews__sl-helpful-up');
+      for (var i = 0; i < upBtns.length; i++) wire(upBtns[i], 'like', '.trust-reviews__sl-helpful-count');
+      var downBtns = root.querySelectorAll('.trust-reviews__sl-helpful-down');
+      for (var j = 0; j < downBtns.length; j++) wire(downBtns[j], 'dislike', '.trust-reviews__sl-helpful-count');
+    }
+
     function buildSlider(reviews, s) {
       var items = reviews.slice(0, s.maxRev), perView = Math.max(1, parseInt(s.columns,10)||1);
       var wrap = document.createElement('div'); wrap.className = 'trust-reviews__slider-wrap';
@@ -355,6 +370,11 @@
           var verifiedHTML2=s.showVerified?'<span class="trust-reviews__verified">'+(s.t?s.t.verified:'Verified')+'</span>':'';
           var dateHTML2=(s.showDate&&r.createdAt)?'<span class="trust-reviews__sl-row-date">'+fmtDate(r.createdAt)+'</span>':'';
           var titleHTML2=r.title?'<p class="trust-reviews__sl-row-title">'+r.title+'</p>':'';
+          var helpfulHTML2=s.showHelpfulVoting?('<div class="trust-reviews__sl-helpful">'+
+            '<span class="trust-reviews__sl-helpful-label">'+(s.t.helpfulQuestion||'Was this review helpful?')+'</span>'+
+            '<button class="trust-reviews__sl-helpful-btn trust-reviews__sl-helpful-up" data-id="'+r.id+'" aria-label="'+(s.t.helpful||'Helpful')+'">👍 <span class="trust-reviews__sl-helpful-count">'+(r.likes||0)+'</span></button>'+
+            '<button class="trust-reviews__sl-helpful-btn trust-reviews__sl-helpful-down" data-id="'+r.id+'" aria-label="'+(s.t.notHelpful||'Not helpful')+'">👎 <span class="trust-reviews__sl-helpful-count">'+(r.dislikes||0)+'</span></button>'+
+          '</div>'):'';
           var mediaHTML2='';
           if(r.mediaUrl){
             if((r.mediaType||'').indexOf('video')===0){
@@ -363,10 +383,11 @@
               mediaHTML2='<div class="trust-reviews__sl-row-media"><img src="'+r.mediaUrl+'" alt="review media" loading="lazy" style="max-width:100%;max-height:220px;border-radius:8px;margin-top:8px;object-fit:cover"></div>';
             }
           }
-          row.innerHTML='<div class="trust-reviews__sl-row-head"><span class="trust-reviews__sl-row-stars">'+starHTML(r.rating,starCol)+'</span>'+dateHTML2+'</div>'+titleHTML2+'<p class="trust-reviews__sl-row-comment">'+r.comment+'</p>'+mediaHTML2+'<div class="trust-reviews__sl-row-meta">'+avatarHTML2+'<span class="trust-reviews__sl-row-name">'+r.customer+'</span>'+verifiedHTML2+'</div>';
+          row.innerHTML='<div class="trust-reviews__sl-row-head"><span class="trust-reviews__sl-row-stars">'+starHTML(r.rating,starCol)+'</span>'+dateHTML2+'</div>'+titleHTML2+'<p class="trust-reviews__sl-row-comment">'+r.comment+'</p>'+mediaHTML2+'<div class="trust-reviews__sl-row-meta">'+avatarHTML2+'<span class="trust-reviews__sl-row-name">'+r.customer+'</span>'+verifiedHTML2+'</div>'+helpfulHTML2;
           listDiv.appendChild(row);
         }
         attachLikes(listDiv);
+        attachHelpfulVotes(listDiv);
         var totalPages=Math.ceil(reviews.length/slPerPage);
         pagDiv.innerHTML='';
         if(totalPages<=1) return;
@@ -764,8 +785,9 @@
       var showVerified=(blockVerif==='false')?false:(d.showVerified!==false);
       var showAvatar=(blockAvatar==='false')?false:(d.showAvatar!==false);
       var showDate=(blockDate==='false')?false:(d.showDate!==false);
+      var showHelpfulVoting=d.showHelpfulVoting!==false;
       if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
-      var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
+      var s={t:t,accentColor:accentColor,starColor:d.starColor||'#F59E0B',starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:d.backgroundColor||'transparent',cardBackground:d.cardBackground||'#ffffff',textColor:d.textColor||'#333333',borderColor:d.borderColor||'#e4e4e4',fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
       return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });

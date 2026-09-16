@@ -8,6 +8,7 @@ var productTitle = reviewSection ? reviewSection.dataset.productTitle : "";
 // default language instead of the customer's current one).
 var storeLocale = (reviewSection && reviewSection.dataset.locale) || locale_language || (document.documentElement.lang || "").split("-")[0] || "";
 var seoEnabled = reviewSection ? reviewSection.dataset.seoEnabled !== 'false' : true;
+var helpfulStyle = reviewSection ? (reviewSection.dataset.helpfulStyle || "simple") : "simple";
 var rating = 0;
 var allReviews = [];
 var currentSort = "newest";
@@ -35,6 +36,7 @@ var REVIEW_TRANSLATIONS_EN = {
   search: "Search", searchAria: "Search reviews", searchPlaceholder: "Search reviews...",
   searchClearAria: "Clear search", noResults: "No reviews match your search.",
   helpful: "Helpful", share: "Share",
+  helpfulQuestion: "Was this review helpful?", notHelpful: "Not helpful",
   requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
   prev: "← Prev", next: "Next →", page: "Page", of: "of",
   storeReplyLabel: "Store reply",
@@ -359,6 +361,8 @@ function buildCardHTML(r, q, style){
   var initials     = getInitials(r.customer);
   var customerHTML = highlight(r.customer || "", q);
   var commentHTML  = highlight(r.comment  || "", q);
+  var dateStr      = r.createdAt ? new Date(r.createdAt).toLocaleDateString(storeLocale || undefined, { year: "numeric", month: "short", day: "numeric" }) : "";
+  var dateHTML     = dateStr ? `<span class="review-date">${escapeHTML(dateStr)}</span>` : "";
   // When showing reviews from every product, the page's own product title
   // would be wrong for reviews that belong to other products — hide it instead.
   var productLabelHTML = listSettings.showAllProducts
@@ -388,7 +392,18 @@ function buildCardHTML(r, q, style){
     ? `<div class="review-reply"><strong>${escapeHTML(T.storeReplyLabel || "Store reply")}:</strong> ${escapeHTML(r.reply)}</div>`
     : "";
 
-  var metaHTML = `
+  var metaHTML = helpfulStyle === "detailed" ? `
+    <div class="review-meta review-meta--helpful">
+      <span class="helpful-label">${T.helpfulQuestion || "Was this review helpful?"}</span>
+      <button class="helpful-btn helpful-btn--up" onclick="likeReview(${r.id})" aria-label="${T.helpful}">
+        <span class="thumb">👍</span> ${r.likes || 0}
+      </button>
+      <button class="helpful-btn helpful-btn--down" onclick="dislikeReview(${r.id})" aria-label="${T.notHelpful || "Not helpful"}">
+        <span class="thumb">👎</span> ${r.dislikes || 0}
+      </button>
+      <button class="share-btn" onclick="shareReview(${r.id})">${T.share}</button>
+    </div>
+  ` : `
     <div class="review-meta">
       <button class="helpful-btn" onclick="likeReview(${r.id})">
         <span class="check">✓</span> ${T.helpful} (${r.likes || 0})
@@ -405,7 +420,7 @@ function buildCardHTML(r, q, style){
             <div class="review-avatar">${initials}</div>
             <div class="review-author">${customerHTML}</div>
           </div>
-          <div class="review-stars">${stars}</div>
+          <div class="review-stars-row"><div class="review-stars">${stars}</div>${dateHTML}</div>
           ${productLabelHTML}
           ${titleLineHTML}
           <p class="review-comment">${commentHTML}</p>
@@ -425,7 +440,7 @@ function buildCardHTML(r, q, style){
         </div>
         <div class="review-body">
           <div class="review-card-head">
-            <div class="review-stars">${stars}</div>
+            <div class="review-stars-row"><div class="review-stars">${stars}</div>${dateHTML}</div>
             <div class="review-author">${customerHTML}</div>
           </div>
           ${titleLineHTML}
@@ -441,7 +456,7 @@ function buildCardHTML(r, q, style){
   if(style === "minimal"){
     return `
       <div class="review-card review-card--minimal" id="review-${r.id}">
-        <div class="review-stars">${stars}</div>
+        <div class="review-stars-row"><div class="review-stars">${stars}</div>${dateHTML}</div>
         <div class="review-card-head">
           <span class="review-avatar-icon">👤</span>
           <div class="review-author">${customerHTML}</div>
@@ -464,7 +479,7 @@ function buildCardHTML(r, q, style){
       <div class="review-body">
         <div class="flex-body">
         <div class="review-flex">
-        <div class="review-stars">${stars}</div>
+        <div class="review-stars-row"><div class="review-stars">${stars}</div>${dateHTML}</div>
         ${productLabelHTML}
         <div class="review-author">${customerHTML}</div>
         ${titleLineHTML}
@@ -745,12 +760,22 @@ async function submitReview() {
   }
 }
 
-/* ============ LIKE REVIEW ============ */
+/* ============ LIKE / DISLIKE REVIEW ============ */
 async function likeReview(id){
   var response = await fetch("/apps/review", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ type: "like", id: id })
+  });
+  if(!response.ok) return;
+  loadReviews();
+}
+
+async function dislikeReview(id){
+  var response = await fetch("/apps/review", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "dislike", id: id })
   });
   if(!response.ok) return;
   loadReviews();
