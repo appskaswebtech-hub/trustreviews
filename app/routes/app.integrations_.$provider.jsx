@@ -6,6 +6,8 @@ import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
 import { TESTERS, getMailchimpLists } from "../utils/integrations.server";
 import { syncAllApprovedReviews } from "../utils/google-merchant.server";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import AdvancedPaywall from "../components/AdvancedPaywall";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -17,6 +19,9 @@ export const loader = async ({ request, params }) => {
   const providerKey = params.provider;
   const meta = PROVIDER_META[providerKey];
   if (!meta) throw redirect("/app/integrations");
+
+  const isPro = await hasAdvancedAccess(session.shop);
+  if (!isPro) return { providerKey, provider: meta, isPro };
 
   const integration = await db.integration.findUnique({
     where: { shop_provider: { shop: session.shop, provider: providerKey } },
@@ -35,6 +40,7 @@ export const loader = async ({ request, params }) => {
   return {
     providerKey,
     provider: meta,
+    isPro,
     shop:           session.shop,
     adminBase,
     hasKey:         Boolean(integration?.apiKey && integration.apiKey !== "enabled"),
@@ -55,6 +61,9 @@ export const action = async ({ request, params }) => {
   const meta = PROVIDER_META[providerKey];
   const test = TESTERS[providerKey];
   if (!meta || !test) throw redirect("/app/integrations");
+
+  const isPro = await hasAdvancedAccess(session.shop);
+  if (!isPro) return { ok: false, message: "Integrations require the Advanced plan." };
 
   const formData = await request.formData();
   const actionType = formData.get("actionType");
@@ -452,8 +461,26 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
 }
 
 export default function IntegrationSettingsPage() {
-  const { providerKey, provider, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail } = useLoaderData();
+  const { providerKey, provider, isPro, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail } = useLoaderData();
   const fetcher = useFetcher();
+
+  if (!isPro) {
+    return (
+      <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
+        <AdvancedPaywall
+          title={`${provider.label} — Advanced Plan`}
+          description="Integrations are part of the Advanced plan."
+          features={[
+            "Klaviyo, Mailchimp & Shopify Flow",
+            "Google Merchant Center sync",
+            "Azure Translator",
+            "Everything else in Advanced",
+          ]}
+          accentColor="#4C6FFF"
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>

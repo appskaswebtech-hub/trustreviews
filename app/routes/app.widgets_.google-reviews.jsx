@@ -8,13 +8,13 @@ import WidgetCustomizeShell, {
   InstallSection, ColorField, SelectField, TextFieldInput, RangeField, ToggleField, SHELL_C,
 } from "../components/WidgetCustomizeShell";
 import GoogleReviewsPreview, { GOOGLE_REVIEWS_STYLE_OPTIONS } from "../components/GoogleReviewsPreview";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const plan = await db.shopPlan.findUnique({ where: { shop } });
-  const isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
+  const isPro = await hasAdvancedAccess(shop);
 
   let widget = await db.googleReviewsWidget.findUnique({ where: { shop } });
   if (!widget) {
@@ -35,6 +35,10 @@ export async function loader({ request }) {
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
+
+  const isPro = await hasAdvancedAccess(shop);
+  if (!isPro) return { ok: false, message: "Google Reviews requires the Advanced plan." };
+
   const form = await request.formData();
   const actionType = form.get("actionType");
 

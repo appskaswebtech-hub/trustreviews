@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher, Link } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
-import { isAdvancedOrHigher } from "../billing.server";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
 
 // ── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
@@ -11,8 +11,7 @@ export async function loader({ request }) {
   const widget = await db.widget.findUnique({
     where: { shop_widgetKey: { shop: session.shop, widgetKey: "homepage_reviews" } },
   });
-  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
-  const isPro = isAdvancedOrHigher(plan);
+  const isPro = await hasAdvancedAccess(session.shop);
   return { settings: widget || {}, isPro };
 }
 
@@ -21,8 +20,7 @@ export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const body = await request.json();
 
-  const plan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
-  const isPro = isAdvancedOrHigher(plan);
+  const isPro = await hasAdvancedAccess(session.shop);
 
   let requestedLayout = body.layout || "summary_carousel";
   if (PRO_LAYOUT_VALUES.has(requestedLayout) && !isPro) {

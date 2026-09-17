@@ -67,7 +67,7 @@
       "id": "widget_key",
       "label": "Saved widget",
       "default": "review_widget",
-      "info": "Pick which widget from the Widgets gallery in your admin this block should display — each has its own saved colors/fonts/layout.",
+      "info": "Pick which widget from the Widgets gallery in your admin this block should display — each has its own saved colors/fonts/layout. This is the main control; leave \"Widget Design Override\" below untouched to use exactly what you configured on this widget's page.",
       "options": [
         { "value": "custom_template",       "label": "Custom Template (Customize)"  },
         { "value": "review_widget",         "label": "Review Widget"                },
@@ -80,15 +80,22 @@
         { "value": "happy_customers",       "label": "Happy Customers widget"       },
         { "value": "review_snippets",       "label": "Review Snippets"              },
         { "value": "classic_list",          "label": "Classic Reviews List"         },
-        { "value": "summary_list",          "label": "Summary + List"               }
+        { "value": "summary_list",          "label": "Summary + List"               },
+        { "value": "floating_reviews_tab",  "label": "Floating Reviews Tab"         },
+        { "value": "insta_stories",         "label": "Insta Stories"                },
+        { "value": "hero_quote_carousel",   "label": "Hero Quote Carousel"          },
+        { "value": "coverflow_carousel",    "label": "Coverflow Carousel"           },
+        { "value": "split_media_carousel",  "label": "Split Media Carousel"         }
       ]
     },
     {
       "type": "select",
       "id": "widget_style",
-      "label": "Widget Design",
-      "default": "dark_grid",
+      "label": "Widget Design Override",
+      "default": "",
+      "info": "Leave this on \"Use Saved Widget's Design\" to show exactly the style you configured on the Saved widget above. Only pick a specific design here if you want to override it just for this block.",
       "options": [
+        { "value": "", "label": "— Use Saved Widget's Design (default) —" },
         { "value": "dark_grid",    "label": "Dark Grid"            },
         { "value": "minimal_grid", "label": "Minimal Grid"         },
         { "value": "slider",       "label": "Slider"               },
@@ -103,7 +110,15 @@
         { "value": "masonry_wall",  "label": "Masonry Wall"         },
         { "value": "classic_list",  "label": "Classic List"         },
         { "value": "summary_side",  "label": "Summary + List"       },
-        { "value": "photo_masonry", "label": "Photo Masonry"         }
+        { "value": "photo_masonry", "label": "Photo Masonry"         },
+        { "value": "compact_rows",   "label": "Compact Rows"         },
+        { "value": "snippet_rotator","label": "Snippet Rotator"      },
+        { "value": "floating_tab",   "label": "Floating Tab"         },
+        { "value": "insta_stories",  "label": "Insta Stories"        },
+        { "value": "insta_reels",    "label": "Insta Reels"          },
+        { "value": "hero_quote",     "label": "Hero Quote Carousel"  },
+        { "value": "coverflow",      "label": "Coverflow Carousel"   },
+        { "value": "split_media",    "label": "Split Media Carousel" }
       ]
     },
     { "type": "header",   "content": "Appearance" },

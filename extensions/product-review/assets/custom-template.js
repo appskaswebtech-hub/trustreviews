@@ -8,6 +8,7 @@
   function initCT(widget) {
     var productId   = widget.dataset.productId  || '';
     var shop        = widget.dataset.shop        || '';
+    var templateId  = widget.dataset.templateId  || '';
     var storeLocale = widget.dataset.locale      || (document.documentElement.lang || '').split('-')[0] || '';
     var headingEl   = widget.querySelector('.ct-heading');
     var loadingEl   = widget.querySelector('.ct-loading');
@@ -24,6 +25,7 @@
 
     fetch('/apps/review?shop=' + encodeURIComponent(shop) +
           '&type=widget-defaults&widgetKey=custom_template' +
+          (templateId ? '&templateId=' + encodeURIComponent(templateId) : '') +
           '&locale=' + encodeURIComponent(storeLocale))
     .then(function (r) { return r.json(); })
     .then(function (resp) {
@@ -118,6 +120,7 @@
         listGridEl.appendChild(emp);
       } else {
         visible.forEach(function (r) { listGridEl.appendChild(buildCTCard(r, rlSettings, t)); });
+        attachCTHelpfulVotes(listGridEl, shop);
       }
       if (loadMoreBtn) {
         loadMoreBtn.style.display = (curPage * perPage < filtered.length) ? 'block' : 'none';
@@ -270,6 +273,7 @@
             showAvatar:   st.showAvatar  !== false,
             showDate:     st.showDate    !== false,
             showMedia:    st.showMedia   !== false,
+            showHelpful:  st.showHelpful !== false,
             maxRev:       st.perPage     || 9,
             perPage:      st.perPage     || 9,
             columns:      st.columns     || 3,
@@ -278,14 +282,17 @@
             showShadow:   (st.cardShadow || 'soft') !== 'none',
             cardPadding:  st.cardPadding || 18,
             layout:       st.layout      || 'grid',
+            elementOrder: st.elementOrder,
+            elementPositions: st.elementPositions,
+            cardMinHeight: st.cardMinHeight,
           };
 
           var wrap = document.createElement('div');
           var grid = document.createElement('div');
           listGridEl = grid;
 
-          if (st.layout === 'list') {
-            grid.style.cssText = 'display:flex;flex-direction:column;gap:' + (st.gap || 16) + 'px';
+          if (st.layout === 'list' || st.layout === 'compact') {
+            grid.style.cssText = 'display:flex;flex-direction:column;gap:' + (st.layout === 'compact' ? Math.min(st.gap || 16, 8) : (st.gap || 16)) + 'px';
           } else if (st.layout === 'masonry') {
             grid.style.cssText = 'column-count:' + (st.columns || 3) + ';column-gap:' + (st.gap || 16) + 'px';
           } else {
@@ -416,7 +423,7 @@
 
   function buildSummaryBlock(total, avgRating, st, t) {
     var el = document.createElement('div');
-    el.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap';
+    el.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:' + (st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start');
 
     var scoreEl = document.createElement('div');
     scoreEl.style.cssText = 'font-size:' + (st.style === 'large' ? 56 : 40) + 'px;font-weight:900;color:' + (st.accentColor || '#6B1A2C') + ';line-height:1';
@@ -484,7 +491,7 @@
 
   function buildFilterBlock(st, t, starCounts, onChange) {
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+    wrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:' + (st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start');
     var chipEls = [];
     var accent  = st.accentColor || '#6B1A2C';
     var isUnder = st.style === 'underline';
@@ -517,6 +524,7 @@
   }
 
   function buildSortBlock(st, t, onChange) {
+    var alignJustify = st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start';
     var wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;align-items:center;gap:8px';
     var label = document.createElement('span');
@@ -559,15 +567,23 @@
         tabEls.push(btn);
         tabWrap.appendChild(btn);
       });
-      return tabWrap;
+      var tabAlign = document.createElement('div');
+      tabAlign.style.cssText = 'display:flex;justify-content:' + alignJustify;
+      tabAlign.appendChild(tabWrap);
+      return tabAlign;
     }
 
     wrap.appendChild(label);
     wrap.appendChild(sel);
-    return wrap;
+    var sortAlign = document.createElement('div');
+    sortAlign.style.cssText = 'display:flex;justify-content:' + alignJustify;
+    sortAlign.appendChild(wrap);
+    return sortAlign;
   }
 
   function buildSearchBlock(st, t, onChange) {
+    var alignWrap = document.createElement('div');
+    alignWrap.style.cssText = 'display:flex;justify-content:' + (st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start');
     var wrap = document.createElement('div');
     var bRadius = st.shape === 'pill' ? '24px' : (st.shape === 'square' ? '4px' : '8px');
     wrap.style.cssText = 'display:flex;align-items:center;border:1.5px solid #e4e4e4;border-radius:' + bRadius + ';overflow:hidden;background:#fff';
@@ -578,7 +594,8 @@
     inp.style.cssText = 'flex:1;padding:10px 10px 10px 0;border:none;outline:none;font-size:14px;background:transparent';
     inp.addEventListener('input', function () { onChange(inp.value.trim()); });
     wrap.appendChild(inp);
-    return wrap;
+    alignWrap.appendChild(wrap);
+    return alignWrap;
   }
 
   function buildSliderBlock(reviews, st, t) {
@@ -667,12 +684,13 @@
     if (!r) return null;
     var el = document.createElement('div');
     var accent = st.accentColor || '#6B1A2C';
-    el.style.cssText = 'background:' + (st.cardBg || '#f9fafb') + ';border-radius:16px;padding:28px 32px;position:relative';
+    var justify = st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start';
+    el.style.cssText = 'background:' + (st.cardBg || '#f9fafb') + ';border-radius:16px;padding:28px 32px;position:relative;text-align:' + (st.align || 'left');
     var quote = st.showQuote !== false ? '<div style="font-size:' + (st.quoteSize || 48) + 'px;color:' + accent + ';opacity:.25;line-height:.8;margin-bottom:8px">&ldquo;</div>' : '';
     el.innerHTML =
       quote +
       '<p style="font-size:18px;color:' + (st.textColor || '#1a1a1a') + ';line-height:1.6;margin:0 0 18px;font-style:italic">' + escapeHTML(r.comment || '') + '</p>' +
-      '<div style="display:flex;align-items:center;gap:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:' + justify + ';gap:12px">' +
         '<div style="width:40px;height:40px;border-radius:50%;background:' + accent + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px">' + escapeHTML((r.customer||'A').trim().split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)) + '</div>' +
         '<div><div style="font-weight:700;font-size:14px;color:#1a1a1a">' + escapeHTML(r.customer || '') + '</div>' +
         '<div style="display:flex;gap:2px;margin-top:2px">' + starsHtml(r.rating, accent, 12) + '</div></div>' +
@@ -755,7 +773,10 @@
       el.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:24px;background:' + color + '18;border:1.5px solid ' + color + '44';
       el.innerHTML = '<span style="color:' + color + ';font-weight:700">' + icon + '</span><span style="font-size:13px;font-weight:700;color:' + color + '">' + text + '</span>';
     }
-    return el;
+    var alignWrap = document.createElement('div');
+    alignWrap.style.cssText = 'display:flex;justify-content:' + (st.align === 'center' ? 'center' : st.align === 'right' ? 'flex-end' : 'flex-start');
+    alignWrap.appendChild(el);
+    return alignWrap;
   }
 
   /* ── Popup block: trigger button + dismissible overlay holding its nested
@@ -852,7 +873,23 @@
 
   /* ── Card builder for block-based review list ── */
   function buildCTCard(r, s, t) {
-    var card  = document.createElement('div');
+    var card = document.createElement('div');
+
+    if (s.layout === 'compact') {
+      var cAccent = s.accentColor || '#6B1A2C';
+      var cHelpfulHTML = s.showHelpful ? (
+        '<button class="ct-helpful-btn ct-helpful-up" data-id="' + r.id + '" aria-label="' + (t.helpful || 'Helpful') + '" style="display:inline-flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:11px;color:#9ca3af;flex-shrink:0">&#128077; <span class="ct-helpful-count">' + (r.likes || 0) + '</span></button>' +
+        '<button class="ct-helpful-btn ct-helpful-down" data-id="' + r.id + '" aria-label="' + (t.notHelpful || 'Not helpful') + '" style="display:inline-flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-size:11px;color:#9ca3af;flex-shrink:0">&#128078; <span class="ct-helpful-count">' + (r.dislikes || 0) + '</span></button>'
+      ) : '';
+      card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid ' + (s.borderColor || '#e4e4e4');
+      card.innerHTML =
+        '<span style="flex-shrink:0">' + starsHtml(r.rating, s.starColor || '#F59E0B', 13) + '</span>' +
+        '<span style="flex:1;min-width:0;font-size:13px;color:' + (s.textColor || '#555') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHTML(r.comment || '') + '</span>' +
+        '<span style="flex-shrink:0;font-size:12px;font-weight:700;color:' + (s.textColor || '#1a1a1a') + ';white-space:nowrap">' + escapeHTML(r.customer || '') + '</span>' +
+        cHelpfulHTML;
+      return card;
+    }
+
     var shadow = s.showShadow ? '0 2px 12px rgba(0,0,0,.08)' : 'none';
     card.style.cssText =
       'background:' + (s.cardBg || '#fff') + ';' +
@@ -874,24 +911,88 @@
       mediaHTML = '<img src="' + escapeHTML(r.mediaUrl) + '" alt="Review photo" loading="lazy" style="width:100%;border-radius:8px;margin-top:10px;object-fit:cover;max-height:200px">';
     }
     var replyHTML = r.reply ? '<div style="margin-top:10px;padding:8px 12px;background:#f9fafb;border-left:3px solid ' + accent + ';border-radius:0 8px 8px 0;font-size:13px"><strong>' + (t.storeReplyLabel || 'Store reply') + ':</strong> ' + escapeHTML(r.reply) + '</div>' : '';
+    var helpfulHTML = s.showHelpful ? (
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px">' +
+        '<span style="font-size:12px;color:#9ca3af">' + (t.helpfulQuestion || 'Was this review helpful?') + '</span>' +
+        '<button class="ct-helpful-btn ct-helpful-up" data-id="' + r.id + '" aria-label="' + (t.helpful || 'Helpful') + '" style="display:flex;align-items:center;gap:5px;background:none;border:1px solid ' + (s.borderColor || '#e4e4e4') + ';border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;color:' + (s.textColor || '#333') + '">&#128077; <span class="ct-helpful-count">' + (r.likes || 0) + '</span></button>' +
+        '<button class="ct-helpful-btn ct-helpful-down" data-id="' + r.id + '" aria-label="' + (t.notHelpful || 'Not helpful') + '" style="display:flex;align-items:center;gap:5px;background:none;border:1px solid ' + (s.borderColor || '#e4e4e4') + ';border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;color:' + (s.textColor || '#333') + '">&#128078; <span class="ct-helpful-count">' + (r.dislikes || 0) + '</span></button>' +
+      '</div>'
+    ) : '';
 
-    card.innerHTML =
+    var metaHTML =
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
         avatarHTML +
         '<div style="flex:1;min-width:0">' +
           '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
             '<span style="font-weight:700;font-size:14px;color:' + (s.textColor || '#1a1a1a') + '">' + escapeHTML(r.customer || '') + '</span>' +
             verifiedHTML +
-            dateHTML +
           '</div>' +
-          '<div style="display:flex;gap:2px;margin-top:3px">' + starsHtml(r.rating, starColor, 14) + '</div>' +
         '</div>' +
-      '</div>' +
-      titleHTML +
-      '<p style="font-size:14px;color:' + (s.textColor || '#555') + ';line-height:1.6;margin:0">' + escapeHTML(r.comment || '') + '</p>' +
-      mediaHTML +
-      replyHTML;
+      '</div>';
+    var dateRowHTML = dateHTML ? '<div style="margin-bottom:10px">' + dateHTML + '</div>' : '';
+    var starsRowHTML = '<div style="display:flex;gap:2px;margin-bottom:10px">' + starsHtml(r.rating, starColor, 14) + '</div>';
+    var commentHTML = '<p style="font-size:14px;color:' + (s.textColor || '#555') + ';line-height:1.6;margin:0">' + escapeHTML(r.comment || '') + '</p>';
+
+    // Card elements normally stack in the order set by the "Card Element Order"
+    // control in the builder (default order matches the original fixed layout).
+    // If the merchant instead dragged elements around in the "Card Layout" free
+    // canvas, s.elementPositions carries a {x,y}% for each — switch the whole
+    // card to position:absolute so it renders exactly where they dropped it.
+    var elementsHTML = { meta: metaHTML, date: dateRowHTML, stars: starsRowHTML, title: titleHTML, comment: commentHTML, media: mediaHTML, reply: replyHTML, helpful: helpfulHTML };
+    var order = (Array.isArray(s.elementOrder) && s.elementOrder.length) ? s.elementOrder : ['meta', 'date', 'stars', 'title', 'comment', 'media', 'reply', 'helpful'];
+    // "date" used to render inline inside "meta" rather than as its own
+    // orderable element — a block saved before that split has an elementOrder
+    // that never mentions "date", which would otherwise drop it entirely now
+    // that meta no longer includes it. Backfill it right after "meta" so
+    // existing designs keep showing their date without needing a re-save.
+    if (order.indexOf('date') === -1) {
+      var metaIdx = order.indexOf('meta');
+      order = order.slice();
+      order.splice(metaIdx === -1 ? 0 : metaIdx + 1, 0, 'date');
+    }
+    var positions = s.elementPositions;
+    var isFreeform = positions && Object.keys(positions).length > 0;
+
+    if (isFreeform) {
+      card.style.position = 'relative';
+      card.style.minHeight = (s.cardMinHeight || 160) + 'px';
+      var freeHtml = '';
+      for (var fi = 0; fi < order.length; fi++) {
+        var fkey = order[fi];
+        var fHtml = elementsHTML[fkey];
+        if (!fHtml) continue;
+        var fp = positions[fkey] || { x: 4, y: Math.min(88, fi * 13) };
+        freeHtml += '<div style="position:absolute;left:' + fp.x + '%;top:' + fp.y + '%;max-width:80%">' + fHtml + '</div>';
+      }
+      card.innerHTML = freeHtml;
+      return card;
+    }
+
+    var html = '';
+    for (var oi = 0; oi < order.length; oi++) html += (elementsHTML[order[oi]] || '');
+    card.innerHTML = html;
     return card;
+  }
+
+  /* ── Like / dislike voting for block-based Review Cards ── */
+  function attachCTHelpfulVotes(root, shop) {
+    function wire(btn, type) {
+      btn.addEventListener('click', function () {
+        if (btn.disabled) return; btn.disabled = true;
+        fetch('/apps/review?shop=' + encodeURIComponent(shop), {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: type, id: btn.dataset.id }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (json) { if (json.success) btn.querySelector('.ct-helpful-count').textContent = type === 'like' ? json.review.likes : json.review.dislikes; })
+        .catch(function () {})
+        .finally(function () { btn.disabled = false; });
+      });
+    }
+    var up = root.querySelectorAll('.ct-helpful-up');
+    for (var i = 0; i < up.length; i++) wire(up[i], 'like');
+    var down = root.querySelectorAll('.ct-helpful-down');
+    for (var j = 0; j < down.length; j++) wire(down[j], 'dislike');
   }
 
   /* ══════════════════════════════════════════════════════════════

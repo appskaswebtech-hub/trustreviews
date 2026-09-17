@@ -10,6 +10,7 @@
   data-locale="{{ request.locale.iso_code }}"
   data-shop="{{ shop.permanent_domain }}"
   data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+  data-template-id="{{ block.settings.template_id | strip }}"
 >
   {% if block.settings.heading != blank %}
     <h2 class="ct-heading">{{ block.settings.heading }}</h2>
@@ -30,6 +31,12 @@
       "id": "heading",
       "label": "Section Heading",
       "default": "What our customers say"
+    },
+    {
+      "type": "text",
+      "id": "template_id",
+      "label": "Design to show (Template ID)",
+      "info": "Leave blank to always show whichever design is Activated in Customize → Custom Template. Paste a specific design's ID here (copy it from its card in the app) to pin this block to that exact design regardless of which one is Activated."
     },
     { "type": "header", "content": "SEO" },
     { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }

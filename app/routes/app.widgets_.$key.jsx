@@ -25,6 +25,10 @@ const KEY_DEFAULTS = {
   summary_list:          { label: "Summary + List",         defaultStyle: "summary_side",    contentFilter: "all",   blockHandle: "reviews-widget" },
   classic_list:          { label: "Classic Reviews List",  defaultStyle: "classic_list",    contentFilter: "all",   blockHandle: "reviews-widget" },
   floating_reviews_tab:  { label: "Floating Reviews Tab",  defaultStyle: "floating_tab",    contentFilter: "all",   blockHandle: "reviews-widget" },
+  insta_stories:         { label: "Insta Stories",         defaultStyle: "insta_stories",   contentFilter: "all",   blockHandle: "reviews-widget" },
+  hero_quote_carousel:   { label: "Hero Quote Carousel",   defaultStyle: "hero_quote",      contentFilter: "all",   blockHandle: "reviews-widget" },
+  coverflow_carousel:    { label: "Coverflow Carousel",    defaultStyle: "coverflow",       contentFilter: "all",   blockHandle: "reviews-widget" },
+  split_media_carousel:  { label: "Split Media Carousel",  defaultStyle: "split_media",     contentFilter: "all",   blockHandle: "reviews-widget" },
   trust_medals:          { label: "Trust Medals",          defaultStyle: "trust_medals",    contentFilter: "all",   blockHandle: "trust-medals" },
   verified_counter:      { label: "Verified Reviews Counter", defaultStyle: "verified_counter", contentFilter: "all", blockHandle: "verified-counter" },
   all_reviews_counter:   { label: "All Reviews Counter",   defaultStyle: "all_reviews_counter", contentFilter: "all", blockHandle: "all-reviews-counter" },
@@ -143,6 +147,12 @@ const STYLE_OPTIONS = [
   { label: "Classic List",          value: "classic_list"  },
   { label: "Summary + List",        value: "summary_side"  },
   { label: "Snippet Rotator",       value: "snippet_rotator" },
+  { label: "Compact Rows",          value: "compact_rows" },
+  { label: "Insta Stories",         value: "insta_stories" },
+  { label: "Insta Reels",           value: "insta_reels" },
+  { label: "Hero Quote Carousel",   value: "hero_quote" },
+  { label: "Coverflow Carousel",    value: "coverflow" },
+  { label: "Split Media Carousel",  value: "split_media" },
   { label: "Floating Tab",          value: "floating_tab" },
   { label: "Trust Medals",          value: "trust_medals" },
   { label: "Verified Counter",      value: "verified_counter" },
@@ -160,13 +170,24 @@ const FONT_OPTIONS = [
 ];
 
 function ModalPreview({ accentColor, starColor }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Write a Review Modal</div>
+
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          style={{ padding: '10px 22px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer' }}
+        >
+          Write a Review
+        </button>
+      ) : (
       <div style={{ background: '#fff', borderRadius: 14, padding: '22px 22px 18px', maxWidth: 500, border: '1px solid #e4e4e4', boxShadow: '0 8px 32px rgba(0,0,0,.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: accentColor }}>Write a Review</h3>
-          <span style={{ fontSize: 18, color: '#aaa', cursor: 'pointer' }}>✕</span>
+          <span onClick={() => setOpen(false)} style={{ fontSize: 18, color: '#aaa', cursor: 'pointer' }}>✕</span>
         </div>
         <div style={{ marginBottom: 13 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333' }}>Your Rating <span style={{ color: '#a5423b' }}>*</span></label>
@@ -193,10 +214,11 @@ function ModalPreview({ accentColor, starColor }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button style={{ padding: '9px 20px', background: '#f5f5f5', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'default', color: '#333' }}>Cancel</button>
-          <button style={{ padding: '9px 24px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'default', color: '#fff' }}>Submit Review</button>
+          <button onClick={() => setOpen(false)} style={{ padding: '9px 20px', background: '#f5f5f5', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}>Cancel</button>
+          <button onClick={() => setOpen(false)} style={{ padding: '9px 24px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#fff' }}>Submit Review</button>
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -261,7 +283,8 @@ export default function WidgetCustomizePage() {
 
   const [saved, setSaved] = useState(false);
 
-  const isSlider       = ["slider", "scroll_strip", "quote_fade"].includes(style);
+  const isSlider       = ["slider", "scroll_strip", "quote_fade", "snippet_rotator", "hero_quote", "coverflow", "split_media"].includes(style);
+  const isInstaStories = style === "insta_stories" || style === "insta_reels";
   const isPopup        = style === "popup";
   const isClassicList  = style === "classic_list";
   const isSummarySide  = style === "summary_side";
@@ -354,6 +377,10 @@ export default function WidgetCustomizePage() {
               <ColorField label="Widget Background" value={bgColor} onChange={setBgColor} />
               <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />
               <ColorField label="Text Color" value={textColor} onChange={setTextColor} />
+              <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor}
+                helpText="The widget heading only — separate from the review text color above" />
+              <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
+                helpText="Dates, review counts, and other secondary text" />
               <ColorField label="Border Color" value={borderCol} onChange={setBorderCol} />
               <SelectField label="Font Family" value={fontFamily} onChange={setFontFamily} options={FONT_OPTIONS} />
             </>
@@ -407,10 +434,6 @@ export default function WidgetCustomizePage() {
               <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
               <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
               <RangeField label="Max Reviews Shown" value={maxRev} onChange={setMaxRev} min={2} max={20} />
-              <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor}
-                helpText="The widget heading only — separate from the review text color above" />
-              <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
-                helpText="'Based on X reviews', dates, star-count numbers, 'No reviews yet', helpful-vote label" />
               <ToggleField label="Show 'Write a Review' button" checked={showWriteReviewBtn} onChange={setShowWriteReviewBtn}
                 helpText="Adds a button that scrolls to the write-review form on the same page" />
               {showWriteReviewBtn && (
@@ -468,6 +491,15 @@ export default function WidgetCustomizePage() {
                   <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />
                   <ToggleField label="Show dot indicators" checked={showDots} onChange={setShowDots} />
                 </>
+              )}
+              {isInstaStories && (
+                <ToggleField
+                  label={style === "insta_reels" ? "Autoplay videos on scroll" : "Auto-advance stories"}
+                  checked={autoplay} onChange={setAutoplay}
+                  helpText={style === "insta_reels"
+                    ? "Off: tap a video to play/pause it manually"
+                    : "Off: viewer waits for a tap on the left/right side to move between stories"}
+                />
               )}
               {isPopup && (
                 <ToggleField label="Enable popup widget" checked={popupEnabled} onChange={setPopupEnabled} helpText="A floating button + modal that shows reviews on click" />

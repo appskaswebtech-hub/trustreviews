@@ -469,11 +469,11 @@
       widget.style.setProperty('--tr-star-gap',(s.starGap!=null?s.starGap:2)+'px');
       widget.style.setProperty('--tr-text-align',s.textAlign||'left');
       widget.style.setProperty('--tr-muted',s.mutedTextColor||'#888888');
-      widget.style.setProperty('--tr-heading-color',s.headingColor||s.textColor||'#333333');
+      if(s.headingColor) widget.style.setProperty('--tr-heading-color',s.headingColor); else widget.style.removeProperty('--tr-heading-color');
       widget.style.setProperty('--tr-write-btn-color',s.writeBtnColor||s.textColor||'#333333');
       widget.style.setProperty('--tr-cols',String(s.columns)); widget.style.setProperty('--tr-cols-tablet',String(s.tabletColumns));
       widget.style.setProperty('--tr-cols-mobile',String(s.mobileColumns));
-      if(headingEl) headingEl.style.color=s.accentColor;
+      if(headingEl) headingEl.style.color=s.headingColor||s.accentColor;
       widget.setAttribute('data-style',s.style);
     }
 
@@ -698,6 +698,422 @@
       return wrap;
     }
 
+    function buildSnippetRotator(reviews, s) {
+      var items = reviews.slice(0, s.maxRev), total = items.length;
+      var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__snippet-wrap';
+      var stage = document.createElement('div'); stage.className = 'trust-reviews__snippet-stage';
+      wrap.appendChild(stage);
+      var current = 0, timer = null, dotBtns = [];
+      function render(idx) {
+        current = ((idx % total) + total) % total;
+        stage.innerHTML = '';
+        var card = buildCard(items[current], s);
+        card.classList.add('trust-reviews__snippet-card');
+        stage.appendChild(card);
+        attachLikes(stage); // each rotation swaps in a fresh card with its own like button
+        for (var d = 0; d < dotBtns.length; d++) dotBtns[d].classList.toggle('active', d === current);
+      }
+      if (s.showDots !== false && total > 1) {
+        var dotsEl = document.createElement('div'); dotsEl.className = 'trust-reviews__slider-dots';
+        for (var j = 0; j < total; j++) {
+          (function(idx) { var d = document.createElement('button'); d.className = 'trust-reviews__dot'; d.addEventListener('click', function(){ render(idx); resetTimer(); }); dotsEl.appendChild(d); dotBtns.push(d); })(j);
+        }
+        wrap.appendChild(dotsEl);
+      }
+      function resetTimer() {
+        clearInterval(timer);
+        if (s.autoplay !== false && total > 1) timer = setInterval(function(){ render(current + 1); }, s.autoplaySpeed || 4000);
+      }
+      render(0);
+      resetTimer();
+      wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+      wrap.addEventListener('mouseleave', resetTimer);
+      return wrap;
+    }
+
+    // Instagram-Stories-style widget: a horizontal ring of gradient-bordered
+    // avatar/thumbnail circles; tapping one opens a fullscreen story player
+    // (progress segments, tap-left/right nav, autoplay, video-with-sound-off).
+    // Reviews with video/photo media are shown first; text-only reviews still
+    // get a slide (a gradient quote card) instead of being dropped, so the
+    // widget never renders emptier than the review list actually is.
+    function buildInstaStories(reviews, s) {
+      var items = reviews.slice(0, s.maxRev);
+      items.sort(function(a, b) {
+        function rank(r) { if (!r.mediaUrl) return 2; return (r.mediaType || '').indexOf('video') === 0 ? 0 : 1; }
+        return rank(a) - rank(b);
+      });
+      var total = items.length;
+
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__insta-wrap';
+      var ring = document.createElement('div'); ring.className = 'trust-reviews__insta-ring';
+      wrap.appendChild(ring);
+
+      var viewer = null, dwellTimer = null, videoEl = null, current = 0;
+
+      function ringItem(r, idx) {
+        var btn = document.createElement('button'); btn.className = 'trust-reviews__insta-item'; btn.type = 'button';
+        var circle = document.createElement('div'); circle.className = 'trust-reviews__insta-ring-circle';
+        var inner;
+        if (r.mediaUrl && (r.mediaType || '').indexOf('video') === 0) {
+          inner = document.createElement('video'); inner.src = r.mediaUrl; inner.muted = true; inner.playsInline = true;
+        } else if (r.mediaUrl) {
+          inner = document.createElement('img'); inner.src = r.mediaUrl; inner.alt = ''; inner.loading = 'lazy';
+        } else {
+          inner = document.createElement('div'); inner.className = 'trust-reviews__insta-ring-fallback'; inner.textContent = initials(r.customer);
+        }
+        inner.className = (inner.className ? inner.className + ' ' : '') + 'trust-reviews__insta-ring-media';
+        circle.appendChild(inner);
+        var name = document.createElement('span'); name.className = 'trust-reviews__insta-item-name'; name.textContent = (r.customer || 'Customer').split(' ')[0];
+        btn.appendChild(circle); btn.appendChild(name);
+        btn.addEventListener('click', function(){ openViewer(idx); });
+        return btn;
+      }
+      for (var i = 0; i < total; i++) ring.appendChild(ringItem(items[i], i));
+
+      function markSeen(idx) { var el = ring.children[idx]; if (el) el.classList.add('seen'); }
+
+      function next() { if (current >= total - 1) { closeViewer(); return; } renderSlide(current + 1); }
+      function prev() { if (current <= 0) return; renderSlide(current - 1); }
+
+      function renderSlide(idx) {
+        clearTimeout(dwellTimer);
+        if (videoEl) { videoEl.pause(); videoEl = null; }
+        current = idx;
+        markSeen(current);
+        var r = items[current];
+
+        var stage = viewer.querySelector('.trust-reviews__insta-stage');
+        stage.innerHTML = '';
+        var segWrap = viewer.querySelector('.trust-reviews__insta-progress');
+        segWrap.innerHTML = '';
+        for (var p = 0; p < total; p++) {
+          var seg = document.createElement('div'); seg.className = 'trust-reviews__insta-seg';
+          var fill = document.createElement('div'); fill.className = 'trust-reviews__insta-seg-fill';
+          if (p < current) fill.style.width = '100%';
+          seg.appendChild(fill); segWrap.appendChild(seg);
+        }
+        var activeFill = segWrap.children[current].firstChild;
+
+        var isTextOnly = !r.mediaUrl;
+        var media;
+        if (r.mediaUrl && (r.mediaType || '').indexOf('video') === 0) {
+          media = document.createElement('video'); media.src = r.mediaUrl; media.autoplay = true; media.muted = true; media.playsInline = true; media.className = 'trust-reviews__insta-media';
+        } else if (r.mediaUrl) {
+          media = document.createElement('img'); media.src = r.mediaUrl; media.alt = ''; media.className = 'trust-reviews__insta-media';
+        } else {
+          media = document.createElement('div'); media.className = 'trust-reviews__insta-media trust-reviews__insta-media--text';
+          media.style.background = 'linear-gradient(135deg,' + (s.accentColor || '#6B1A2C') + ',#1a1a1a)';
+          media.innerHTML = '<div class="trust-reviews__insta-quote">' + starHTML(r.rating, '#fff') + '<p>&ldquo;' + (r.comment || '') + '&rdquo;</p></div>';
+        }
+        stage.appendChild(media);
+
+        var caption = document.createElement('div'); caption.className = 'trust-reviews__insta-caption';
+        caption.innerHTML = isTextOnly
+          ? '<div class="trust-reviews__insta-cap-name">' + (r.customer || 'Customer') + '</div>'
+          : '<div class="trust-reviews__insta-cap-stars">' + starHTML(r.rating, '#fff') + '</div>' + (r.comment ? '<p class="trust-reviews__insta-cap-text">' + r.comment + '</p>' : '') + '<div class="trust-reviews__insta-cap-name">' + (r.customer || 'Customer') + '</div>';
+        stage.appendChild(caption);
+
+        var duration = s.autoplaySpeed || 4000;
+        if (media.tagName === 'VIDEO') {
+          videoEl = media;
+          videoEl.addEventListener('ended', function(){ if (s.autoplay !== false) next(); });
+          videoEl.play().catch(function(){});
+        }
+        if (s.autoplay !== false) {
+          if (activeFill) {
+            void activeFill.offsetWidth; // force a reflow so the transition below actually animates instead of snapping to 100%
+            activeFill.style.transition = 'width ' + duration + 'ms linear';
+            activeFill.style.width = '100%';
+          }
+          dwellTimer = setTimeout(next, duration);
+        }
+      }
+
+      function openViewer(idx) {
+        viewer = document.createElement('div'); viewer.className = 'trust-reviews__insta-viewer';
+        viewer.innerHTML =
+          '<div class="trust-reviews__insta-progress"></div>' +
+          '<button class="trust-reviews__insta-close" type="button" aria-label="' + (s.t.close || 'Close') + '">&times;</button>' +
+          '<div class="trust-reviews__insta-stage"></div>' +
+          '<button class="trust-reviews__insta-tap trust-reviews__insta-tap--left" type="button" aria-label="' + (s.t.previous || 'Previous') + '"></button>' +
+          '<button class="trust-reviews__insta-tap trust-reviews__insta-tap--right" type="button" aria-label="' + (s.t.next || 'Next') + '"></button>';
+        document.body.appendChild(viewer);
+        document.body.style.overflow = 'hidden';
+        viewer.querySelector('.trust-reviews__insta-close').addEventListener('click', closeViewer);
+        viewer.querySelector('.trust-reviews__insta-tap--left').addEventListener('click', prev);
+        viewer.querySelector('.trust-reviews__insta-tap--right').addEventListener('click', next);
+        renderSlide(idx);
+      }
+
+      function closeViewer() {
+        if (!viewer) return;
+        clearTimeout(dwellTimer);
+        if (videoEl) { videoEl.pause(); videoEl = null; }
+        viewer.remove(); viewer = null;
+        document.body.style.overflow = '';
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (!viewer) return;
+        if (e.key === 'Escape') closeViewer();
+        else if (e.key === 'ArrowRight') next();
+        else if (e.key === 'ArrowLeft') prev();
+      });
+
+      return wrap;
+    }
+
+    // Reels mode for the Insta Stories widget: a continuous vertical scroll-snap
+    // feed instead of a tap-to-open tray. Each video plays only while its slide
+    // is actually in view (IntersectionObserver), never several at once.
+    function buildInstaReels(reviews, s) {
+      var items = reviews.slice(0, s.maxRev);
+      items.sort(function(a, b) {
+        function rank(r) { if (!r.mediaUrl) return 2; return (r.mediaType || '').indexOf('video') === 0 ? 0 : 1; }
+        return rank(a) - rank(b);
+      });
+
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__reels-wrap';
+      var feed = document.createElement('div'); feed.className = 'trust-reviews__reels-feed';
+      wrap.appendChild(feed);
+
+      function buildSlide(r) {
+        var slide = document.createElement('div'); slide.className = 'trust-reviews__reels-slide';
+        var media, isVideo = r.mediaUrl && (r.mediaType || '').indexOf('video') === 0;
+        if (isVideo) {
+          media = document.createElement('video'); media.src = r.mediaUrl; media.muted = true; media.loop = true; media.playsInline = true; media.className = 'trust-reviews__reels-media';
+        } else if (r.mediaUrl) {
+          media = document.createElement('img'); media.src = r.mediaUrl; media.alt = ''; media.loading = 'lazy'; media.className = 'trust-reviews__reels-media';
+        } else {
+          media = document.createElement('div'); media.className = 'trust-reviews__reels-media trust-reviews__reels-media--text';
+          media.style.background = 'linear-gradient(135deg,' + (s.accentColor || '#6B1A2C') + ',#1a1a1a)';
+        }
+        slide.appendChild(media);
+
+        if (isVideo) {
+          var muteBtn = document.createElement('button'); muteBtn.type = 'button'; muteBtn.className = 'trust-reviews__reels-mute'; muteBtn.textContent = '🔇';
+          muteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            media.muted = !media.muted;
+            muteBtn.textContent = media.muted ? '🔇' : '🔊';
+          });
+          slide.appendChild(muteBtn);
+        }
+
+        var caption = document.createElement('div'); caption.className = 'trust-reviews__reels-caption';
+        caption.innerHTML = '<div class="trust-reviews__reels-cap-stars">' + starHTML(r.rating, '#fff') + '</div>' +
+          (r.comment ? '<p class="trust-reviews__reels-cap-text">' + r.comment + '</p>' : '') +
+          '<div class="trust-reviews__reels-cap-name">' + (r.customer || 'Customer') + '</div>';
+        slide.appendChild(caption);
+
+        feed.appendChild(slide);
+        return { slide: slide, media: media, isVideo: isVideo };
+      }
+
+      var slides = [];
+      for (var i = 0; i < items.length; i++) slides.push(buildSlide(items[i]));
+
+      if (s.autoplay !== false && 'IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            var found = null;
+            for (var k = 0; k < slides.length; k++) if (slides[k].slide === entry.target) { found = slides[k]; break; }
+            if (!found || !found.isVideo) return;
+            if (entry.isIntersecting && entry.intersectionRatio > 0.6) found.media.play().catch(function(){});
+            else found.media.pause();
+          });
+        }, { threshold: [0, 0.6, 1], root: feed });
+        slides.forEach(function(it) { io.observe(it.slide); });
+      } else {
+        // Autoplay off (or no IntersectionObserver support) — tap a video to play/pause it manually.
+        slides.forEach(function(it) {
+          if (!it.isVideo) return;
+          it.slide.addEventListener('click', function(e) {
+            if (e.target.closest && e.target.closest('.trust-reviews__reels-mute')) return;
+            if (it.media.paused) it.media.play().catch(function(){}); else it.media.pause();
+          });
+        });
+      }
+
+      return wrap;
+    }
+
+    // "Hero Quote" carousel: full-bleed crossfading slides — the review's photo
+    // (or a gradient) fills the background with a large centered quote overlay.
+    function buildHeroQuote(reviews, s) {
+      var items = reviews.slice(0, s.maxRev), total = items.length;
+      var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__hero-wrap';
+      var stage = document.createElement('div'); stage.className = 'trust-reviews__hero-stage';
+      wrap.appendChild(stage);
+
+      var slides = [], dotBtns = [], current = 0;
+      for (var i = 0; i < total; i++) {
+        var r = items[i];
+        var slide = document.createElement('div'); slide.className = 'trust-reviews__hero-slide' + (i === 0 ? ' active' : '');
+        if (r.mediaUrl && (r.mediaType || '').indexOf('video') !== 0) {
+          slide.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)), url(' + r.mediaUrl + ')';
+        } else {
+          slide.style.background = 'linear-gradient(135deg,' + (s.accentColor || '#6B1A2C') + ',#1a1a1a)';
+        }
+        slide.innerHTML = '<div class="trust-reviews__hero-inner"><div class="trust-reviews__hero-stars">' + starHTML(r.rating, '#fff') + '</div>' +
+          '<p class="trust-reviews__hero-quote">&ldquo;' + (r.comment || '') + '&rdquo;</p>' +
+          '<div class="trust-reviews__hero-name">' + (r.customer || 'Customer') + '</div></div>';
+        stage.appendChild(slide); slides.push(slide);
+      }
+
+      function goTo(idx) {
+        current = ((idx % total) + total) % total;
+        for (var k = 0; k < slides.length; k++) slides[k].classList.toggle('active', k === current);
+        for (var d = 0; d < dotBtns.length; d++) dotBtns[d].classList.toggle('active', d === current);
+      }
+      if (s.showArrows !== false && total > 1) {
+        var prevBtn = document.createElement('button'), nextBtn = document.createElement('button');
+        prevBtn.className = 'trust-reviews__hero-arrow-btn tr-left'; nextBtn.className = 'trust-reviews__hero-arrow-btn tr-right';
+        prevBtn.innerHTML = '&#8249;'; nextBtn.innerHTML = '&#8250;';
+        prevBtn.setAttribute('aria-label', s.t.previous); nextBtn.setAttribute('aria-label', s.t.next);
+        prevBtn.addEventListener('click', function(){ goTo(current - 1); }); nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+        stage.appendChild(prevBtn); stage.appendChild(nextBtn);
+      }
+      if (s.showDots !== false && total > 1) {
+        var dotsEl = document.createElement('div'); dotsEl.className = 'trust-reviews__slider-dots';
+        for (var j = 0; j < total; j++) { (function(idx){ var d = document.createElement('button'); d.className = 'trust-reviews__dot' + (idx === 0 ? ' active' : ''); d.addEventListener('click', function(){ goTo(idx); }); dotsEl.appendChild(d); dotBtns.push(d); })(j); }
+        wrap.appendChild(dotsEl);
+      }
+      if (s.autoplay !== false && total > 1) {
+        var timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000);
+        wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+        wrap.addEventListener('mouseleave', function(){ timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000); });
+      }
+      return wrap;
+    }
+
+    // Coverflow / peek carousel: the active review card sits centered at full
+    // size, neighboring cards peek at reduced scale/opacity on either side.
+    function buildCoverflow(reviews, s) {
+      var items = reviews.slice(0, s.maxRev), total = items.length;
+      var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__coverflow-wrap';
+      var track = document.createElement('div'); track.className = 'trust-reviews__coverflow-track';
+      wrap.appendChild(track);
+
+      var current = 0, cardEls = [], dotBtns = [];
+
+      function goTo(idx) {
+        current = ((idx % total) + total) % total;
+        for (var k = 0; k < cardEls.length; k++) {
+          var offset = k - current, el = cardEls[k], abs = Math.abs(offset);
+          el.classList.toggle('is-active', offset === 0);
+          el.style.transform = 'translateX(calc(-50% + ' + (offset * 78) + '%)) scale(' + (offset === 0 ? 1 : 0.84) + ')';
+          el.style.opacity = String(abs > 2 ? 0 : (offset === 0 ? 1 : 0.55));
+          el.style.zIndex = String(10 - abs);
+          el.style.pointerEvents = abs > 2 ? 'none' : 'auto';
+        }
+        for (var d = 0; d < dotBtns.length; d++) dotBtns[d].classList.toggle('active', d === current);
+      }
+
+      for (var i = 0; i < total; i++) {
+        var cardWrap = document.createElement('div'); cardWrap.className = 'trust-reviews__coverflow-item';
+        cardWrap.appendChild(buildCard(items[i], s));
+        (function(idx) { cardWrap.addEventListener('click', function(){ goTo(idx); }); })(i);
+        track.appendChild(cardWrap); cardEls.push(cardWrap);
+      }
+
+      if (s.showDots !== false && total > 1) {
+        var dotsEl = document.createElement('div'); dotsEl.className = 'trust-reviews__slider-dots';
+        for (var j = 0; j < total; j++) { (function(idx){ var d = document.createElement('button'); d.className = 'trust-reviews__dot'; d.addEventListener('click', function(){ goTo(idx); }); dotsEl.appendChild(d); dotBtns.push(d); })(j); }
+        wrap.appendChild(dotsEl);
+      }
+      if (s.showArrows !== false && total > 1) {
+        var arrowRow = document.createElement('div'); arrowRow.className = 'trust-reviews__slider-arrows';
+        var prevBtn = document.createElement('button'), nextBtn = document.createElement('button');
+        prevBtn.className = nextBtn.className = 'trust-reviews__slider-btn';
+        prevBtn.innerHTML = '&#8249;'; nextBtn.innerHTML = '&#8250;';
+        prevBtn.setAttribute('aria-label', s.t.previous); nextBtn.setAttribute('aria-label', s.t.next);
+        prevBtn.addEventListener('click', function(){ goTo(current - 1); }); nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+        arrowRow.appendChild(prevBtn); arrowRow.appendChild(nextBtn); wrap.appendChild(arrowRow);
+      }
+
+      goTo(0);
+
+      if (s.autoplay !== false && total > 1) {
+        var timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000);
+        wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+        wrap.addEventListener('mouseleave', function(){ timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000); });
+      }
+      return wrap;
+    }
+
+    // Split media carousel: photo/video on one side, review text on the other —
+    // one review per slide. Only the active slide's video plays.
+    function buildSplitMedia(reviews, s) {
+      var items = reviews.slice(0, s.maxRev), total = items.length;
+      var wrap  = document.createElement('div'); wrap.className = 'trust-reviews__split-wrap';
+      var stage = document.createElement('div'); stage.className = 'trust-reviews__split-stage';
+      wrap.appendChild(stage);
+
+      var slides = [], videoEls = [], dotBtns = [], current = 0;
+
+      for (var i = 0; i < total; i++) {
+        var r = items[i];
+        var slide = document.createElement('div'); slide.className = 'trust-reviews__split-slide' + (i === 0 ? ' active' : '');
+        var mediaCol = document.createElement('div'); mediaCol.className = 'trust-reviews__split-media-col';
+        var media, isVideo = r.mediaUrl && (r.mediaType || '').indexOf('video') === 0;
+        if (isVideo) {
+          media = document.createElement('video'); media.src = r.mediaUrl; media.muted = true; media.loop = true; media.playsInline = true; media.className = 'trust-reviews__split-media';
+        } else if (r.mediaUrl) {
+          media = document.createElement('img'); media.src = r.mediaUrl; media.alt = ''; media.loading = 'lazy'; media.className = 'trust-reviews__split-media';
+        } else {
+          media = document.createElement('div'); media.className = 'trust-reviews__split-media trust-reviews__split-media--text';
+          media.style.background = 'linear-gradient(135deg,' + (s.accentColor || '#6B1A2C') + ',#1a1a1a)';
+        }
+        mediaCol.appendChild(media);
+        videoEls.push(isVideo ? media : null);
+
+        var textCol = document.createElement('div'); textCol.className = 'trust-reviews__split-text-col';
+        textCol.innerHTML =
+          '<div class="trust-reviews__split-stars">' + starHTML(r.rating, s.accentColor) + '</div>' +
+          (r.title ? '<h3 class="trust-reviews__split-title">' + r.title + '</h3>' : '') +
+          '<p class="trust-reviews__split-comment">' + (r.comment || '') + '</p>' +
+          '<div class="trust-reviews__split-name">' + (r.customer || 'Customer') + '</div>';
+
+        slide.appendChild(mediaCol); slide.appendChild(textCol);
+        stage.appendChild(slide); slides.push(slide);
+      }
+
+      function goTo(idx) {
+        current = ((idx % total) + total) % total;
+        for (var k = 0; k < slides.length; k++) {
+          slides[k].classList.toggle('active', k === current);
+          if (videoEls[k]) { if (k === current) videoEls[k].play().catch(function(){}); else videoEls[k].pause(); }
+        }
+        for (var d = 0; d < dotBtns.length; d++) dotBtns[d].classList.toggle('active', d === current);
+      }
+
+      if (s.showDots !== false && total > 1) {
+        var dotsEl = document.createElement('div'); dotsEl.className = 'trust-reviews__slider-dots';
+        for (var j = 0; j < total; j++) { (function(idx){ var d = document.createElement('button'); d.className = 'trust-reviews__dot' + (idx === 0 ? ' active' : ''); d.addEventListener('click', function(){ goTo(idx); }); dotsEl.appendChild(d); dotBtns.push(d); })(j); }
+        wrap.appendChild(dotsEl);
+      }
+      if (s.showArrows !== false && total > 1) {
+        var arrowRow = document.createElement('div'); arrowRow.className = 'trust-reviews__slider-arrows';
+        var prevBtn = document.createElement('button'), nextBtn = document.createElement('button');
+        prevBtn.className = nextBtn.className = 'trust-reviews__slider-btn';
+        prevBtn.innerHTML = '&#8249;'; nextBtn.innerHTML = '&#8250;';
+        prevBtn.setAttribute('aria-label', s.t.previous); nextBtn.setAttribute('aria-label', s.t.next);
+        prevBtn.addEventListener('click', function(){ goTo(current - 1); }); nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+        arrowRow.appendChild(prevBtn); arrowRow.appendChild(nextBtn); wrap.appendChild(arrowRow);
+      }
+
+      if (videoEls[0]) videoEls[0].play().catch(function(){});
+
+      if (s.autoplay !== false && total > 1) {
+        var timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000);
+        wrap.addEventListener('mouseenter', function(){ clearInterval(timer); });
+        wrap.addEventListener('mouseleave', function(){ timer = setInterval(function(){ goTo(current + 1); }, s.autoplaySpeed || 4000); });
+      }
+      return wrap;
+    }
+
     function injectWidgetSchema(avgRating, total, reviews) {
       if (!seoEnabled || !productTitle || !total) return;
 
@@ -721,15 +1137,18 @@
 
       // Find the theme's existing Product schema and augment it instead of adding a duplicate
       var existingScript = null;
+      var existingRoot   = null;
       var existingData   = null;
       document.querySelectorAll('script[type="application/ld+json"]').forEach(function(sc) {
+        if (existingData) return;
         try {
           var d = JSON.parse(sc.textContent);
           var arr = Array.isArray(d) ? d : [d];
           arr.forEach(function(node) {
             if (!existingData && node['@type'] === 'Product') {
-              existingData = node;
+              existingData   = node;
               existingScript = sc;
+              existingRoot   = d;
             }
           });
         } catch(e) {}
@@ -738,7 +1157,11 @@
       if (existingScript && existingData) {
         existingData['aggregateRating'] = aggRating;
         existingData['review']          = reviewItems;
-        existingScript.textContent = JSON.stringify(Array.isArray(JSON.parse(existingScript.textContent)) ? JSON.parse(existingScript.textContent) : existingData);
+        // Write back the same root we mutated (array or single object) —
+        // re-parsing existingScript.textContent here would produce a fresh,
+        // unmutated object graph and silently drop these fields whenever the
+        // theme wraps its Product schema in an array.
+        existingScript.textContent = JSON.stringify(existingRoot);
         return;
       }
 
@@ -767,6 +1190,13 @@
       var el;
       if(s.style==='floating_tab')  { el=buildFloatingTab(reviews,s); }
       else if(s.style==='slider')   { el=buildSlider(reviews,s); }
+      else if(s.style==='insta_stories') { el=buildInstaStories(reviews,s); }
+      else if(s.style==='insta_reels')   { el=buildInstaReels(reviews,s); }
+      else if(s.style==='hero_quote')    { el=buildHeroQuote(reviews,s); }
+      else if(s.style==='coverflow')     { el=buildCoverflow(reviews,s); }
+      else if(s.style==='split_media')   { el=buildSplitMedia(reviews,s); }
+      else if(s.style==='snippet_rotator') { el=buildSnippetRotator(reviews,s); }
+      else if(s.style==='compact_rows')    { el=buildCompactRows(reviews,s); }
       else if(s.style==='scroll_strip') { el=buildScrollStrip(reviews,s); }
       else if(s.style==='badge_strip')  { el=buildBadgeStrip(reviews,s,apiData.averageRating||0); }
       else if(s.style==='star_summary') { el=buildStarSummary(reviews,s,apiData.total||reviews.length,apiData.averageRating||0); }
@@ -792,7 +1222,11 @@
     .then(function(resp){
       var d=resp.settings||{}, t=resp.translations||TRANSLATIONS.en; resolvedT=t;
       var accentColor=(blockColor&&blockColor!==D_COLOR)?blockColor:(d.accentColor||D_COLOR);
-      var style=(widgetKey==='custom_template'&&d.defaultStyle)?d.defaultStyle:((blockStyle&&blockStyle!==D_STYLE)?blockStyle:(d.defaultStyle||D_STYLE));
+      // blockStyle is the block-level "Widget Design Override" field. '' is its new
+      // "inherit from Saved widget" default; 'dark_grid' is kept here too since every
+      // block saved before that change still has 'dark_grid' stored as its value and
+      // must keep inheriting rather than suddenly start overriding on next page load.
+      var style=(widgetKey==='custom_template'&&d.defaultStyle)?d.defaultStyle:((blockStyle&&blockStyle!==D_STYLE&&blockStyle!=='')?blockStyle:(d.defaultStyle||D_STYLE));
       var columns=(blockCols&&blockCols!==D_COLS)?parseInt(blockCols,10):(d.columns||3);
       var maxRev=(blockMax&&blockMax!==D_MAX)?parseInt(blockMax,10):(d.maxReviews||6);
       var showVerified=(blockVerif==='false')?false:(d.showVerified!==false);
@@ -805,7 +1239,14 @@
       var starColor=(blockStarColor&&blockStarColor!==D_STAR_COLOR)?blockStarColor:(d.starColor||D_STAR_COLOR);
       var textColor=(blockTextColor&&blockTextColor!==D_TEXT_COLOR)?blockTextColor:(d.textColor||D_TEXT_COLOR);
       var mutedTextColor=(blockMutedColor&&blockMutedColor!==D_MUTED_COLOR)?blockMutedColor:(d.mutedTextColor||D_MUTED_COLOR);
-      var headingColor=(blockHeadingColor&&blockHeadingColor!==D_HEADING_COLOR)?blockHeadingColor:(d.headingColor||d.textColor||D_HEADING_COLOR);
+      // headingColor stays null (unset) rather than resolving to a concrete
+      // default here: unlike the other colors, the "no customization" look
+      // differs per widget style (accent-colored heading on grid/list styles
+      // vs. text-colored on Summary + List) — baking in one default here would
+      // force every widget's heading to whichever default won, so the CSS's
+      // own per-selector var(--tr-heading-color, <style-appropriate default>)
+      // fallback is left to decide instead.
+      var headingColor=(blockHeadingColor&&blockHeadingColor!==D_HEADING_COLOR)?blockHeadingColor:((d.headingColor&&d.headingColor!==D_HEADING_COLOR)?d.headingColor:null);
       var writeBtnColor=(blockWriteBtnColor&&blockWriteBtnColor!==D_WRITE_BTN_COLOR)?blockWriteBtnColor:(d.writeBtnColor||d.textColor||D_WRITE_BTN_COLOR);
       var borderColor=(blockBorderColor&&blockBorderColor!==D_BORDER_COLOR)?blockBorderColor:(d.borderColor||D_BORDER_COLOR);
       var backgroundColor=(blockBgColor&&blockBgColor!==D_BG_COLOR)?blockBgColor:(d.backgroundColor||'transparent');

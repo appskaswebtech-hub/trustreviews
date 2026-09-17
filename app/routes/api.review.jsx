@@ -7,7 +7,7 @@ import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLangu
 import { translateReviews, translateQuestions } from "../utils/reviewTranslation.server";
 import { notifyIntegrations } from "../utils/events.server";
 import { PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
-import { isAdvancedOrHigher } from "../billing.server";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -218,8 +218,7 @@ export async function loader({ request }) {
 
   // ── Google Reviews widget (Pro-gated; always served from cache) ───────────
   if (url.searchParams.get("type") === "google-reviews") {
-    const plan = await prisma.shopPlan.findUnique({ where: { shop } });
-    const isPro = (plan?.plan === "advanced" && plan?.status === "active") || false;
+    const isPro = await hasAdvancedAccess(shop);
     if (!isPro) return Response.json({ configured: false });
 
     const widget = await prisma.googleReviewsWidget.findUnique({ where: { shop } });
@@ -307,13 +306,17 @@ export async function loader({ request }) {
     const langStore = await prisma.store.findUnique({ where: { shop }, select: { language: true } });
     const widgetLanguage = resolveLanguage(url.searchParams.get("locale"), langStore?.language);
 
-    // Custom Template: read the active (isDefault=true) WidgetTemplate
+    // Custom Template: read one specific WidgetTemplate by id (pinned via the
+    // block's "Design to show" field in Theme Editor), falling back to the
+    // active (isDefault=true) one when no id was pinned. `shop` is always
+    // included in the where-clause so a block can never be pointed at another
+    // store's template even if a templateId leaked or was guessed.
     if (widgetKey === "custom_template") {
       try {
-        const tpl = await prisma.widgetTemplate.findFirst({
-          where: { shop, isDefault: true },
-          select: { blocks: true },
-        });
+        const templateId = url.searchParams.get("templateId");
+        const tpl = templateId
+          ? await prisma.widgetTemplate.findFirst({ where: { shop, id: templateId }, select: { blocks: true } })
+          : await prisma.widgetTemplate.findFirst({ where: { shop, isDefault: true }, select: { blocks: true } });
         if (tpl?.blocks) {
           const LAYOUT_TO_STYLE = {
             grid:     "star_summary",
@@ -460,8 +463,7 @@ export async function loader({ request }) {
     // the free default instead of serving the locked layout.
     let finalSettings = settings || {};
     if (finalSettings.defaultStyle && PRO_LAYOUT_VALUES.has(finalSettings.defaultStyle)) {
-      const plan = await prisma.shopPlan.findUnique({ where: { shop } });
-      if (!isAdvancedOrHigher(plan)) {
+      if (!(await hasAdvancedAccess(shop))) {
         finalSettings = { ...finalSettings, defaultStyle: DEFAULT_FREE_LAYOUT };
       }
     }
@@ -712,10 +714,11 @@ export async function action({ request }) {
     },
   }).catch((error) => console.error("notifyIntegrations failed:", error.message));
 
-  // Review-reward coupon: shown immediately on the thank-you state, regardless
-  // of moderation status, since the point is to reward the act of reviewing.
+  // Review-reward coupon (Advanced plan only): shown immediately on the
+  // thank-you state, regardless of moderation status, since the point is to
+  // reward the act of reviewing.
   const couponSettings = await prisma.reviewCoupon.findUnique({ where: { shop } });
-  const coupon = couponSettings?.enabled && couponSettings.code
+  const coupon = couponSettings?.enabled && couponSettings.code && (await hasAdvancedAccess(shop))
     ? { code: couponSettings.code, message: couponSettings.message }
     : null;
 

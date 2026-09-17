@@ -44,6 +44,30 @@ model Store {
   questions    Question[]
   aiSummaries  AiSummary[]
   reviewGroups ProductGroup[]
+
+  // Onboarding wizard shown right after install, before the merchant can
+  // reach the dashboard — see app.onboarding.jsx.
+  onboardingCompleted Boolean   @default(false)
+  onboardingCompletedAt DateTime?
+
+  // Grandfather flag: true for every store that was already live before
+  // Advanced-plan gating (Product Grouping, Integrations, Custom CSS/JS)
+  // shipped, so existing merchants keep the access they already had.
+  // New installs default to false and go through the real plan gate.
+  // See utils/planGuard.server.js's hasAdvancedAccess().
+  legacyAccess Boolean @default(false)
+  fullName      String?
+  contactEmail  String?
+  phone         String?
+  addressStreet String?
+  pinCode       String?
+  state         String?
+  country       String?
+  businessName    String?
+  businessType    String?
+  website         String?
+  taxId           String?
+  businessDetails String? @db.Text
 }
 
 model Product {
@@ -406,8 +430,11 @@ model Widget {
   cardBackground  String @default("#FFFFFF")
   textColor       String @default("#333333")
   borderColor     String @default("#E5E5E5")
-  mutedTextColor  String @default("#888888") // secondary text: "Based on X reviews", dates, bar counts (Summary + List widget)
-  headingColor    String @default("#333333") // widget heading, independent from body/review text color (Summary + List widget)
+  mutedTextColor  String @default("#888888") // secondary text: dates, review counts, "Based on X reviews", etc.
+  // "#333333" is a sentinel meaning "not customized" (see reviews-widget.js) since the
+  // widget's real default heading color varies by style (accent-colored on most widgets,
+  // text-colored on Summary + List) — a single literal default here can't fit both.
+  headingColor    String @default("#333333") // widget heading, independent from body/review text color
   writeBtnColor   String @default("#333333") // "Write a Review" button background (Summary + List widget)
 
   // Display toggles

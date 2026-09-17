@@ -3,6 +3,8 @@ import { Link, useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { SHELL_C, ToggleField, TextFieldInput, Field } from "../components/WidgetCustomizeShell";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import AdvancedPaywall from "../components/AdvancedPaywall";
 
 const DEFAULT_MESSAGE = "Thanks for your review! Use the code below to save on your next order.";
 
@@ -10,9 +12,11 @@ const DEFAULT_MESSAGE = "Thanks for your review! Use the code below to save on y
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
+  const isPro = await hasAdvancedAccess(session.shop);
   const coupon = await prisma.reviewCoupon.findUnique({ where: { shop: session.shop } });
 
   return {
+    isPro,
     enabled: coupon?.enabled ?? false,
     code:    coupon?.code    ?? "",
     message: coupon?.message ?? DEFAULT_MESSAGE,
@@ -22,6 +26,10 @@ export async function loader({ request }) {
 // ─── Action ────────────────────────────────────────────────────────────────────
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
+
+  const isPro = await hasAdvancedAccess(session.shop);
+  if (!isPro) return { success: false, message: "Review Coupon requires the Advanced plan." };
+
   const body = await request.json();
 
   const enabled = Boolean(body.enabled);
@@ -79,6 +87,24 @@ export default function ReviewCouponSettings() {
   const [code, setCode]       = useState(initial.code);
   const [message, setMessage] = useState(initial.message);
   const [saved, setSaved]     = useState(false);
+
+  if (!initial.isPro) {
+    return (
+      <div style={{ minHeight: "100vh", background: SHELL_C.bg, fontFamily: "'Inter','DM Sans','Segoe UI',sans-serif" }}>
+        <AdvancedPaywall
+          title="Review Coupon — Advanced Plan"
+          description="Reward customers for reviewing — show a discount code right after they submit a review."
+          features={[
+            "Thank-you discount code display",
+            "Custom thank-you message",
+            "Works with any Shopify discount",
+            "Everything else in Advanced",
+          ]}
+          accentColor={SHELL_C.accent}
+        />
+      </div>
+    );
+  }
 
   const save = () => {
     fetcher.submit(

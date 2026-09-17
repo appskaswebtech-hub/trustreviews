@@ -3,6 +3,8 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useState, useEffect, useRef } from "react";
 import { useAdminT } from "../utils/adminTranslations";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import AdvancedPaywall from "../components/AdvancedPaywall";
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
@@ -15,8 +17,9 @@ const C = {
 
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
+  const isPro = await hasAdvancedAccess(session.shop);
   const store = await db.store.findUnique({ where: { shop: session.shop }, select: { id: true } });
-  if (!store) return { groups: [] };
+  if (!store) return { groups: [], isPro };
 
   const groups = await db.productGroup.findMany({
     where: { storeId: store.id },
@@ -54,6 +57,7 @@ export async function loader({ request }) {
   });
 
   return {
+    isPro,
     groups: groups.map((g) => ({
       id: g.id,
       name: g.name,
@@ -64,6 +68,10 @@ export async function loader({ request }) {
 
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
+
+  const isPro = await hasAdvancedAccess(session.shop);
+  if (!isPro) return { ok: false, message: "Product Grouping requires the Advanced plan." };
+
   const formData = await request.formData();
   const actionType = formData.get("actionType");
 
@@ -308,7 +316,7 @@ function GroupCard({ group, onAddProduct, onRemoveProduct, onDeleteGroup, onRena
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ReviewGroupsPage() {
-  const { groups } = useLoaderData();
+  const { groups, isPro } = useLoaderData();
   const submit = useSubmit();
   const [newGroupName, setNewGroupName] = useState("");
   const t = useAdminT();
@@ -368,6 +376,20 @@ export default function ReviewGroupsPage() {
         </div>
       </div>
 
+      {!isPro ? (
+        <AdvancedPaywall
+          title="Product Grouping — Advanced Plan"
+          description="Group products that belong together (variants, duplicate listings, bundles) so they share the same pool of reviews."
+          features={[
+            "Combine variants & duplicate listings",
+            "Shared reviews across grouped products",
+            "Unlimited groups",
+            "Everything else in Advanced",
+          ]}
+          accentColor={C.accent}
+        />
+      ) : (
+      <>
       {/* How it works banner */}
       <div style={{
         background: C.accentLt, border: `1px solid #c7c0fa`, borderRadius: 12,
@@ -430,6 +452,8 @@ export default function ReviewGroupsPage() {
             onRename={(name) => renameGroup(g.id, name)}
           />
         ))
+      )}
+      </>
       )}
     </div>
   );

@@ -4,14 +4,17 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { SHELL_C } from "../components/WidgetCustomizeShell";
 import { useAdminT } from "../utils/adminTranslations";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import AdvancedPaywall from "../components/AdvancedPaywall";
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  const [store, customCode] = await Promise.all([
+  const [store, customCode, isPro] = await Promise.all([
     prisma.store.findUnique({ where: { shop: session.shop }, select: { language: true } }),
     prisma.storeCustomCode.findUnique({ where: { shop: session.shop } }),
+    hasAdvancedAccess(session.shop),
   ]);
 
   return {
@@ -19,6 +22,7 @@ export async function loader({ request }) {
     lang: store?.language || "en",
     customCss: customCode?.customCss || "",
     customJs:  customCode?.customJs  || "",
+    isPro,
   };
 }
 
@@ -37,6 +41,9 @@ export async function action({ request }) {
   }
 
   if (body.actionType === "custom-code") {
+    const isPro = await hasAdvancedAccess(session.shop);
+    if (!isPro) return { success: false, message: "Custom CSS/JS requires the Advanced plan." };
+
     await prisma.storeCustomCode.upsert({
       where:  { shop: session.shop },
       update: { customCss: body.css, customJs: body.js },
@@ -247,7 +254,7 @@ function CodeEditor({ label, value, onChange, placeholder, hint }) {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function CustomCodePage() {
-  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs } = useLoaderData();
+  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro } = useLoaderData();
 
   const t = useAdminT();
   const [tab, setTab]         = useState("snippets");
@@ -444,6 +451,7 @@ export default function CustomCodePage() {
 
         {/* ── CUSTOM CSS & JS TAB ── */}
         {tab === "code" && (
+          isPro ? (
           <div>
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 20, fontWeight: 600, color: SHELL_C.text, margin: "0 0 6px" }}>
@@ -511,6 +519,19 @@ export default function CustomCodePage() {
               </button>
             </div>
           </div>
+          ) : (
+            <AdvancedPaywall
+              title="Custom CSS/JS — Advanced Plan"
+              description="Add custom styles or scripts that run on your storefront alongside the review widgets."
+              features={[
+                "Inject custom CSS",
+                "Inject custom JS",
+                "PageFly & GemPages support",
+                "Everything else in Advanced",
+              ]}
+              accentColor={SHELL_C.accent}
+            />
+          )
         )}
       </div>
     </div>

@@ -3,9 +3,12 @@ import { Link, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import AdvancedPaywall from "../components/AdvancedPaywall";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
+  const isPro = await hasAdvancedAccess(session.shop);
 
   const rows = await db.integration.findMany({
     where: { shop: session.shop },
@@ -13,7 +16,7 @@ export async function loader({ request }) {
   });
 
   const connectedByProvider = Object.fromEntries(rows.map((r) => [r.provider, r.connected]));
-  return { connectedByProvider };
+  return { connectedByProvider, isPro };
 }
 
 const C = {
@@ -73,7 +76,25 @@ function ProviderCard({ providerKey, provider, connected }) {
 }
 
 export default function IntegrationsGalleryPage() {
-  const { connectedByProvider } = useLoaderData();
+  const { connectedByProvider, isPro } = useLoaderData();
+
+  if (!isPro) {
+    return (
+      <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>
+        <AdvancedPaywall
+          title="Integrations — Advanced Plan"
+          description="Connect an email platform to sync review and Q&A events for automations."
+          features={[
+            "Klaviyo, Mailchimp & Shopify Flow",
+            "Google Merchant Center sync",
+            "Azure Translator",
+            "Everything else in Advanced",
+          ]}
+          accentColor="#4C6FFF"
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: C.bg, minHeight: "100vh", padding: 28 }}>

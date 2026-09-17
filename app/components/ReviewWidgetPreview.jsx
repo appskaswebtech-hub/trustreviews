@@ -40,7 +40,7 @@ function Card({ r, s, editorial }) {
         <div style={{ fontSize: s.reviewSize * 0.7, marginBottom: 4 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
         <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
         <p style={{ fontSize: s.reviewSize, margin: "0 0 8px", lineHeight: 1.5 }}>{r.comment}</p>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: s.metaSize, color: "#888", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: s.metaSize, color: s.mutedTextColor || "#888", flexWrap: "wrap" }}>
           {!editorial && avatar}
           <strong>{r.customer}</strong>
           {s.showVerified && <span style={{ fontSize: 10, fontWeight: 600, borderRadius: 4, padding: "1px 6px", background: "#e6f4ea", color: "#1a7a3a" }}>Verified</span>}
@@ -62,7 +62,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
     padding: `${s.paddingTop}px 0 ${s.paddingBottom}px`,
     fontFamily: s.fontFamily === "inherit" ? undefined : s.fontFamily,
   };
-  const headingStyle = { fontSize: s.headingSize, fontWeight: 600, color: s.accentColor, margin: "0 0 16px" };
+  const headingStyle = { fontSize: s.headingSize, fontWeight: 600, color: s.headingColor || s.accentColor, margin: "0 0 16px" };
 
   if (style === "verified_counter") {
     return (
@@ -124,6 +124,145 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
         <h2 style={headingStyle}>{heading}</h2>
         <div style={{ maxWidth: 360 }}><Card r={r} s={s} /></div>
         <div style={{ textAlign: "center", marginTop: 8, fontSize: 11, color: "#888" }}>‹ rotates through your reviews ›</div>
+      </div>
+    );
+  }
+
+  if (style === "compact_rows") {
+    const starCol = s.starColor || "#F59E0B";
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {items.map((r, i) => (
+            <div key={r.id} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "10px 0",
+              borderTop: i === 0 ? `1px solid ${s.borderColor}` : "none", borderBottom: `1px solid ${s.borderColor}`,
+            }}>
+              <span style={{ fontSize: s.reviewSize * 0.75, flexShrink: 0 }}>{stars(r.rating, starCol, s.starGap)}</span>
+              <span style={{ flex: 1, fontSize: s.reviewSize * 0.9, color: s.textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {r.title ? `${r.title} — ${r.comment}` : r.comment}
+              </span>
+              <span style={{ fontSize: s.metaSize, fontWeight: 600, color: "#555", flexShrink: 0 }}>{r.customer}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "insta_stories") {
+    const gradient = "conic-gradient(from 180deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75)";
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 6 }}>
+          {items.map((r) => (
+            <div key={r.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0, width: 66 }}>
+              <div style={{ width: 62, height: 62, borderRadius: "50%", padding: 3, background: gradient, boxSizing: "border-box" }}>
+                <div style={{
+                  width: "100%", height: "100%", borderRadius: "50%", background: s.accentColor, color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13,
+                  border: "2.5px solid #fff", boxSizing: "border-box",
+                }}>{initials(r.customer)}</div>
+              </div>
+              <span style={{ fontSize: 10.5, color: s.textColor, maxWidth: 62, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.customer.split(" ")[0]}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 11.5, color: "#888", marginTop: 8 }}>Tap a circle on your storefront to open the fullscreen story player.</p>
+      </div>
+    );
+  }
+
+  if (style === "insta_reels") {
+    const r = items[0];
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{
+          width: 220, height: 390, margin: "0 auto", borderRadius: 18, overflow: "hidden",
+          position: "relative", background: `linear-gradient(135deg,${s.accentColor},#1a1a1a)`,
+          display: "flex", alignItems: "flex-end",
+        }}>
+          <div style={{
+            width: "100%", padding: "16px 14px 18px", boxSizing: "border-box", color: "#fff",
+            background: "linear-gradient(to top,rgba(0,0,0,.75),transparent)",
+          }}>
+            <div style={{ fontSize: 13, marginBottom: 6 }}>{stars(r.rating, "#fff", s.starGap)}</div>
+            <p style={{ fontSize: 12, lineHeight: 1.5, margin: "0 0 6px" }}>{r.comment}</p>
+            <div style={{ fontWeight: 700, fontSize: 12 }}>{r.customer}</div>
+          </div>
+        </div>
+        <p style={{ fontSize: 11.5, color: "#888", marginTop: 8, textAlign: "center" }}>Continuous vertical scroll feed on your storefront — swipe up for the next review.</p>
+      </div>
+    );
+  }
+
+  if (style === "hero_quote") {
+    const r = items[0];
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{
+          borderRadius: s.borderRadius, minHeight: 260, display: "flex", alignItems: "center", justifyContent: "center",
+          background: `linear-gradient(135deg,${s.accentColor},#1a1a1a)`, padding: "40px 50px", boxSizing: "border-box",
+        }}>
+          <div style={{ maxWidth: 520, textAlign: "center", color: "#fff" }}>
+            <div style={{ fontSize: 18, marginBottom: 14 }}>{stars(r.rating, "#fff", s.starGap)}</div>
+            <p style={{ fontSize: s.reviewSize * 1.3, fontStyle: "italic", fontFamily: "Georgia,serif", lineHeight: 1.5, margin: "0 0 14px" }}>&ldquo;{r.comment}&rdquo;</p>
+            <div style={{ fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase", fontSize: 12, opacity: .85 }}>{r.customer}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 14 }}>
+          {items.map((it, i) => <span key={it.id} style={{ width: 8, height: 8, borderRadius: "50%", background: i === 0 ? s.accentColor : "#ddd" }} />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "coverflow") {
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 200, padding: "10px 0" }}>
+          {items.slice(0, 3).map((r, i) => {
+            const offset = i - 1;
+            return (
+              <div key={r.id} style={{
+                width: 200, flexShrink: 0, marginLeft: offset === 0 ? 0 : -30,
+                transform: `scale(${offset === 0 ? 1 : 0.85})`, opacity: offset === 0 ? 1 : 0.55,
+                zIndex: offset === 0 ? 2 : 1, transition: "transform .3s,opacity .3s",
+              }}>
+                <Card r={r} s={s} />
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 10 }}>
+          {items.map((it, i) => <span key={it.id} style={{ width: 8, height: 8, borderRadius: "50%", background: i === 0 ? s.accentColor : "#ddd" }} />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "split_media") {
+    const r = items[0];
+    return (
+      <div style={wrapStyle}>
+        <h2 style={headingStyle}>{heading}</h2>
+        <div style={{
+          display: "grid", gridTemplateColumns: "1fr 1fr", borderRadius: s.borderRadius, overflow: "hidden",
+          border: `1px solid ${s.borderColor}`, minHeight: 240,
+        }}>
+          <div style={{ background: `linear-gradient(135deg,${s.accentColor},#1a1a1a)` }} />
+          <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center", background: s.cardBackground }}>
+            <div style={{ fontSize: 16, marginBottom: 10 }}>{stars(r.rating, s.accentColor, s.starGap)}</div>
+            {r.title && <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: s.textColor }}>{r.title}</h3>}
+            <p style={{ fontSize: s.reviewSize, lineHeight: 1.65, color: s.textColor, margin: "0 0 12px" }}>{r.comment}</p>
+            <div style={{ fontWeight: 700, fontSize: 12, color: s.accentColor, textTransform: "uppercase", letterSpacing: ".04em" }}>{r.customer}</div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -334,7 +473,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
       <div style={wrapStyle}>
         <h2 style={{ ...headingStyle, textAlign: tAlign }}>{heading}</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, justifyContent: jContent }}>
-          <span style={{ fontSize: s.metaSize, color: "#888" }}>Sort:</span>
+          <span style={{ fontSize: s.metaSize, color: s.mutedTextColor || "#888" }}>Sort:</span>
           <select style={{ border: `1px solid ${s.borderColor}`, borderRadius: 6, padding: "4px 10px", fontSize: s.metaSize, background: "#fff" }}>
             <option>Newest</option>
           </select>
@@ -356,7 +495,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
               <strong style={{ fontSize: s.metaSize, color: s.textColor }}>{r.customer}</strong>
               <span style={{ fontSize: s.reviewSize * 0.75 }}>{stars(r.rating, starCol, s.starGap)}</span>
               {s.showVerified && <span style={{ fontSize: 10, fontWeight: 600, borderRadius: 4, padding: "1px 6px", background: "#e6f4ea", color: "#1a7a3a" }}>Verified</span>}
-              {s.showDate && <span style={{ fontSize: s.metaSize, color: "#888", marginLeft: tAlign === "left" ? "auto" : 0 }}>{r.createdAt}</span>}
+              {s.showDate && <span style={{ fontSize: s.metaSize, color: s.mutedTextColor || "#888", marginLeft: tAlign === "left" ? "auto" : 0 }}>{r.createdAt}</span>}
             </div>
             <div style={{ fontSize: s.reviewSize * 1.05, fontWeight: 600, marginBottom: 4, color: s.textColor }}>{r.title}</div>
             <p style={{ fontSize: s.reviewSize, margin: 0, lineHeight: 1.5, color: s.textColor }}>{r.comment}</p>
