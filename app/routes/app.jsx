@@ -9,8 +9,11 @@ import enTranslations from "@shopify/polaris/locales/en.json";
 
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { syncSubscriptionStatus } from "../billing.server";
+import { syncSubscriptionStatus, isDevStore, getShopPlan } from "../billing.server";
 import { signOnboardingToken } from "../utils/onboarding-token.server";
+import { hasAdvancedAccess } from "../utils/planGuard.server";
+import EmbeddedOnboardingModal from "../components/EmbeddedOnboardingModal";
+import FreePlanUpsellModal from "../components/FreePlanUpsellModal";
 import "@shopify/polaris/build/esm/styles.css";
 
 export const loader = async ({ request }) => {
@@ -41,36 +44,110 @@ export const loader = async ({ request }) => {
 
   const store = await prisma.store.findUnique({
     where: { shop: session.shop },
-    select: { language: true, onboardingCompleted: true },
+    select: {
+      language: true, onboardingCompleted: true, onboardingStep: true,
+      onboardingStandaloneShown: true, businessType: true, isDropshipper: true,
+      freeUpsellShown: true, onboardingPopupDismissed: true,
+    },
   });
 
-  // Not onboarded yet — send the merchant to the standalone onboarding page
-  // on our own domain (outside the Shopify admin iframe). A plain `?shop=`
-  // param can't be trusted there (anyone could tamper with it), so we hand
-  // over a short-lived signed token instead.
+  let onboardingCompleted = store?.onboardingCompleted ?? false;
+  let devStore = false;
+
+  if (!onboardingCompleted) {
+    devStore = await isDevStore(admin);
+
+    // They reached the Plan step (onboardingStep 3) in an earlier visit but
+    // never explicitly chose Advanced or Free, then left. Don't keep showing
+    // onboarding forever — silently finalize as Free (Advanced for dev
+    // stores, same as an explicit "Continue with Free" would do) and let
+    // them straight into the dashboard with no popup at all.
+    if ((store?.onboardingStep ?? 0) >= 3) {
+      if (devStore) {
+        await prisma.shopPlan.upsert({
+          where: { shop: session.shop },
+          update: { plan: "advanced", status: "active" },
+          create: { shop: session.shop, plan: "advanced", status: "active" },
+        });
+      } else {
+        await getShopPlan(session.shop);
+      }
+      await prisma.store.update({
+        where: { shop: session.shop },
+        data: { onboardingCompleted: true, onboardingCompletedAt: new Date() },
+      });
+      onboardingCompleted = true;
+    }
+  }
+
+  // Not onboarded yet. The very first time (never shown the standalone page
+  // before), send the merchant there — on our own domain, outside the
+  // Shopify admin iframe. A plain `?shop=` param can't be trusted there
+  // (anyone could tamper with it), so we hand over a short-lived signed
+  // token instead. Every visit after that, show a dismissible popup INSIDE
+  // the embedded app instead — the rest of the app (nav, dashboard, every
+  // route) stays fully accessible either way; dismissing the popup just
+  // means Free plan applies, same as never opening it.
   let onboardingUrl = null;
-  if (!store?.onboardingCompleted) {
-    const appUrl = (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
-    const token = signOnboardingToken(session.shop);
-    onboardingUrl = `${appUrl}/onboarding?token=${encodeURIComponent(token)}`;
+  let onboardingModalData = null;
+  if (!onboardingCompleted) {
+    if (!store?.onboardingStandaloneShown) {
+      const appUrl = (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
+      const token = signOnboardingToken(session.shop);
+      onboardingUrl = `${appUrl}/onboarding?token=${encodeURIComponent(token)}`;
+    } else if (!store?.onboardingPopupDismissed) {
+      onboardingModalData = {
+        isDevStore: devStore,
+        initialStep: store.onboardingStep || 0,
+        initial: {
+          businessType: store.businessType || "",
+          isDropshipper: store.isDropshipper || "",
+        },
+      };
+    }
+  }
+
+  // Separate, independent condition from the onboarding flow above: once
+  // onboarding is actually done and the shop is on the Free plan (never
+  // upgraded — not even a grandfathered legacy store), show a one-time
+  // "try Advanced" nudge on their next app open. Fires at most once ever,
+  // tracked by its own flag so it never re-shows after being dismissed.
+  let showFreeUpsell = false;
+  if (onboardingCompleted && !store?.freeUpsellShown) {
+    const isPro = await hasAdvancedAccess(session.shop);
+    if (!isPro) {
+      await prisma.store.update({
+        where: { shop: session.shop },
+        data: { freeUpsellShown: true },
+      });
+      showFreeUpsell = true;
+    }
   }
 
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     lang: store?.language || "en",
     onboardingUrl,
+    onboardingModalData,
+    showFreeUpsell,
   };
 };
 
 export default function App() {
-  const { apiKey, onboardingUrl } = useLoaderData();
+  const { apiKey, onboardingUrl, onboardingModalData, showFreeUpsell } = useLoaderData();
 
-  // AppProvider stays mounted either way — it's what loads the App Bridge
+  // AppProvider stays mounted regardless — it's what loads the App Bridge
   // script, and App Bridge is *required* to break out of the Shopify admin
-  // iframe without a click (see OnboardingBounce below). Skipping it, like
+  // iframe without a click (see OnboardingBounce below, and
+  // EmbeddedOnboardingModal's confirmationUrl handling). Skipping it, like
   // an earlier version of this did, is why the auto-redirect threw
   // SecurityError: there was no App Bridge on the page to hand the
   // navigation off to.
+  //
+  // Only the very first-ever visit (onboardingUrl set) blocks the rest of
+  // the app — every visit after that, the normal app renders regardless of
+  // onboarding status, with the popup (if any) layered on top instead of
+  // gating anything.
   return (
     <AppProvider embedded apiKey={apiKey}>
       {onboardingUrl ? (
@@ -116,6 +193,9 @@ export default function App() {
           </NavMenu>
 
           <Outlet />
+
+          {onboardingModalData && <EmbeddedOnboardingModal {...onboardingModalData} />}
+          {!onboardingModalData && showFreeUpsell && <FreePlanUpsellModal />}
         </PolarisProvider>
       )}
     </AppProvider>
@@ -164,6 +244,20 @@ function OnboardingBounce({ url }) {
       </div>
     </div>
   );
+}
+
+// The embedded onboarding popup's progress-save fetcher posts to
+// /app/onboarding-embed in the background after every Continue/Skip (see
+// EmbeddedOnboardingModal's advance()) — it must NOT trigger this loader to
+// revalidate, or the "already reached the Plan step in an earlier visit —
+// auto-finalize" fallback fires immediately mid-wizard, silently completing
+// onboarding (with whatever plan a dev store defaults to) the instant the
+// merchant reaches the Plan step, before they've had a chance to choose.
+export function shouldRevalidate({ formAction, formData, defaultShouldRevalidate }) {
+  if (formAction === "/app/onboarding-embed" && formData?.get("actionType") === "saveProgress") {
+    return false;
+  }
+  return defaultShouldRevalidate;
 }
 
 export function ErrorBoundary() {

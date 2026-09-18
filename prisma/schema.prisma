@@ -56,18 +56,26 @@ model Store {
   // New installs default to false and go through the real plan gate.
   // See utils/planGuard.server.js's hasAdvancedAccess().
   legacyAccess Boolean @default(false)
-  fullName      String?
-  contactEmail  String?
-  phone         String?
-  addressStreet String?
-  pinCode       String?
-  state         String?
-  country       String?
-  businessName    String?
-  businessType    String?
-  website         String?
-  taxId           String?
-  businessDetails String? @db.Text
+  businessType  String?
+  isDropshipper String?
+  // Flat position in the onboarding wizard (0=business type, 1=dropshipper
+  // question, 2=widgets, 3=plan) — lets a merchant who closes the tab mid-way
+  // resume exactly where they left off instead of restarting from step 1.
+  onboardingStep Int @default(0)
+  // True once this shop has been shown the standalone onboarding page (see
+  // routes/onboarding.jsx) — that page is shown at most once, right after
+  // install; every visit after that, app.jsx shows a dismissible popup
+  // inside the embedded app instead if onboarding still isn't finished.
+  onboardingStandaloneShown Boolean @default(false)
+  // True once the embedded onboarding popup has been dismissed (✕) — once
+  // set, app.jsx stops showing it on later opens, even though onboarding
+  // itself still isn't marked complete (Free plan applies either way).
+  onboardingPopupDismissed Boolean @default(false)
+
+  // Separate from the onboarding flow above: once onboarding is done and the
+  // shop ends up on the Free plan, show a one-time Advanced upsell popup on
+  // their next app open — independent condition, fires at most once ever.
+  freeUpsellShown Boolean @default(false)
 }
 
 model Product {
