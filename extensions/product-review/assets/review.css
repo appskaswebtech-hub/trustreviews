@@ -943,3 +943,6 @@
   background: var(--rf-accent, #1a1a1a);
   cursor: pointer;
 }
+
+/* Themes like Dawn hide empty divs (`div:empty{display:none}`); the toast timer bar is empty on purpose. */
+.toast-progress:empty { display: block; }

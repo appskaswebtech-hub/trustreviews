@@ -162,3 +162,6 @@
   .rs-card-date { position: static; display: block; margin-bottom: 4px; }
   .rs-dubble-field { flex-direction: column; }
 }
+
+/* Themes like Dawn hide empty divs (`div:empty{display:none}`); the bar fill is empty on purpose. */
+.rs-breakdown-row .rs-bar-fill:empty { display: block; }

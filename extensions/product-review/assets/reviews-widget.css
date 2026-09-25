@@ -542,3 +542,16 @@
   .trust-reviews__sp-slide.has-media>*{grid-column:1!important}
   .trust-reviews__sp-media{grid-row:auto;min-height:0;aspect-ratio:4/3}
 }
+
+/* Shopify themes (e.g. Dawn's base.css) hide every empty div with
+   `div:empty{display:none}` (specificity 0,1,1 — beats a plain class). These
+   are intentionally empty visual elements (bar fills, progress, backgrounds,
+   decorations), so re-assert their display with `.class:empty` (0,2,0). */
+.trust-reviews__sl-bar-fill:empty,
+.trust-reviews__pm-bar-fill:empty,
+.tr-extensions-product-review-assets-reviews-widget-div-11:empty,
+.trust-reviews__insta-seg-fill:empty,
+.trust-reviews__pm-avatar-dot:empty,
+.trust-reviews__igp-notch:empty,
+.trust-reviews__split-media:empty{display:block}
+.trust-reviews__reels-media--text:empty{display:flex}
