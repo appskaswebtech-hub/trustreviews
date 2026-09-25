@@ -94,6 +94,13 @@
     function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
     function initials(name) { return (name || 'A').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2); }
     function fmtDate(iso) { return new Date(iso).toLocaleDateString(storeLocale || undefined, { year:'numeric', month:'short', day:'numeric' }); }
+    // Merchant's public reply (Admin → Reviews → Reply), shown under the review
+    // text in every layout that shows the full review.
+    function replyHTML(r, s) {
+      if (!r.reply) return '';
+      return '<div class="trust-reviews__reply"><span class="trust-reviews__reply-label">' + esc((s && s.t && s.t.storeReplyLabel) || 'Store reply') + '</span>' +
+        '<p class="trust-reviews__reply-text">' + esc(r.reply) + '</p></div>';
+    }
     function mediaHTML(r) {
       if (!r.mediaUrl) return '';
       if ((r.mediaType || '').indexOf('video') === 0) return '<div class="trust-reviews__media"><video class="tr-extensions-product-review-assets-reviews-widget-video-2" src="' + r.mediaUrl + '" controls playsinline></video></div>';
@@ -108,9 +115,9 @@
       var titleHTML    = r.title ? '<p class="trust-reviews__title">' + r.title + '</p>' : '';
       var likeHTML     = '<button class="trust-reviews__like-btn" data-id="' + r.id + '">+1 <span class="like-count">' + (r.likes || 0) + '</span></button>';
       if (s.style === 'editorial') {
-        card.innerHTML = avatarHTML + '<div class="trust-reviews__body"><div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' + titleHTML + '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r) + '<div class="trust-reviews__meta"><strong class="tr-extensions-product-review-assets-reviews-widget-strong-5">' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div></div>';
+        card.innerHTML = avatarHTML + '<div class="trust-reviews__body"><div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' + titleHTML + '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r) + '<div class="trust-reviews__meta"><strong class="tr-extensions-product-review-assets-reviews-widget-strong-5">' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div>' + replyHTML(r, s) + '</div>';
       } else {
-        card.innerHTML = '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' + titleHTML + '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r) + '<div class="trust-reviews__meta">' + avatarHTML + '<strong class="tr-extensions-product-review-assets-reviews-widget-strong-6">' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div>';
+        card.innerHTML = '<div class="trust-reviews__stars">' + starHTML(r.rating, s.accentColor) + '</div>' + titleHTML + '<p class="trust-reviews__comment">' + r.comment + '</p>' + mediaHTML(r) + '<div class="trust-reviews__meta">' + avatarHTML + '<strong class="tr-extensions-product-review-assets-reviews-widget-strong-6">' + r.customer + '</strong>' + verifiedHTML + dateHTML + likeHTML + '</div>' + replyHTML(r, s);
       }
       return card;
     }
@@ -231,7 +238,7 @@
           var verifiedHTML=s.showVerified?'<span class="trust-reviews__verified">'+(s.t?s.t.verified:'Verified')+'</span>':'';
           var dateHTML=(s.showDate&&r.createdAt)?'<span class="trust-reviews__classic-date">'+fmtDate(r.createdAt)+'</span>':'';
           var titleHTML=r.title?'<p class="trust-reviews__classic-title">'+r.title+'</p>':'';
-          row.innerHTML='<div class="trust-reviews__classic-meta-row">'+avatarHTML+'<strong class="trust-reviews__classic-name">'+r.customer+'</strong><span class="trust-reviews__classic-stars-inline">'+starHTML(r.rating,starCol)+'</span>'+verifiedHTML+dateHTML+'</div>'+titleHTML+'<p class="trust-reviews__classic-comment">'+r.comment+'</p>';
+          row.innerHTML='<div class="trust-reviews__classic-meta-row">'+avatarHTML+'<strong class="trust-reviews__classic-name">'+r.customer+'</strong><span class="trust-reviews__classic-stars-inline">'+starHTML(r.rating,starCol)+'</span>'+verifiedHTML+dateHTML+'</div>'+titleHTML+'<p class="trust-reviews__classic-comment">'+r.comment+'</p>'+replyHTML(r,s);
           listEl.appendChild(row);
         });
         pagEl.innerHTML=''; if(totalPages<=1) return;
@@ -395,7 +402,7 @@
               mediaHTML2='<div class="trust-reviews__sl-row-media"><img class="tr-extensions-product-review-assets-reviews-widget-img-65" src="'+r.mediaUrl+'" alt="review media" loading="lazy" style="max-width:100%;max-height:220px;border-radius:8px;margin-top:8px;object-fit:cover"></div>';
             }
           }
-          row.innerHTML='<div class="trust-reviews__sl-row-head"><span class="trust-reviews__sl-row-stars">'+starHTML(r.rating,starCol)+'</span>'+dateHTML2+'</div>'+titleHTML2+'<p class="trust-reviews__sl-row-comment">'+r.comment+'</p>'+mediaHTML2+'<div class="trust-reviews__sl-row-meta">'+avatarHTML2+'<span class="trust-reviews__sl-row-name">'+r.customer+'</span>'+verifiedHTML2+'</div>'+helpfulHTML2;
+          row.innerHTML='<div class="trust-reviews__sl-row-head"><span class="trust-reviews__sl-row-stars">'+starHTML(r.rating,starCol)+'</span>'+dateHTML2+'</div>'+titleHTML2+'<p class="trust-reviews__sl-row-comment">'+r.comment+'</p>'+mediaHTML2+'<div class="trust-reviews__sl-row-meta">'+avatarHTML2+'<span class="trust-reviews__sl-row-name">'+r.customer+'</span>'+verifiedHTML2+'</div>'+replyHTML(r,s)+helpfulHTML2;
           listDiv.appendChild(row);
         }
         attachLikes(listDiv);
@@ -500,7 +507,7 @@
             '<span class="trust-reviews__pm-card-name">'+(r.customer||'Customer')+'</span>'+
           '</div>'+
           '<div class="trust-reviews__pm-card-text pm-clamped">'+(r.comment||'')+'</div>'+
-          '<button class="trust-reviews__pm-show-more">'+(s.t.showFullReview||'Show full review')+'</button>'+
+          '<button class="trust-reviews__pm-show-more">'+(s.t.showFullReview||'Show full review')+'</button>'+replyHTML(r,s)+
         '</div>';
       var showMore=card.querySelector('.trust-reviews__pm-show-more');
       var textEl=card.querySelector('.trust-reviews__pm-card-text');
@@ -1050,7 +1057,7 @@
             '<span class="trust-reviews__ig-who"><strong>' + esc(r.customer || 'Customer') + '</strong><small>' + esc(timeAgo(r.createdAt)) + '</small></span>' +
             '<span class="trust-reviews__ig-lb-stars">' + starHTML(r.rating, s.starColor || '#F59E0B') + '</span></div>' +
           (r.title ? '<p class="trust-reviews__ig-lb-title">' + esc(r.title) + '</p>' : '') +
-          (r.mediaUrl && r.comment ? '<p class="trust-reviews__ig-lb-text">' + esc(r.comment) + '</p>' : '');
+          (r.mediaUrl && r.comment ? '<p class="trust-reviews__ig-lb-text">' + esc(r.comment) + '</p>' : '') + replyHTML(r, s);
         stage.appendChild(cap);
       }
       function close() {
@@ -1519,7 +1526,7 @@
           (opts.quote ? '<span class="trust-reviews__cc-quote">' + QUOTE_SVG + '</span>' : '') +
           '<div class="trust-reviews__cc-stars">' + starHTML(r.rating, s.starColor || '#F59E0B') + '</div>' +
           (r.title ? '<p class="trust-reviews__cc-title">' + esc(r.title) + '</p>' : '') +
-          '<p class="trust-reviews__cc-text">' + esc(r.comment || '') + '</p>' +
+          '<p class="trust-reviews__cc-text">' + esc(r.comment || '') + '</p>' + replyHTML(r, s) +
           '<div class="trust-reviews__cc-foot">' +
             (s.showAvatar ? '<span class="trust-reviews__cc-avatar">' + esc(initials(r.customer)) + '</span>' : '') + who +
             (s.showDate && r.createdAt ? '<small class="trust-reviews__cc-date">' + esc(fmtDate(r.createdAt)) + '</small>' : '') +
@@ -1594,7 +1601,7 @@
             '<span class="trust-reviews__cc-quote">' + QUOTE_SVG + '</span>' +
             '<div class="trust-reviews__cc-stars">' + starHTML(r.rating, s.starColor || '#F59E0B') + '</div>' +
             (r.title ? '<p class="trust-reviews__cc-title">' + esc(r.title) + '</p>' : '') +
-            '<p class="trust-reviews__cc-text">' + esc(r.comment || '') + '</p>' +
+            '<p class="trust-reviews__cc-text">' + esc(r.comment || '') + '</p>' + replyHTML(r, s) +
           '</div>' +
           '<div class="trust-reviews__bb-author">' +
             (r.mediaUrl && !isVid(r) ? '<img class="trust-reviews__bb-photo" src="' + esc(r.mediaUrl) + '" alt="" loading="lazy">' : '<span class="trust-reviews__cc-avatar trust-reviews__bb-photo">' + esc(initials(r.customer)) + '</span>') +
@@ -1652,7 +1659,7 @@
         sl.innerHTML =
           '<span class="trust-reviews__sp-quote">' + QUOTE_SVG + '</span>' +
           (r.title ? '<p class="trust-reviews__sp-title">' + esc(r.title) + '</p>' : '') +
-          '<p class="trust-reviews__sp-text">' + esc(r.comment || '') + '</p>' +
+          '<p class="trust-reviews__sp-text">' + esc(r.comment || '') + '</p>' + replyHTML(r, s) +
           '<div class="trust-reviews__sp-author">' +
             '<span class="trust-reviews__cc-avatar">' + esc(initials(r.customer)) + '</span>' +
             '<span class="trust-reviews__cc-who"><strong>' + esc(r.customer || 'Customer') + '</strong>' +

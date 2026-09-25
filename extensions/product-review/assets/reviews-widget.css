@@ -560,3 +560,14 @@
 .trust-reviews__sl-helpful-btn.is-voted{border-color:var(--tr-accent,#6B1A2C);background:color-mix(in srgb,var(--tr-accent,#6B1A2C) 10%,transparent);color:var(--tr-accent,#6B1A2C);font-weight:700}
 .trust-reviews__like-btn.is-voted{background:var(--tr-accent,#6B1A2C);color:#fff}
 .trust-reviews__sl-helpful-btn:disabled,.trust-reviews__like-btn:disabled{opacity:.6;cursor:progress}
+
+/* Merchant reply under a review */
+.trust-reviews__reply{margin:10px 0 4px;padding:10px 12px;border-left:3px solid var(--tr-accent,#6B1A2C);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--tr-accent,#6B1A2C) 7%,transparent);text-align:left}
+.trust-reviews__reply-label{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tr-accent,#6B1A2C)}
+.trust-reviews__reply-text{margin:4px 0 0;font-size:calc(var(--tr-rev-size,15px)*.92);line-height:1.55;color:var(--tr-text,#333);white-space:pre-line}
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__reply{background:rgba(255,255,255,.06)}
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__reply-text{color:#ddd}
+.trust-reviews-widget[data-style="dark_grid"] .trust-reviews__reply-label{color:#fff}
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__reply{background:rgba(255,255,255,.12);border-left-color:#fff}
+.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__reply-label,.trust-reviews-widget[data-style="accent_wall"] .trust-reviews__reply-text{color:#fff}
+.trust-reviews__ig-lb-cap .trust-reviews__reply-text{color:#444}

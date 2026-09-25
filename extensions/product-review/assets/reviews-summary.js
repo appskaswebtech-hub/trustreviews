@@ -195,6 +195,8 @@
         titleHTML +
         '<p class="rs-card-comment">' + escapeHTML(r.comment || "") + '</p>' +
         mediaHTML +
+        // Merchant's public reply (Admin → Reviews → Reply)
+        (r.reply ? '<div class="rs-card-reply"><span class="rs-card-reply-label">' + escapeHTML(T.storeReplyLabel || "Store reply") + '</span><p>' + escapeHTML(r.reply) + '</p></div>' : '') +
       '</div>'
     );
   }

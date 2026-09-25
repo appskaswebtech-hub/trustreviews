@@ -165,3 +165,8 @@
 
 /* Themes like Dawn hide empty divs (`div:empty{display:none}`); the bar fill is empty on purpose. */
 .rs-breakdown-row .rs-bar-fill:empty { display: block; }
+
+/* Merchant reply under a review */
+.rs-card-reply { margin: 10px 0 2px; padding: 10px 12px; border-left: 3px solid var(--rs-accent, #1a1a1a); border-radius: 0 8px 8px 0; background: rgba(0,0,0,.035); }
+.rs-card-reply-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--rs-accent, #1a1a1a); }
+.rs-card-reply p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
