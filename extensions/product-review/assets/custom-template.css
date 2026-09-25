@@ -116,3 +116,7 @@
 
 /* Themes like Dawn hide empty divs (`div:empty{display:none}`); bar fills are empty on purpose. */
 .ct-bar-fill:empty,.tr-extensions-product-review-assets-custom-template-div-4:empty{display:block}
+
+/* Helpful votes: the picked button (inline styles set the base look, hence !important). */
+.ct-helpful-btn.is-voted{font-weight:700!important;border-color:currentColor!important;opacity:1!important}
+.ct-helpful-btn.is-voted .ct-helpful-count{font-weight:700}

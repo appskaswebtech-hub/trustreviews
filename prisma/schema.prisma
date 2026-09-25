@@ -142,9 +142,25 @@ model Review {
   sentimentAt DateTime?
 
   translations ReviewTranslation[]
+  votes        ReviewVote[]
 
   @@index([storeId, status, createdAt])
   @@index([storeId, productId, status, createdAt])
+}
+
+// One helpful / not-helpful vote per shopper per review. Review.likes and
+// Review.dislikes stay the displayed totals; this table makes votes
+// switchable (like → dislike moves the count) and removable, never repeatable.
+model ReviewVote {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  voterId   String   @db.VarChar(80) // "c:<customer id>" (logged in) or "g:<browser id>" (guest)
+  value     Int      // 1 = helpful (like), -1 = not helpful (dislike)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([reviewId, voterId])
 }
 
 // Cached machine translations of a review's title/comment/reply, one row per

@@ -946,3 +946,8 @@
 
 /* Themes like Dawn hide empty divs (`div:empty{display:none}`); the toast timer bar is empty on purpose. */
 .toast-progress:empty { display: block; }
+
+/* Helpful votes: the button this shopper picked (one vote per review). */
+.helpful-btn.is-voted { border-color: var(--rl-accent, #1a1a1a); background: #f1f1f1; font-weight: 700; }
+.helpful-btn--up.is-voted { border-color: #15803d; background: #f0fdf4; color: #15803d; }
+.helpful-btn--down.is-voted { border-color: #b91c1c; background: #fef2f2; color: #b91c1c; }

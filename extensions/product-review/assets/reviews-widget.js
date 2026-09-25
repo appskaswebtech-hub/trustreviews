@@ -11,6 +11,35 @@
   // Coupon). The shared popup (assets/coupon-popup.js, next to this file) is
   // only downloaded when there is actually a coupon to show.
   var TR_ASSET_BASE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/?#]*([?#].*)?$/, '');
+
+  // Helpful votes — one per shopper per review, enforced by the server. Guests
+  // are identified by a random id kept in localStorage (logged-in customers by
+  // their Shopify id, added by the app proxy); trVotes remembers this browser's
+  // choices so the picked button stays highlighted after a reload.
+  function trVoterId() {
+    var mk = function(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12); };
+    try { var v = localStorage.getItem('trVoterId'); if (!v) { v = mk(); localStorage.setItem('trVoterId', v); } return v; }
+    catch (e) { return window.__trVoterId || (window.__trVoterId = mk()); }
+  }
+  function trMyVote(id) { try { return (JSON.parse(localStorage.getItem('trVotes') || '{}'))[id] || 0; } catch (e) { return 0; } }
+  function trSaveVote(id, v) { try { var m = JSON.parse(localStorage.getItem('trVotes') || '{}'); if (v) m[id] = v; else delete m[id]; localStorage.setItem('trVotes', JSON.stringify(m)); } catch (e) {} }
+  function trSendVote(shop, id, type) {
+    return fetch('/apps/review?shop=' + encodeURIComponent(shop), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: type, id: id, voterId: trVoterId() }) })
+      .then(function (r) { return r.json(); })
+      .then(function (json) { if (json.success) trSaveVote(id, json.myVote || 0); return json; });
+  }
+  // Paint counts + the chosen state on every up/down button of one review.
+  function trPaintVote(root, id, upSel, downSel, countSel, likes, dislikes, myVote) {
+    [[upSel, likes, 1], [downSel, dislikes, -1]].forEach(function (p) {
+      if (!p[0]) return;
+      var btns = root.querySelectorAll(p[0] + '[data-id="' + id + '"]');
+      for (var i = 0; i < btns.length; i++) {
+        var c = btns[i].querySelector(countSel); if (c && p[1] != null) c.textContent = p[1];
+        btns[i].classList.toggle('is-voted', myVote === p[2]);
+        btns[i].setAttribute('aria-pressed', myVote === p[2] ? 'true' : 'false');
+      }
+    });
+  }
   function trShowCoupon(coupon) {
     if (!coupon || !coupon.code) return;
     if (window.TrustReviewsCoupon) return window.TrustReviewsCoupon.show(coupon);
@@ -90,10 +119,12 @@
       var btns = root.querySelectorAll('.trust-reviews__like-btn');
       for (var i = 0; i < btns.length; i++) {
         (function(btn) {
+          var id = btn.dataset.id;
+          trPaintVote(root, id, '.trust-reviews__like-btn', null, '.like-count', null, null, trMyVote(id));
           btn.addEventListener('click', function() {
             if (btn.disabled) return; btn.disabled = true;
-            fetch('/apps/review?shop=' + shop, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:'like', id:btn.dataset.id }) })
-            .then(function(r){ return r.json(); }).then(function(json){ if (json.success) btn.querySelector('.like-count').textContent = json.review.likes; })
+            trSendVote(shop, id, 'like')
+            .then(function(json){ if (json.success) trPaintVote(root, id, '.trust-reviews__like-btn', null, '.like-count', json.review.likes, null, json.myVote); })
             .catch(function(){}).finally(function(){ btn.disabled = false; });
           });
         })(btns[i]);
@@ -101,18 +132,20 @@
     }
 
     function attachHelpfulVotes(root) {
-      function wire(btn, type, countSel) {
+      var UP = '.trust-reviews__sl-helpful-up', DOWN = '.trust-reviews__sl-helpful-down', COUNT = '.trust-reviews__sl-helpful-count';
+      function wire(btn, type) {
+        var id = btn.dataset.id;
         btn.addEventListener('click', function() {
           if (btn.disabled) return; btn.disabled = true;
-          fetch('/apps/review?shop=' + shop, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type:type, id:btn.dataset.id }) })
-          .then(function(r){ return r.json(); }).then(function(json){ if (json.success) btn.querySelector(countSel).textContent = type==='like'?json.review.likes:json.review.dislikes; })
+          trSendVote(shop, id, type)
+          .then(function(json){ if (json.success) trPaintVote(root, id, UP, DOWN, COUNT, json.review.likes, json.review.dislikes, json.myVote); })
           .catch(function(){}).finally(function(){ btn.disabled = false; });
         });
       }
-      var upBtns = root.querySelectorAll('.trust-reviews__sl-helpful-up');
-      for (var i = 0; i < upBtns.length; i++) wire(upBtns[i], 'like', '.trust-reviews__sl-helpful-count');
-      var downBtns = root.querySelectorAll('.trust-reviews__sl-helpful-down');
-      for (var j = 0; j < downBtns.length; j++) wire(downBtns[j], 'dislike', '.trust-reviews__sl-helpful-count');
+      var upBtns = root.querySelectorAll(UP);
+      for (var i = 0; i < upBtns.length; i++) { wire(upBtns[i], 'like'); trPaintVote(root, upBtns[i].dataset.id, UP, DOWN, COUNT, null, null, trMyVote(upBtns[i].dataset.id)); }
+      var downBtns = root.querySelectorAll(DOWN);
+      for (var j = 0; j < downBtns.length; j++) wire(downBtns[j], 'dislike');
     }
 
     function buildBadgeStrip(reviews, s, avgRating) {

@@ -407,20 +407,23 @@ function buildCardHTML(r, q, style){
     ? `<div class="review-reply"><strong class="tr-extensions-product-review-assets-review-strong-1">${escapeHTML(T.storeReplyLabel || "Store reply")}:</strong> ${escapeHTML(r.reply)}</div>`
     : "";
 
+  var myVote = trMyVote(r.id);
+  var upOn = myVote === 1 ? ' is-voted" aria-pressed="true' : '" aria-pressed="false';
+  var downOn = myVote === -1 ? ' is-voted" aria-pressed="true' : '" aria-pressed="false';
   var metaHTML = helpfulStyle === "detailed" ? `
     <div class="review-meta review-meta--helpful">
       <span class="helpful-label">${T.helpfulQuestion || "Was this review helpful?"}</span>
-      <button class="helpful-btn helpful-btn--up" onclick="likeReview(${r.id})" aria-label="${T.helpful}">
+      <button class="helpful-btn helpful-btn--up${upOn}" onclick="likeReview(${r.id})" aria-label="${T.helpful}">
         <span class="thumb">👍</span> ${r.likes || 0}
       </button>
-      <button class="helpful-btn helpful-btn--down" onclick="dislikeReview(${r.id})" aria-label="${T.notHelpful || "Not helpful"}">
+      <button class="helpful-btn helpful-btn--down${downOn}" onclick="dislikeReview(${r.id})" aria-label="${T.notHelpful || "Not helpful"}">
         <span class="thumb">👎</span> ${r.dislikes || 0}
       </button>
       <button class="share-btn" onclick="shareReview(${r.id})">${T.share}</button>
     </div>
   ` : `
     <div class="review-meta">
-      <button class="helpful-btn" onclick="likeReview(${r.id})">
+      <button class="helpful-btn${upOn}" onclick="likeReview(${r.id})">
         <span class="check">✓</span> ${T.helpful} (${r.likes || 0})
       </button>
       <button class="share-btn" onclick="shareReview(${r.id})">${T.share}</button>
@@ -776,25 +779,32 @@ async function submitReview() {
 }
 
 /* ============ LIKE / DISLIKE REVIEW ============ */
-async function likeReview(id){
+// One vote per shopper per review (server-enforced): the same button again
+// removes the vote, the other button moves it (likes -1 / dislikes +1).
+// Guests are identified by a random id kept in localStorage; trVotes keeps
+// the chosen button highlighted after a reload.
+function trVoterId(){
+  var mk = function(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12); };
+  try { var v = localStorage.getItem("trVoterId"); if(!v){ v = mk(); localStorage.setItem("trVoterId", v); } return v; }
+  catch(e){ return window.__trVoterId || (window.__trVoterId = mk()); }
+}
+function trMyVote(id){ try { return (JSON.parse(localStorage.getItem("trVotes") || "{}"))[id] || 0; } catch(e){ return 0; } }
+function trSaveVote(id, v){ try { var m = JSON.parse(localStorage.getItem("trVotes") || "{}"); if(v) m[id] = v; else delete m[id]; localStorage.setItem("trVotes", JSON.stringify(m)); } catch(e){} }
+
+async function voteReview(id, type){
   var response = await fetch("/apps/review", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "like", id: id })
+    body: JSON.stringify({ type: type, id: id, voterId: trVoterId() })
   });
   if(!response.ok) return;
+  var json = await response.json().catch(function(){ return null; });
+  if(json && json.success) trSaveVote(id, json.myVote || 0);
   loadReviews();
 }
 
-async function dislikeReview(id){
-  var response = await fetch("/apps/review", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "dislike", id: id })
-  });
-  if(!response.ok) return;
-  loadReviews();
-}
+function likeReview(id){ return voteReview(id, "like"); }
+function dislikeReview(id){ return voteReview(id, "dislike"); }
 
 /* ============ SHARE REVIEW ============ */
 function shareReview(id){

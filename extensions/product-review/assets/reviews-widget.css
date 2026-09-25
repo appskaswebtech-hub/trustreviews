@@ -555,3 +555,8 @@
 .trust-reviews__igp-notch:empty,
 .trust-reviews__split-media:empty{display:block}
 .trust-reviews__reels-media--text:empty{display:flex}
+
+/* Helpful votes: the button this shopper picked (one vote per review). */
+.trust-reviews__sl-helpful-btn.is-voted{border-color:var(--tr-accent,#6B1A2C);background:color-mix(in srgb,var(--tr-accent,#6B1A2C) 10%,transparent);color:var(--tr-accent,#6B1A2C);font-weight:700}
+.trust-reviews__like-btn.is-voted{background:var(--tr-accent,#6B1A2C);color:#fff}
+.trust-reviews__sl-helpful-btn:disabled,.trust-reviews__like-btn:disabled{opacity:.6;cursor:progress}

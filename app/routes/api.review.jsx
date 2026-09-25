@@ -681,8 +681,52 @@ export async function loader({ request }) {
 }
 
 // ── Action ────────────────────────────────────────────────────────────────────
+// ── Helpful votes: one per shopper per review ──────────────────────────────────
+// Same button again → vote removed; the other button → vote moves (e.g. likes -1,
+// dislikes +1). Counts never drop below 0 (reviews may carry pre-existing
+// anonymous counts from before votes were tracked).
+async function castReviewVote(reviewId, voterId, wanted, retried = false) {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const where = { reviewId_voterId: { reviewId, voterId } };
+      const existing = await tx.reviewVote.findUnique({ where, select: { id: true, value: true } });
+      const delta = { likes: 0, dislikes: 0 };
+      const bump = (value, by) => { delta[value === 1 ? "likes" : "dislikes"] += by; };
+      let myVote;
+
+      if (!existing) {
+        await tx.reviewVote.create({ data: { reviewId, voterId, value: wanted } });
+        bump(wanted, 1); myVote = wanted;
+      } else if (existing.value === wanted) {
+        await tx.reviewVote.delete({ where: { id: existing.id } });
+        bump(wanted, -1); myVote = 0;
+      } else {
+        const previous = existing.value;
+        await tx.reviewVote.update({ where: { id: existing.id }, data: { value: wanted } });
+        bump(previous, -1); bump(wanted, 1); myVote = wanted;
+      }
+
+      for (const field of ["likes", "dislikes"]) {
+        if (delta[field] > 0) {
+          await tx.review.update({ where: { id: reviewId }, data: { [field]: { increment: delta[field] } } });
+        } else if (delta[field] < 0) {
+          await tx.review.updateMany({ where: { id: reviewId, [field]: { gt: 0 } }, data: { [field]: { decrement: 1 } } });
+        }
+      }
+
+      const review = await tx.review.findUnique({ where: { id: reviewId }, select: { id: true, likes: true, dislikes: true } });
+      return { review, myVote };
+    });
+  } catch (e) {
+    // Two clicks raced to create the same vote: the unique index rejected the
+    // second one — replay it against the vote that now exists.
+    if (e?.code === "P2002" && !retried) return castReviewVote(reviewId, voterId, wanted, true);
+    throw e;
+  }
+}
+
 export async function action({ request }) {
-  const { shop } = await getScopedShop(request);
+  const { shop, url } = await getScopedShop(request);
   const contentType = request.headers.get("content-type") || "";
 
   // File upload
@@ -708,19 +752,20 @@ export async function action({ request }) {
     const store = await prisma.store.findUnique({ where: { shop }, select: { id: true } });
     if (!store) return Response.json({ success: false }, { status: 404 });
 
-    const field = data.type === "like" ? "likes" : "dislikes";
-    const result = await prisma.review.updateMany({
-      where: { id: Number(data.id), storeId: store.id },
-      data:  { [field]: { increment: 1 } },
-    });
+    const reviewId = Number(data.id);
+    const owned = await prisma.review.findFirst({ where: { id: reviewId, storeId: store.id }, select: { id: true } });
+    if (!owned) return Response.json({ success: false }, { status: 404 });
 
-    if (!result.count) return Response.json({ success: false }, { status: 404 });
+    // Logged-in shoppers: the app proxy's signed customer id (same vote on any
+    // device). Guests: the random id the widget keeps in localStorage.
+    const customerId = url.searchParams.get("logged_in_customer_id");
+    const guestId = String(data.voterId || "");
+    const voterId = customerId ? `c:${customerId}`
+      : /^[A-Za-z0-9-]{8,64}$/.test(guestId) ? `g:${guestId}` : null;
+    if (!voterId) return Response.json({ success: false, message: "Missing voter id" }, { status: 400 });
 
-    const review = await prisma.review.findUnique({
-      where:  { id: Number(data.id) },
-      select: { id: true, likes: true, dislikes: true },
-    });
-    return Response.json({ success: true, review });
+    const { review, myVote } = await castReviewVote(reviewId, voterId, data.type === "like" ? 1 : -1);
+    return Response.json({ success: true, review, myVote });
   }
 
   // Ask a question

@@ -990,22 +990,44 @@
   }
 
   /* ── Like / dislike voting for block-based Review Cards ── */
+  // One vote per shopper per review (server-enforced): same button again
+  // removes it, the other button moves it. Guests are identified by a random
+  // id in localStorage; trVotes keeps the chosen button highlighted on reload.
+  function trVoterId() {
+    var mk = function () { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12); };
+    try { var v = localStorage.getItem('trVoterId'); if (!v) { v = mk(); localStorage.setItem('trVoterId', v); } return v; }
+    catch (e) { return window.__trVoterId || (window.__trVoterId = mk()); }
+  }
+  function trMyVote(id) { try { return (JSON.parse(localStorage.getItem('trVotes') || '{}'))[id] || 0; } catch (e) { return 0; } }
+  function trSaveVote(id, v) { try { var m = JSON.parse(localStorage.getItem('trVotes') || '{}'); if (v) m[id] = v; else delete m[id]; localStorage.setItem('trVotes', JSON.stringify(m)); } catch (e) {} }
+
   function attachCTHelpfulVotes(root, shop) {
+    function paint(id, likes, dislikes, myVote) {
+      [['.ct-helpful-up', likes, 1], ['.ct-helpful-down', dislikes, -1]].forEach(function (p) {
+        var btns = root.querySelectorAll(p[0] + '[data-id="' + id + '"]');
+        for (var i = 0; i < btns.length; i++) {
+          var c = btns[i].querySelector('.ct-helpful-count'); if (c && p[1] != null) c.textContent = p[1];
+          btns[i].classList.toggle('is-voted', myVote === p[2]);
+          btns[i].setAttribute('aria-pressed', myVote === p[2] ? 'true' : 'false');
+        }
+      });
+    }
     function wire(btn, type) {
+      var id = btn.dataset.id;
       btn.addEventListener('click', function () {
         if (btn.disabled) return; btn.disabled = true;
         fetch('/apps/review?shop=' + encodeURIComponent(shop), {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: type, id: btn.dataset.id }),
+          body: JSON.stringify({ type: type, id: id, voterId: trVoterId() }),
         })
         .then(function (r) { return r.json(); })
-        .then(function (json) { if (json.success) btn.querySelector('.ct-helpful-count').textContent = type === 'like' ? json.review.likes : json.review.dislikes; })
+        .then(function (json) { if (json.success) { trSaveVote(id, json.myVote || 0); paint(id, json.review.likes, json.review.dislikes, json.myVote); } })
         .catch(function () {})
         .finally(function () { btn.disabled = false; });
       });
     }
     var up = root.querySelectorAll('.ct-helpful-up');
-    for (var i = 0; i < up.length; i++) wire(up[i], 'like');
+    for (var i = 0; i < up.length; i++) { wire(up[i], 'like'); paint(up[i].dataset.id, null, null, trMyVote(up[i].dataset.id)); }
     var down = root.querySelectorAll('.ct-helpful-down');
     for (var j = 0; j < down.length; j++) wire(down[j], 'dislike');
   }
