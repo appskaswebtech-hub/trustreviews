@@ -62,7 +62,7 @@ export default function FreePlanUpsellModal() {
             }} className="tr-app-components-freeplanupsellmodal-span-6">🚀</span>
             <div className="tr-app-components-freeplanupsellmodal-div-7">
               <div style={{ fontSize: 14.5, fontWeight: 700, color: "#fff" }} className="tr-app-components-freeplanupsellmodal-div-8">Unlock more with Advanced</div>
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.68)" }} className="tr-app-components-freeplanupsellmodal-div-9">5-day free trial, no risk</div>
+              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.68)" }} className="tr-app-components-freeplanupsellmodal-div-9">10-day free trial, no risk</div>
             </div>
           </div>
           <button
@@ -326,7 +326,7 @@ export default function FreePlanUpsellModal() {
           }}
           className="tr-app-components-freeplanupsellmodal-div-9 trw-upsell-subtitle"
         >
-          5-day free trial, no risk
+          10-day free trial, no risk
         </div>
       </div>
     </div>

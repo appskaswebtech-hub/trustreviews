@@ -213,7 +213,7 @@ export default function BillingPage() {
     //             : null
     //         }
     //         isLoading={isLoading}
-    //         footer="5-day free trial"
+    //         footer="10-day free trial"
     //       />
     //     </div>
 
@@ -403,7 +403,7 @@ export default function BillingPage() {
             : null
         }
         isLoading={isLoading}
-        footer="5-day free trial"
+        footer="10-day free trial"
       />
     </div>
 

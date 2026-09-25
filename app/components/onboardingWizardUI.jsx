@@ -217,7 +217,7 @@ export function PlanStep({ devStore, isSubmitting, onAdvance, onFree }) {
         color: C.accent, background: "#eef0ff", borderRadius: 20, padding: "4px 12px",
         marginBottom: 12, textTransform: "uppercase",
       }}>
-        {devStore ? "Free for development stores" : "5-day free trial"}
+        {devStore ? "Free for development stores" : "10-day free trial"}
       </span>
 
       <div className="trw-plan-advance-action">

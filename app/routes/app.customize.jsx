@@ -3669,7 +3669,7 @@ function PaywallPage() {
         ))}
       </div>
       <Link to="/app/billing" style={{ display:"inline-flex", padding:"13px 32px", borderRadius:10, fontSize:14, fontWeight:600, background:C.accent, color:"#fff", textDecoration:"none", boxShadow:"0 3px 12px rgba(107,26,44,.3)" }}>Upgrade to Advanced — $9.99/mo</Link>
-      <div style={{ fontSize:11.5, color:C.muted, marginTop:12 }} className="tr-app-routes-app-customize-div-231">5-day free trial · Cancel anytime</div>
+      <div style={{ fontSize:11.5, color:C.muted, marginTop:12 }} className="tr-app-routes-app-customize-div-231">10-day free trial · Cancel anytime</div>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export default function AdvancedPaywall({
     //   >
     //     Upgrade to Advanced — $9.99/mo
     //   </Link>
-    //   <div style={{ fontSize: 11.5, color: "#6b6b78", marginTop: 12 }} className="tr-app-components-advancedpaywall-div-8">5-day free trial · Cancel anytime</div>
+    //   <div style={{ fontSize: 11.5, color: "#6b6b78", marginTop: 12 }} className="tr-app-components-advancedpaywall-div-8">10-day free trial · Cancel anytime</div>
     // </div>
 
     <div
@@ -196,7 +196,7 @@ export default function AdvancedPaywall({
       marginTop: 10,
     }}
   >
-    5-day free trial · Cancel anytime
+    10-day free trial · Cancel anytime
   </div>
 </div>
   );
