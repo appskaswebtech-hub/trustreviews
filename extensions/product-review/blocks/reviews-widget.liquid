@@ -1,0 +1,155 @@
+{% comment %}
+  extensions/trust-reviews/blocks/reviews-widget.liquid
+{% endcomment %}
+
+{{ 'reviews-widget.css' | asset_url | stylesheet_tag }}
+
+<div
+  id="trust-reviews-widget-{{ block.id }}"
+  class="trust-reviews-widget"
+  data-product-id="{{ product.id }}"
+  data-product-title="{{ product.title | escape }}"
+  data-block-id="{{ block.id }}"
+  data-locale="{{ request.locale.iso_code }}"
+  data-seo-enabled="{{ block.settings.enable_seo_schema }}"
+  data-style="{{ block.settings.widget_style }}"
+  data-color="{{ block.settings.accent_color }}"
+  data-star-color="{{ block.settings.star_color }}"
+  data-text-color="{{ block.settings.text_color }}"
+  data-heading-color="{{ block.settings.heading_color }}"
+  data-muted-color="{{ block.settings.muted_text_color }}"
+  data-write-btn-color="{{ block.settings.write_btn_color }}"
+  data-border-color="{{ block.settings.border_color }}"
+  data-bg-color="{{ block.settings.background_color }}"
+  data-card-bg="{{ block.settings.card_background }}"
+  data-columns="{{ block.settings.columns }}"
+  data-max="{{ block.settings.max_reviews }}"
+  data-verified="{{ block.settings.show_verified }}"
+  data-avatar="{{ block.settings.show_avatar }}"
+  data-date="{{ block.settings.show_date }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-widget-key="{{ block.settings.widget_key }}"
+  data-design-mode="{{ request.design_mode }}"
+>
+  <h2 class="trust-reviews__heading">{{ block.settings.heading }}</h2>
+  <div class="trust-reviews__loading">Loading reviews...</div>
+  <div class="trust-reviews__container"></div>
+</div>
+
+<button
+  id="trust-reviews-popup-btn-{{ block.id }}"
+  class="trust-reviews__popup-fab"
+  aria-label="Read reviews"
+  style="display:none"
+>
+  Reviews
+</button>
+
+<div id="trust-reviews-popup-{{ block.id }}" class="trust-reviews__popup-overlay" role="dialog" aria-modal="true" style="display:none">
+  <div class="trust-reviews__popup-modal">
+    <button class="trust-reviews__popup-close" aria-label="Close">&times;</button>
+    <h3 class="trust-reviews__popup-title">Customer Reviews</h3>
+    <div class="trust-reviews__popup-body"></div>
+  </div>
+</div>
+
+<script src="{{ 'reviews-widget.js' | asset_url }}" defer class="tr-extensions-product-review-blocks-reviews-widget-script-1"></script>
+
+
+
+{% schema %}
+{
+  "name": "Trust Reviews",
+  "target": "section",
+  "settings": [
+    { "type": "header", "content": "Widget" },
+    {
+      "type": "select",
+      "id": "widget_key",
+      "label": "Show this widget",
+      "default": "auto",
+      "info": "Auto = the widget you clicked \"Install to Theme\" on in the Trust Reviews app. Pick another to switch; its colors and layout come from that widget's page in the app.",
+      "options": [
+        { "value": "auto",                  "label": "Auto (installed from app)"    },
+        { "value": "custom_template",       "label": "Custom Template (Customize)"  },
+        { "value": "review_widget",         "label": "Review Widget"                },
+        { "value": "cards_carousel",        "label": "Cards Carousel"               },
+        { "value": "testimonial_carousel",  "label": "Testimonial Carousel"         },
+        { "value": "videos_carousel",       "label": "Videos Carousel"              },
+        { "value": "popup_reviews",         "label": "Pop-up Reviews"               },
+        { "value": "single_review",         "label": "Single Review"                },
+        { "value": "reviews_grid",          "label": "Reviews Grid"                 },
+        { "value": "happy_customers",       "label": "Happy Customers widget"       },
+        { "value": "review_snippets",       "label": "Review Snippets"              },
+        { "value": "classic_list",          "label": "Classic Reviews List"         },
+        { "value": "summary_list",          "label": "Summary + List"               },
+        { "value": "floating_reviews_tab",  "label": "Floating Reviews Tab"         },
+        { "value": "insta_stories",         "label": "Insta Stories"                },
+        { "value": "hero_quote_carousel",   "label": "Hero Quote Carousel"          },
+        { "value": "coverflow_carousel",    "label": "Coverflow Carousel"           },
+        { "value": "split_media_carousel",  "label": "Split Media Carousel"         }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "widget_style",
+      "label": "Design override (optional)",
+      "default": "",
+      "info": "Usually leave as is. Only change it to try a different look on this block alone.",
+      "options": [
+        { "value": "", "label": "Same as the widget (recommended)" },
+        { "value": "dark_grid",    "label": "Dark Grid"            },
+        { "value": "minimal_grid", "label": "Minimal Grid"         },
+        { "value": "slider",       "label": "Slider"               },
+        { "value": "star_summary", "label": "Star Summary Grid"    },
+        { "value": "accent_wall",  "label": "Accent Wall"          },
+        { "value": "list_view",    "label": "Review List"          },
+        { "value": "editorial",    "label": "Editorial Magazine"   },
+        { "value": "scroll_strip", "label": "Horizontal Scroll"    },
+        { "value": "popup",        "label": "Popup Widget"         },
+        { "value": "badge_strip",  "label": "Badge Strip"          },
+        { "value": "quote_fade",    "label": "Quote Fade"           },
+        { "value": "masonry_wall",  "label": "Masonry Wall"         },
+        { "value": "classic_list",  "label": "Classic List"         },
+        { "value": "summary_side",  "label": "Summary + List"       },
+        { "value": "photo_masonry", "label": "Photo Masonry"         },
+        { "value": "compact_rows",   "label": "Compact Rows"         },
+        { "value": "snippet_rotator","label": "Snippet Rotator"      },
+        { "value": "floating_tab",   "label": "Floating Tab"         },
+        { "value": "insta_stories",  "label": "Insta Stories"        },
+        { "value": "insta_reels",    "label": "Insta Reels"          },
+        { "value": "insta_carousel", "label": "Insta Reels Carousel" },
+        { "value": "insta_mosaic",   "label": "Insta Social Mix"     },
+        { "value": "insta_phone",    "label": "Insta Phone Showcase" },
+        { "value": "insta_stack",    "label": "Insta Swipe Deck"     },
+        { "value": "hero_quote",     "label": "Hero Quote Carousel"  },
+        { "value": "coverflow",      "label": "Coverflow Carousel"   },
+        { "value": "split_media",    "label": "Split Media Carousel" },
+        { "value": "marquee",          "label": "Infinite Marquee"      },
+        { "value": "bubble_carousel",  "label": "Bubble Testimonials"   },
+        { "value": "center_carousel",  "label": "Center Focus Carousel" },
+        { "value": "spotlight_slider", "label": "Spotlight Slider"      }
+      ]
+    },
+    { "type": "header",   "content": "Appearance" },
+    { "type": "text",     "id": "heading",      "label": "Section Heading", "default": "What our customers say" },
+    { "type": "color",    "id": "accent_color", "label": "Accent Color",    "default": "#6B1A2C" },
+    { "type": "color",    "id": "star_color",   "label": "Star Color",      "default": "#F59E0B" },
+    { "type": "color",    "id": "text_color",   "label": "Text Color",      "default": "#333333", "info": "Review comments, titles and names." },
+    { "type": "color",    "id": "heading_color","label": "Heading Color",   "default": "#333333", "info": "The widget heading only — independent from Text Color above." },
+    { "type": "color",    "id": "muted_text_color", "label": "Muted Text Color", "default": "#888888", "info": "\"Based on X reviews\", dates, star-count numbers, \"No reviews yet\"." },
+    { "type": "color",    "id": "write_btn_color", "label": "\"Write a Review\" Button Color", "default": "#333333" },
+    { "type": "color",    "id": "border_color", "label": "Border Color",    "default": "#E5E5E5" },
+    { "type": "color",    "id": "background_color", "label": "Widget Background", "default": "#FFFFFF" },
+    { "type": "color",    "id": "card_background", "label": "Card Background", "default": "#FFFFFF" },
+    { "type": "header",   "content": "Display Options" },
+    { "type": "range",    "id": "max_reviews",  "label": "Max reviews",  "min": 2, "max": 20, "step": 1, "default": 6 },
+    { "type": "range",    "id": "columns",      "label": "Columns / Cards per slide", "info": "Used by the grid styles for column count, and by Slider for how many reviews show per slide.", "min": 1, "max": 4,  "step": 1, "default": 3 },
+    { "type": "checkbox", "id": "show_verified","label": "Show verified badge",   "default": true },
+    { "type": "checkbox", "id": "show_avatar",  "label": "Show reviewer avatar",  "default": true },
+    { "type": "checkbox", "id": "show_date",    "label": "Show review date",      "default": true },
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Google star ratings in search)", "default": true }
+  ]
+}
+{% endschema %}

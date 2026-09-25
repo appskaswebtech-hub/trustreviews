@@ -1,0 +1,929 @@
+// app/routes/app.widgets_.$key.jsx
+// Shared customizer for every "display a styled collection of reviews" gallery card.
+
+import { useState } from "react";
+import { data, redirect } from "react-router";
+import { useLoaderData, useSubmit } from "react-router";
+import { authenticate } from "../shopify.server";
+import db from "../db.server";
+import WidgetCustomizeShell, {
+  InstallSection, ColorField, SelectField, RangeField, TextFieldInput, ToggleField, SHELL_C,
+} from "../components/WidgetCustomizeShell";
+import ReviewWidgetPreview from "../components/ReviewWidgetPreview";
+
+// ── Per-card defaults ─────────────────────────────────────────────────────────
+const KEY_DEFAULTS = {
+  review_widget:         { label: "Review Widget",         defaultStyle: "dark_grid",       contentFilter: "all",   blockHandle: "reviews-widget" },
+  cards_carousel:        { label: "Cards Carousel",        defaultStyle: "slider",          contentFilter: "all",   blockHandle: "reviews-widget" },
+  single_review:         { label: "Single Review",         defaultStyle: "slider",          contentFilter: "all",   blockHandle: "reviews-widget", columns: 1 },
+  testimonial_carousel:  { label: "Testimonial Carousel",  defaultStyle: "editorial",       contentFilter: "all",   blockHandle: "reviews-widget" },
+  videos_carousel:       { label: "Videos Carousel",       defaultStyle: "scroll_strip",    contentFilter: "video", blockHandle: "reviews-widget" },
+  popup_reviews:         { label: "Pop-up Reviews",        defaultStyle: "popup",           contentFilter: "all",   blockHandle: "reviews-widget" },
+  reviews_grid:          { label: "Reviews Grid",          defaultStyle: "minimal_grid",    contentFilter: "all",   blockHandle: "reviews-widget" },
+  happy_customers:       { label: "Happy Customers widget",defaultStyle: "badge_strip",     contentFilter: "photo", blockHandle: "reviews-widget" },
+  review_snippets:       { label: "Review Snippets",       defaultStyle: "snippet_rotator", contentFilter: "all",   blockHandle: "reviews-widget" },
+  summary_list:          { label: "Summary + List",         defaultStyle: "summary_side",    contentFilter: "all",   blockHandle: "reviews-widget" },
+  classic_list:          { label: "Classic Reviews List",  defaultStyle: "classic_list",    contentFilter: "all",   blockHandle: "reviews-widget" },
+  floating_reviews_tab:  { label: "Floating Reviews Tab",  defaultStyle: "floating_tab",    contentFilter: "all",   blockHandle: "reviews-widget" },
+  insta_stories:         { label: "Insta Stories",         defaultStyle: "insta_stories",   contentFilter: "all",   blockHandle: "reviews-widget" },
+  hero_quote_carousel:   { label: "Hero Quote Carousel",   defaultStyle: "hero_quote",      contentFilter: "all",   blockHandle: "reviews-widget" },
+  coverflow_carousel:    { label: "Coverflow Carousel",    defaultStyle: "coverflow",       contentFilter: "all",   blockHandle: "reviews-widget" },
+  split_media_carousel:  { label: "Split Media Carousel",  defaultStyle: "split_media",     contentFilter: "all",   blockHandle: "reviews-widget" },
+  trust_medals:          { label: "Trust Medals",          defaultStyle: "trust_medals",    contentFilter: "all",   blockHandle: "trust-medals" },
+  verified_counter:      { label: "Verified Reviews Counter", defaultStyle: "verified_counter", contentFilter: "all", blockHandle: "verified-counter" },
+  all_reviews_counter:   { label: "All Reviews Counter",   defaultStyle: "all_reviews_counter", contentFilter: "all", blockHandle: "all-reviews-counter" },
+};
+
+function defaultsFor(key) {
+  return KEY_DEFAULTS[key] || { label: "Widget", defaultStyle: "dark_grid", contentFilter: "all", blockHandle: "reviews-widget" };
+}
+
+// ── Loader ────────────────────────────────────────────────────────────────────
+export async function loader({ request, params }) {
+  const { session } = await authenticate.admin(request);
+  const key = params.key;
+
+  if (!KEY_DEFAULTS[key]) throw redirect("/app/widgets");
+
+  let settings = await db.widget.findUnique({
+    where: { shop_widgetKey: { shop: session.shop, widgetKey: key } },
+  });
+
+  if (!settings) {
+    const d = defaultsFor(key);
+    settings = await db.widget.create({
+      data: {
+        shop: session.shop, widgetKey: key,
+        defaultStyle: d.defaultStyle, contentFilter: d.contentFilter,
+        ...(d.columns ? { columns: d.columns } : {}),
+      },
+    });
+  }
+
+  return data({ settings, key, shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "" });
+}
+
+// ── Action ────────────────────────────────────────────────────────────────────
+export async function action({ request, params }) {
+  const { session } = await authenticate.admin(request);
+  const key = params.key;
+  if (!KEY_DEFAULTS[key]) throw redirect("/app/widgets");
+
+  const form = await request.formData();
+
+  const payload = {
+    defaultStyle:    form.get("defaultStyle"),
+    accentColor:     form.get("accentColor"),
+    starColor:          form.get("starColor") || "#F59E0B",
+    starGap:            parseInt(form.get("starGap")) || 2,
+    textAlign:          form.get("textAlign") || "left",
+    summaryPosition:    form.get("summaryPosition") || "left",
+    showWriteReviewBtn: form.get("showWriteReviewBtn") === "true",
+    heading:         form.get("heading"),
+    contentFilter:   form.get("contentFilter") || "all",
+
+    fontFamily:      form.get("fontFamily"),
+    headingSize:     parseInt(form.get("headingSize"))  || 32,
+    reviewSize:      parseInt(form.get("reviewSize"))   || 16,
+    metaSize:        parseInt(form.get("metaSize"))     || 13,
+
+    backgroundColor: form.get("backgroundColor"),
+    cardBackground:  form.get("cardBackground"),
+    textColor:       form.get("textColor"),
+    borderColor:     form.get("borderColor"),
+    mutedTextColor:  form.get("mutedTextColor") || "#888888",
+    headingColor:    form.get("headingColor")   || "#333333",
+    writeBtnColor:   form.get("writeBtnColor")  || "#333333",
+
+    showVerified:    form.get("showVerified")  === "true",
+    showAvatar:      form.get("showAvatar")    === "true",
+    showDate:        form.get("showDate")      === "true",
+    showHelpfulVoting: form.get("showHelpfulVoting") === "true",
+
+    maxReviews:      parseInt(form.get("maxReviews"))   || 6,
+    columns:         parseInt(form.get("columns"))      || 3,
+    tabletColumns:   parseInt(form.get("tabletColumns"))|| 2,
+    mobileColumns:   parseInt(form.get("mobileColumns"))|| 1,
+
+    paddingTop:      parseInt(form.get("paddingTop"))   || 40,
+    paddingBottom:   parseInt(form.get("paddingBottom"))|| 40,
+    cardPadding:     parseInt(form.get("cardPadding"))  || 16,
+    cardGap:         parseInt(form.get("cardGap"))      || 16,
+
+    borderRadius:    parseInt(form.get("borderRadius")) || 10,
+    showShadow:      form.get("showShadow")    === "true",
+
+    autoplay:        form.get("autoplay")      === "true",
+    autoplaySpeed:   parseInt(form.get("autoplaySpeed"))|| 3000,
+    showArrows:      form.get("showArrows")    === "true",
+    showDots:        form.get("showDots")      === "true",
+
+    popupEnabled:    form.get("popupEnabled")  === "true",
+    popupDelay:      parseInt(form.get("popupDelay"))   || 5000,
+  };
+
+  await db.widget.upsert({
+    where:  { shop_widgetKey: { shop: session.shop, widgetKey: key } },
+    create: { shop: session.shop, widgetKey: key, ...payload },
+    update: payload,
+  });
+
+  return data({ ok: true, saved: true });
+}
+
+const STYLE_OPTIONS = [
+  { label: "Dark Grid",             value: "dark_grid"    },
+  { label: "Minimal Grid",          value: "minimal_grid" },
+  { label: "Slider",                value: "slider"       },
+  { label: "Star Summary + Grid",   value: "star_summary" },
+  { label: "Accent Wall",           value: "accent_wall"  },
+  { label: "Review List",           value: "list_view"    },
+  { label: "Editorial / Magazine",  value: "editorial"    },
+  { label: "Horizontal Scroll",     value: "scroll_strip" },
+  { label: "Popup Widget",          value: "popup"        },
+  { label: "Badge Strip",           value: "badge_strip"  },
+  { label: "Quote Fade",            value: "quote_fade"   },
+  { label: "Masonry Wall",          value: "masonry_wall" },
+  { label: "Classic List",          value: "classic_list"  },
+  { label: "Summary + List",        value: "summary_side"  },
+  { label: "Snippet Rotator",       value: "snippet_rotator" },
+  { label: "Compact Rows",          value: "compact_rows" },
+  { label: "Insta Stories",         value: "insta_stories" },
+  { label: "Insta Reels",           value: "insta_reels" },
+  { label: "Insta Reels Carousel",  value: "insta_carousel" },
+  { label: "Insta Social Mix",      value: "insta_mosaic" },
+  { label: "Insta Phone Showcase",  value: "insta_phone" },
+  { label: "Insta Swipe Deck",      value: "insta_stack" },
+  { label: "Hero Quote Carousel",   value: "hero_quote" },
+  { label: "Coverflow Carousel",    value: "coverflow" },
+  { label: "Split Media Carousel",  value: "split_media" },
+  { label: "Infinite Marquee",      value: "marquee" },
+  { label: "Bubble Testimonials",   value: "bubble_carousel" },
+  { label: "Center Focus Carousel", value: "center_carousel" },
+  { label: "Spotlight Slider",      value: "spotlight_slider" },
+  { label: "Floating Tab",          value: "floating_tab" },
+  { label: "Trust Medals",          value: "trust_medals" },
+  { label: "Verified Counter",      value: "verified_counter" },
+  { label: "All Reviews Counter",   value: "all_reviews_counter" },
+];
+
+const FONT_OPTIONS = [
+  { label: "Inherit from theme",  value: "inherit"              },
+  { label: "Inter",               value: "'Inter', sans-serif"  },
+  { label: "Playfair Display",    value: "'Playfair Display', serif" },
+  { label: "Roboto",              value: "'Roboto', sans-serif" },
+  { label: "Lato",                value: "'Lato', sans-serif"   },
+  { label: "Montserrat",          value: "'Montserrat', sans-serif" },
+  { label: "Georgia",             value: "Georgia, serif"       },
+];
+
+function ModalPreview({ accentColor, starColor }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="tr-app-routes-app-widgets-key-div-1">
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }} className="tr-app-routes-app-widgets-key-div-2">Write a Review Modal</div>
+
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          style={{ padding: '10px 22px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer' }}
+         className="tr-app-routes-app-widgets-key-button-3">
+          Write a Review
+        </button>
+      ) : (
+      <div style={{ background: '#fff', borderRadius: 14, padding: '22px 22px 18px', maxWidth: 500, border: '1px solid #e4e4e4', boxShadow: '0 8px 32px rgba(0,0,0,.1)' }} className="tr-app-routes-app-widgets-key-div-4">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }} className="tr-app-routes-app-widgets-key-div-5">
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: accentColor }} className="tr-app-routes-app-widgets-key-h3-6">Write a Review</h3>
+          <span onClick={() => setOpen(false)} style={{ fontSize: 18, color: '#aaa', cursor: 'pointer' }} className="tr-app-routes-app-widgets-key-span-7">✕</span>
+        </div>
+        <div style={{ marginBottom: 13 }} className="tr-app-routes-app-widgets-key-div-8">
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333' }} className="tr-app-routes-app-widgets-key-label-9">Your Rating <span style={{ color: '#a5423b' }} className="tr-app-routes-app-widgets-key-span-10">*</span></label>
+          <div style={{ display: 'flex', gap: 5 }} className="tr-app-routes-app-widgets-key-div-11">
+            {[1,2,3,4,5].map(i => <span key={i} style={{ fontSize: 24, color: i <= 4 ? (starColor || accentColor) : '#ddd', cursor: 'pointer' }} className="tr-app-routes-app-widgets-key-span-12">★</span>)}
+          </div>
+        </div>
+        <div style={{ marginBottom: 11 }} className="tr-app-routes-app-widgets-key-div-13">
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }} className="tr-app-routes-app-widgets-key-label-14">Review title</label>
+          <input readOnly placeholder="Summarize your experience..." style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }}  className="tr-app-routes-app-widgets-key-input-15"/>
+        </div>
+        <div style={{ marginBottom: 11 }} className="tr-app-routes-app-widgets-key-div-16">
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }} className="tr-app-routes-app-widgets-key-label-17">Your review <span style={{ color: '#a5423b' }} className="tr-app-routes-app-widgets-key-span-18">*</span></label>
+          <textarea readOnly placeholder="Share your experience..." rows={3} style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', resize: 'none', background: '#fafafa' }}  className="tr-app-routes-app-widgets-key-textarea-19"/>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 15 }} className="tr-app-routes-app-widgets-key-div-20">
+          <div className="tr-app-routes-app-widgets-key-div-21">
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }} className="tr-app-routes-app-widgets-key-label-22">Your name <span style={{ color: '#a5423b' }} className="tr-app-routes-app-widgets-key-span-23">*</span></label>
+            <input readOnly placeholder="Name" style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }}  className="tr-app-routes-app-widgets-key-input-24"/>
+          </div>
+          <div className="tr-app-routes-app-widgets-key-div-25">
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5, color: '#333' }} className="tr-app-routes-app-widgets-key-label-26">Email <span style={{ color: '#a5423b' }} className="tr-app-routes-app-widgets-key-span-27">*</span></label>
+            <input readOnly placeholder="Email" style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 7, fontSize: 13, boxSizing: 'border-box', background: '#fafafa' }}  className="tr-app-routes-app-widgets-key-input-28"/>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }} className="tr-app-routes-app-widgets-key-div-29">
+          <button onClick={() => setOpen(false)} style={{ padding: '9px 20px', background: '#f5f5f5', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }} className="tr-app-routes-app-widgets-key-button-30">Cancel</button>
+          <button onClick={() => setOpen(false)} style={{ padding: '9px 24px', background: accentColor, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#fff' }} className="tr-app-routes-app-widgets-key-button-31">Submit Review</button>
+        </div>
+      </div>
+      )}
+    </div>
+  );
+}
+
+const CONTENT_FILTER_OPTIONS = [
+  { label: "All reviews",          value: "all"   },
+  { label: "Only reviews w/ video", value: "video" },
+  { label: "Only reviews w/ photo", value: "photo" },
+];
+
+const COL_OPTIONS = [
+  { label: "1", value: "1" }, { label: "2", value: "2" }, { label: "3", value: "3" }, { label: "4", value: "4" },
+];
+
+export default function WidgetCustomizePage() {
+  const { settings, key, shop, apiKey } = useLoaderData();
+  const submit = useSubmit();
+  const meta = defaultsFor(key);
+
+  const [style, setStyle]               = useState(settings.defaultStyle ?? "dark_grid");
+  const [accentColor, setAccentColor]   = useState(settings.accentColor ?? "#6B1A2C");
+  const [starColor, setStarColor]           = useState(settings.starColor ?? "#F59E0B");
+  const [starGap, setStarGap]               = useState(settings.starGap ?? 2);
+  const [textAlign, setTextAlign]           = useState(settings.textAlign ?? "left");
+  const [summaryPosition, setSummaryPosition] = useState(settings.summaryPosition ?? "left");
+  const [showWriteReviewBtn, setShowWriteReviewBtn] = useState(settings.showWriteReviewBtn ?? false);
+  const [showHelpfulVoting, setShowHelpfulVoting] = useState(settings.showHelpfulVoting ?? true);
+  const [heading, setHeading]           = useState(settings.heading ?? "");
+  const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
+
+  const [fontFamily, setFontFamily]     = useState(settings.fontFamily ?? "inherit");
+  const [headingSize, setHeadingSize]   = useState(settings.headingSize ?? 32);
+  const [reviewSize, setReviewSize]     = useState(settings.reviewSize ?? 16);
+  const [metaSize, setMetaSize]         = useState(settings.metaSize ?? 13);
+
+  const [bgColor, setBgColor]       = useState(settings.backgroundColor ?? "#FFFFFF");
+  const [cardBg, setCardBg]         = useState(settings.cardBackground ?? "#FFFFFF");
+  const [textColor, setTextColor]   = useState(settings.textColor ?? "#333333");
+  const [borderCol, setBorderCol]   = useState(settings.borderColor ?? "#E5E5E5");
+  const [mutedTextColor, setMutedTextColor] = useState(settings.mutedTextColor ?? "#888888");
+  const [headingColor, setHeadingColor]     = useState(settings.headingColor ?? "#333333");
+  const [writeBtnColor, setWriteBtnColor]   = useState(settings.writeBtnColor ?? "#333333");
+
+  const [verified, setVerified] = useState(settings.showVerified ?? true);
+  const [avatar, setAvatar]     = useState(settings.showAvatar ?? true);
+  const [date, setDate]         = useState(settings.showDate ?? true);
+  const [shadow, setShadow]     = useState(settings.showShadow ?? true);
+
+  const [maxRev, setMaxRev]   = useState(settings.maxReviews ?? 6);
+  const [columns, setColumns] = useState(String(settings.columns ?? 3));
+
+  const [paddingTop, setPaddingTop]       = useState(settings.paddingTop ?? 40);
+  const [paddingBottom, setPaddingBottom] = useState(settings.paddingBottom ?? 40);
+  const [cardPadding, setCardPadding]     = useState(settings.cardPadding ?? 16);
+  const [cardGap, setCardGap]             = useState(settings.cardGap ?? 16);
+  const [borderRadius, setBorderRadius]   = useState(settings.borderRadius ?? 10);
+
+  const [autoplay, setAutoplay]           = useState(settings.autoplay ?? true);
+  const [showArrows, setShowArrows]       = useState(settings.showArrows ?? true);
+  const [showDots, setShowDots]           = useState(settings.showDots ?? true);
+  const [popupEnabled, setPopupEnabled]   = useState(settings.popupEnabled ?? false);
+
+  const [saved, setSaved] = useState(false);
+
+  const isSlider       = ["slider", "scroll_strip", "quote_fade", "snippet_rotator", "hero_quote", "coverflow", "split_media", "bubble_carousel", "center_carousel", "spotlight_slider"].includes(style);
+  const isInstaStories = style === "insta_stories" || style === "insta_reels" || style === "insta_phone";
+  const isInstaCarousel = style === "insta_carousel";
+  const isPopup        = style === "popup";
+  const isClassicList  = style === "classic_list";
+  const isSummarySide  = style === "summary_side";
+
+  const handleSave = () => {
+    const fd = new FormData();
+    fd.set("defaultStyle", style);
+    fd.set("accentColor", accentColor);
+    fd.set("starColor", starColor);
+    fd.set("starGap", String(starGap));
+    fd.set("textAlign", textAlign);
+    fd.set("summaryPosition", summaryPosition);
+    fd.set("showWriteReviewBtn", String(showWriteReviewBtn));
+    fd.set("showHelpfulVoting", String(showHelpfulVoting));
+    fd.set("heading", heading);
+    fd.set("contentFilter", contentFilter);
+    fd.set("fontFamily", fontFamily);
+    fd.set("headingSize", String(headingSize));
+    fd.set("reviewSize", String(reviewSize));
+    fd.set("metaSize", String(metaSize));
+    fd.set("backgroundColor", bgColor);
+    fd.set("cardBackground", cardBg);
+    fd.set("textColor", textColor);
+    fd.set("borderColor", borderCol);
+    fd.set("mutedTextColor", mutedTextColor);
+    fd.set("headingColor", headingColor);
+    fd.set("writeBtnColor", writeBtnColor);
+    fd.set("showVerified", String(verified));
+    fd.set("showAvatar", String(avatar));
+    fd.set("showDate", String(date));
+    fd.set("showShadow", String(shadow));
+    fd.set("maxReviews", String(maxRev));
+    fd.set("columns", columns);
+    fd.set("tabletColumns", "2");
+    fd.set("mobileColumns", "1");
+    fd.set("paddingTop", String(paddingTop));
+    fd.set("paddingBottom", String(paddingBottom));
+    fd.set("cardPadding", String(cardPadding));
+    fd.set("cardGap", String(cardGap));
+    fd.set("borderRadius", String(borderRadius));
+    fd.set("autoplay", String(autoplay));
+    fd.set("autoplaySpeed", "3000");
+    fd.set("showArrows", String(showArrows));
+    fd.set("showDots", String(showDots));
+    fd.set("popupEnabled", String(popupEnabled));
+    fd.set("popupDelay", "5000");
+    submit(fd, { method: "post" });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const previewSettings = {
+    accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn, showHelpfulVoting,
+    backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
+    mutedTextColor, headingColor, writeBtnColor,
+    fontFamily, headingSize, reviewSize, metaSize,
+    showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
+    maxReviews: maxRev, columns: Number(columns),
+    showArrows, showDots, autoplay,
+    paddingTop, paddingBottom, cardPadding, cardGap, borderRadius,
+  };
+
+  // Same endpoint the widgets gallery uses: stamps this widget as "just
+  // installed" so the new theme block (Saved widget = Auto) claims it.
+  const recordInstall = () => {
+    const fd = new FormData();
+    fd.set("widgetKey", key);
+    fetch("/app/widgets", { method: "POST", body: fd }).catch(() => {});
+  };
+
+  const installUrl =
+    `https://${shop}/admin/themes/current/editor` +
+    `?template=product&addAppBlockId=${encodeURIComponent(apiKey)}/${encodeURIComponent(meta.blockHandle)}` +
+    `&target=newAppsSection`;
+
+  return (
+    <WidgetCustomizeShell
+      title={meta.label}
+      saved={saved}
+      onSave={handleSave}
+      installSection={
+        <InstallSection
+          description={`Add the ${meta.label} block to your product pages.`}
+          installUrl={installUrl}
+          onInstall={recordInstall}
+          note={meta.blockHandle === "reviews-widget"
+            ? `The block opens in Theme Editor already showing "${meta.label}" — just click Save there.`
+            : null}
+        />
+      }
+      sections={[
+        {
+          key: "style", label: "Color and styling",
+          content: (
+            <>
+              <SelectField label="Widget Design" value={style} onChange={setStyle} options={STYLE_OPTIONS} />
+              <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
+              <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
+              <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
+              <ColorField label="Widget Background" value={bgColor} onChange={setBgColor} />
+              <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />
+              <ColorField label="Text Color" value={textColor} onChange={setTextColor} />
+              <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor}
+                helpText="The widget heading only — separate from the review text color above" />
+              <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
+                helpText="Dates, review counts, and other secondary text" />
+              <ColorField label="Border Color" value={borderCol} onChange={setBorderCol} />
+              <SelectField label="Font Family" value={fontFamily} onChange={setFontFamily} options={FONT_OPTIONS} />
+            </>
+          ),
+        },
+        {
+          key: "text", label: "Text",
+          content: (
+            <TextFieldInput label="Section Heading" value={heading} onChange={setHeading} placeholder="What our customers say" />
+          ),
+        },
+        {
+          key: "header", label: "Widget header",
+          content: (
+            <>
+              <RangeField label="Heading Size" value={headingSize} onChange={setHeadingSize} min={18} max={56} unit="px" />
+              <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
+              <RangeField label="Meta / Name Size" value={metaSize} onChange={setMetaSize} min={10} max={20} unit="px" />
+            </>
+          ),
+        },
+        {
+          key: "reviews", label: "Reviews section",
+          content: (
+            <>
+              <SelectField label="Reviews to include" value={contentFilter} onChange={setContentFilter} options={CONTENT_FILTER_OPTIONS} />
+              <RangeField label="Max Reviews to Show" value={maxRev} onChange={setMaxRev} min={2} max={20} />
+              <SelectField label="Desktop Columns" value={columns} onChange={setColumns} options={COL_OPTIONS} />
+              <ToggleField label="Show verified badge" checked={verified} onChange={setVerified} />
+              <ToggleField label="Show reviewer avatar" checked={avatar} onChange={setAvatar} />
+              <ToggleField label="Show review date" checked={date} onChange={setDate} />
+            </>
+          ),
+        },
+        ...(isSummarySide ? [{
+          key: "summarylayout", label: "Summary Layout",
+          content: (
+            <>
+              <SelectField
+                label="Summary Panel Position"
+                value={summaryPosition}
+                onChange={setSummaryPosition}
+                options={[
+                  { label: "Left  — summary beside reviews",   value: "left"   },
+                  { label: "Right — summary beside reviews",   value: "right"  },
+                  { label: "Top   — summary above reviews",    value: "top"    },
+                  { label: "Bottom — summary below reviews",   value: "bottom" },
+                ]}
+              />
+              <ColorField label="Star Color"   value={starColor} onChange={setStarColor} />
+              <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
+              <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
+              <RangeField label="Max Reviews Shown" value={maxRev} onChange={setMaxRev} min={2} max={20} />
+              <ToggleField label="Show 'Write a Review' button" checked={showWriteReviewBtn} onChange={setShowWriteReviewBtn}
+                helpText="Adds a button that scrolls to the write-review form on the same page" />
+              {showWriteReviewBtn && (
+                <ColorField label="'Write a Review' Button Color" value={writeBtnColor} onChange={setWriteBtnColor} />
+              )}
+              <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
+              <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
+              <ToggleField label="Show review date"     checked={date}     onChange={setDate} />
+              <ToggleField label="Show 'Was this review helpful?' voting" checked={showHelpfulVoting} onChange={setShowHelpfulVoting}
+                helpText="Lets shoppers mark each review 👍 helpful or 👎 not helpful" />
+              <RangeField label="Section Top Padding"    value={paddingTop}    onChange={setPaddingTop}    min={0} max={120} step={4} unit="px" />
+              <RangeField label="Section Bottom Padding" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
+            </>
+          ),
+        }] : []),
+        ...(isClassicList ? [{
+          key: "classiclist", label: "Classic List Options",
+          content: (
+            <>
+              <SelectField
+                label="Text Alignment"
+                value={textAlign}
+                onChange={setTextAlign}
+                options={[
+                  { label: "Left",   value: "left"   },
+                  { label: "Center", value: "center" },
+                  { label: "Right",  value: "right"  },
+                ]}
+              />
+              <RangeField label="Review Font Size"  value={reviewSize}    onChange={setReviewSize}    min={12} max={24} unit="px" />
+              <RangeField label="Name / Meta Size"  value={metaSize}      onChange={setMetaSize}      min={10} max={20} unit="px" />
+              <RangeField label="Reviews per Page"  value={maxRev}        onChange={setMaxRev}        min={2}  max={20} />
+              <RangeField label="Row Spacing"       value={cardGap}       onChange={setCardGap}       min={0}  max={48} step={4} unit="px" />
+              <RangeField label="Section Top Padding"    value={paddingTop}    onChange={setPaddingTop}    min={0} max={120} step={4} unit="px" />
+              <RangeField label="Section Bottom Padding" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
+              <ToggleField label="Show verified badge"  checked={verified} onChange={setVerified} />
+              <ToggleField label="Show reviewer avatar" checked={avatar}   onChange={setAvatar} />
+              <ToggleField label="Show review date"     checked={date}     onChange={setDate} />
+            </>
+          ),
+        }] : []),
+        {
+          key: "advanced", label: "Advanced",
+          content: (
+            <>
+              <RangeField label="Section Padding Top" value={paddingTop} onChange={setPaddingTop} min={0} max={120} step={4} unit="px" />
+              <RangeField label="Section Padding Bottom" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
+              <RangeField label="Card Padding" value={cardPadding} onChange={setCardPadding} min={8} max={48} step={4} unit="px" />
+              <RangeField label="Card Gap" value={cardGap} onChange={setCardGap} min={4} max={48} step={4} unit="px" />
+              <RangeField label="Card Border Radius" value={borderRadius} onChange={setBorderRadius} min={0} max={32} step={2} unit="px" />
+              <ToggleField label="Show card shadow" checked={shadow} onChange={setShadow} />
+              {isSlider && (
+                <>
+                  <ToggleField label="Autoplay slides" checked={autoplay} onChange={setAutoplay} />
+                  <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />
+                  <ToggleField label="Show dot indicators" checked={showDots} onChange={setShowDots} />
+                </>
+              )}
+              {isInstaStories && (
+                <ToggleField
+                  label={style === "insta_reels" ? "Autoplay videos on scroll" : style === "insta_phone" ? "Auto-advance reviews" : "Auto-advance stories"}
+                  checked={autoplay} onChange={setAutoplay}
+                  helpText={style === "insta_reels"
+                    ? "Off: tap a video to play/pause it manually"
+                    : style === "insta_phone"
+                    ? "Off: the phone only changes when a review in the list is clicked"
+                    : "Off: viewer waits for a tap on the left/right side to move between stories"}
+                />
+              )}
+              {isInstaCarousel && (
+                <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />
+              )}
+              {isPopup && (
+                <ToggleField label="Enable popup widget" checked={popupEnabled} onChange={setPopupEnabled} helpText="A floating button + modal that shows reviews on click" />
+              )}
+            </>
+          ),
+        },
+      ]}
+      preview={
+        // <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }} className="tr-app-routes-app-widgets-key-div-32">
+        //   <div className="tr-app-routes-app-widgets-key-div-33">
+        //     <div style={{ fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }} className="tr-app-routes-app-widgets-key-div-34">Widget Preview</div>
+        //     <ReviewWidgetPreview style={style} settings={previewSettings} heading={heading || "What our customers say"} />
+        //   </div>
+        //   <ModalPreview accentColor={accentColor} starColor={starColor} />
+        // </div>
+        <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 24,
+    width: "100%",
+    fontSize: 14,
+    boxSizing: "border-box",
+  }}
+  className="tr-app-routes-app-widgets-key-div-32 tr-widget-preview-wrapper"
+>
+  <style>{`
+    .tr-widget-preview-wrapper,
+    .tr-widget-preview-wrapper *{
+      box-sizing:border-box;
+    }
+
+    .tr-widget-preview-card{
+      transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+    }
+
+    .tr-widget-preview-card:hover{
+      border-color:#C2D9E8 !important;
+      box-shadow:0 14px 34px rgba(79,115,146,.085) !important;
+    }
+
+    @media(max-width:768px){
+      .tr-widget-preview-wrapper{
+        gap:18px !important;
+      }
+
+      .tr-widget-preview-card{
+        border-radius:16px !important;
+      }
+
+      .tr-widget-preview-header{
+        padding:14px !important;
+      }
+
+      .tr-widget-preview-content{
+        padding:14px !important;
+      }
+
+      .tr-widget-preview-title{
+        font-size:14px !important;
+      }
+
+      .tr-widget-preview-description{
+        font-size:12px !important;
+      }
+    }
+
+    @media(max-width:480px){
+      .tr-widget-preview-wrapper{
+        gap:14px !important;
+      }
+
+      .tr-widget-preview-header{
+        padding:12px !important;
+        gap:9px !important;
+      }
+
+      .tr-widget-preview-content{
+        padding:10px !important;
+      }
+
+      .tr-widget-preview-icon{
+        width:34px !important;
+        height:34px !important;
+      }
+
+      .tr-widget-preview-badge{
+        display:none !important;
+      }
+    }
+  `}</style>
+
+  {/* Widget Preview */}
+  <div
+    style={{
+      width: "100%",
+      background: "#FFFFFF",
+      border: "1px solid #D6E6F2",
+      borderRadius: 18,
+      overflow: "hidden",
+      boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+    }}
+    className="tr-app-routes-app-widgets-key-div-33 tr-widget-preview-card"
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        padding: "15px 17px",
+        borderBottom: "1px solid #E2ECF3",
+        background:
+          "linear-gradient(135deg,#FFFFFF 0%,#F5FAFD 100%)",
+      }}
+      className="tr-widget-preview-header"
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          minWidth: 0,
+        }}
+      >
+        <span
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 11,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            background:
+              "linear-gradient(145deg,#EDF5FA,#E1EEF6)",
+            border: "1px solid #D6E6F2",
+            color: "#4F7392",
+            boxShadow: "0 5px 12px rgba(79,115,146,.06)",
+          }}
+          className="tr-widget-preview-icon"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <rect
+              x="4"
+              y="5"
+              width="16"
+              height="14"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <path
+              d="M7 9H17M7 13H14"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              d="M7 16H11"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 14.5,
+              fontWeight: 800,
+              color: "#496B87",
+              lineHeight: 1.3,
+              letterSpacing: "-.015em",
+            }}
+            className="tr-app-routes-app-widgets-key-div-34 tr-widget-preview-title"
+          >
+            Widget Preview
+          </div>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: "#879FAF",
+              marginTop: 3,
+              lineHeight: 1.4,
+            }}
+            className="tr-widget-preview-description"
+          >
+            See how your review widget looks on the storefront
+          </div>
+        </div>
+      </div>
+
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          padding: "5px 9px",
+          borderRadius: 999,
+          background: "#F1F7FA",
+          border: "1px solid #D6E6F2",
+          color: "#6F8FA9",
+          fontSize: 10.5,
+          fontWeight: 750,
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+        }}
+        className="tr-widget-preview-badge"
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#8DB4D6",
+          }}
+        />
+
+        Live Preview
+      </span>
+    </div>
+
+    <div
+      style={{
+        padding: "18px",
+        background:
+          "radial-gradient(circle at 50% 0%, rgba(214,230,242,.38), transparent 35%), #F6FAFC",
+      }}
+      className="tr-widget-preview-content"
+    >
+      <div
+        style={{
+          width: "100%",
+          overflow: "hidden",
+          borderRadius: 14,
+          background: "#FFFFFF",
+          border: "1px solid #E0EAF1",
+          boxShadow: "0 8px 22px rgba(79,115,146,.055)",
+        }}
+      >
+        <ReviewWidgetPreview
+          style={style}
+          settings={previewSettings}
+          heading={heading || "What our customers say"}
+        />
+      </div>
+    </div>
+  </div>
+
+  {/* Modal Preview */}
+  {/* <div
+    style={{
+      width: "100%",
+      background: "#FFFFFF",
+      border: "1px solid #D6E6F2",
+      borderRadius: 18,
+      overflow: "hidden",
+      boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+    }}
+    className="tr-widget-preview-card"
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        padding: "15px 17px",
+        borderBottom: "1px solid #E2ECF3",
+        background:
+          "linear-gradient(135deg,#FFFFFF 0%,#F5FAFD 100%)",
+      }}
+      className="tr-widget-preview-header"
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          minWidth: 0,
+        }}
+      >
+        <span
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 11,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            background:
+              "linear-gradient(145deg,#EDF5FA,#E1EEF6)",
+            border: "1px solid #D6E6F2",
+            color: "#4F7392",
+            boxShadow: "0 5px 12px rgba(79,115,146,.06)",
+          }}
+          className="tr-widget-preview-icon"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <rect
+              x="5"
+              y="5"
+              width="14"
+              height="14"
+              rx="2.5"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <path
+              d="M8 9H16M8 12H14M8 15H12"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 14.5,
+              fontWeight: 800,
+              color: "#496B87",
+              lineHeight: 1.3,
+              letterSpacing: "-.015em",
+            }}
+            className="tr-widget-preview-title"
+          >
+            Review Modal Preview
+          </div>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: "#879FAF",
+              marginTop: 3,
+              lineHeight: 1.4,
+            }}
+            className="tr-widget-preview-description"
+          >
+            Preview the review submission experience
+          </div>
+        </div>
+      </div>
+
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          padding: "5px 9px",
+          borderRadius: 999,
+          background: "#F1F7FA",
+          border: "1px solid #D6E6F2",
+          color: "#6F8FA9",
+          fontSize: 10.5,
+          fontWeight: 750,
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+        }}
+        className="tr-widget-preview-badge"
+      >
+        Preview
+      </span>
+    </div>
+
+    <div
+      style={{
+        padding: "18px",
+        background:
+          "radial-gradient(circle at 50% 0%, rgba(214,230,242,.38), transparent 35%), #F6FAFC",
+      }}
+      className="tr-widget-preview-content"
+    >
+      <ModalPreview
+        accentColor={accentColor}
+        starColor={starColor}
+      />
+    </div>
+  </div> */}
+</div>
+      }
+    />
+  );
+}

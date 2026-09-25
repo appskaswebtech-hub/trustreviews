@@ -1,0 +1,32 @@
+name = "Question Answered"
+type = "flow_trigger"
+handle = "question-answered"
+description = "Fires in Shopify Flow when a merchant answers a customer's product question."
+uid = "7dab5ff4-9c8d-338f-f56d-b38769223b76de1bfa5b"
+
+[settings]
+
+  [[settings.fields]]
+  type = "email"
+  key = "Customer Email"
+  description = "Email address of the customer who asked the question."
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Customer Name"
+  description = "Name of the customer who asked the question."
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Product Title"
+  description = "Title of the product the question was about."
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Question"
+  description = "The customer's original question."
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Answer"
+  description = "The merchant's answer to the question."
