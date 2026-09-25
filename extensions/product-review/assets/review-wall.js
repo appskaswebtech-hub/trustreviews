@@ -1,4 +1,6 @@
 (function () {
+  // Headings nobody typed (block defaults / old French DB default) are swapped for the store-language translation; the merchant's own text is kept.
+  function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
   document.querySelectorAll(".rw-widget").forEach(function (widget) {
     var blockId    = widget.dataset.blockId;
     var shop       = widget.dataset.shop;
@@ -196,6 +198,8 @@
         if (!res.ok) throw new Error("HTTP " + res.status);
         var json = await res.json();
         T           = json.translations || {};
+        var rwHeading = widget.querySelector(".rw-heading");
+        if (rwHeading && isStockHeading(rwHeading.textContent) && T.defaultHeading) rwHeading.textContent = T.defaultHeading;
         allReviews  = json.reviews  || [];
         avgRating   = Number(json.averageRating || 0);
         totalCount  = Number(json.total || 0);

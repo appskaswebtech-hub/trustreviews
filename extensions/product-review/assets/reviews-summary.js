@@ -1,4 +1,16 @@
 (function(){
+  // Review-reward coupon popup (assets/coupon-popup.js), loaded only when the
+  // server returns a coupon after a review is submitted. Captured before the
+  // early return below: document.currentScript is only set during this run.
+  var TR_ASSET_BASE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/?#]*([?#].*)?$/, '');
+  function trShowCoupon(coupon) {
+    if (!coupon || !coupon.code) return;
+    if (window.TrustReviewsCoupon) return window.TrustReviewsCoupon.show(coupon);
+    if (!TR_ASSET_BASE) return;
+    var sc = document.createElement('script'); sc.src = TR_ASSET_BASE + 'coupon-popup.js';
+    sc.onload = function () { if (window.TrustReviewsCoupon) window.TrustReviewsCoupon.show(coupon); };
+    document.head.appendChild(sc);
+  }
   var section = document.querySelector(".rs-section");
   if(!section) return;
 
@@ -31,8 +43,12 @@
   function setText(id, text){ var el = document.getElementById(id); if(el) el.textContent = text; }
   function setPlaceholder(id, text){ var el = document.getElementById(id); if(el) el.placeholder = text; }
 
+  // Headings nobody typed (block default) are swapped for the store-language translation; the merchant's own text is kept.
+  function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
   function applyTranslations(remoteT){
     T = remoteT || T;
+    var rsHeading = section && section.querySelector(".rs-heading");
+    if (rsHeading && isStockHeading(rsHeading.textContent) && T.customerReviews) rsHeading.textContent = T.customerReviews;
     setText("rs-based-on-label", T.basedOn);
     setText("rs-reviews-word", T.reviewsWord);
     setText("rs-out-of", T.outOf5);
@@ -319,6 +335,7 @@
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
       });
       if(!response.ok) throw new Error("Review submit failed");
+      var result = await response.json().catch(function(){ return null; });
 
       showToast("Review submitted and sent for approval.", "success");
       document.getElementById("rs-name").value = "";
@@ -332,6 +349,7 @@
       document.querySelectorAll("#rs-star-rating span").forEach(function(s){ s.classList.remove("active"); });
       rsCloseReview();
       loadReviews();
+      if (result && result.coupon) setTimeout(function(){ trShowCoupon(result.coupon); }, 400);
     } catch(err){
       console.error(err);
       showToast(err.message || "Error submitting review. Please try again.", "error");

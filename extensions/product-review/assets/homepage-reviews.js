@@ -1,4 +1,6 @@
 (function () {
+  // Headings nobody typed (block defaults / old French DB default) are swapped for the store-language translation; the merchant's own text is kept.
+  function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
   function trResolveMedia(url) { return (!url || /^(https?:)?\/\//i.test(url) || url.indexOf('data:') === 0) ? url : 'https://trustreviews.kaswebtechsolutions.com' + url; }
   var D_ACCENT = '#f59e0b', D_TEXT = '#111111', D_PANEL_BG = '#111111';
 
@@ -407,7 +409,8 @@
           fontFamily:   d.fontFamily      || 'inherit',
           headingSize:  d.headingSize     || 36,
           headingAlign: 'center',
-          headingText:  (d.heading && d.heading !== 'Customer Reviews' && d.heading !== 'What our customers say') ? d.heading : (t.customerReviews || 'Customer Reviews'),
+          headingText:  (headingEl && !isStockHeading(headingEl.textContent)) ? headingEl.textContent
+                        : (d.heading && !isStockHeading(d.heading)) ? d.heading : (t.customerReviews || 'Customer Reviews'),
           nameSize:     14,
           reviewSize:   d.reviewSize      || 14,
           gap:          d.cardGap         != null ? d.cardGap      : 20,

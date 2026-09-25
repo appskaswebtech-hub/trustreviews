@@ -1,5 +1,18 @@
 (function () {
   'use strict';
+  // Review-reward coupon popup (assets/coupon-popup.js), loaded only when the
+  // server returns a coupon after a review is submitted.
+  var TR_ASSET_BASE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/?#]*([?#].*)?$/, '');
+  function trShowCoupon(coupon) {
+    if (!coupon || !coupon.code) return;
+    if (window.TrustReviewsCoupon) return window.TrustReviewsCoupon.show(coupon);
+    if (!TR_ASSET_BASE) return;
+    var sc = document.createElement('script'); sc.src = TR_ASSET_BASE + 'coupon-popup.js';
+    sc.onload = function () { if (window.TrustReviewsCoupon) window.TrustReviewsCoupon.show(coupon); };
+    document.head.appendChild(sc);
+  }
+  // Headings nobody typed (block defaults / old French DB default) are swapped for the store-language translation; the merchant's own text is kept.
+  function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
   function trResolveMedia(url) { return (!url || /^(https?:)?\/\//i.test(url) || url.indexOf('data:') === 0) ? url : 'https://trustreviews.kaswebtechsolutions.com' + url; }
 
   document.querySelectorAll('.ct-widget').forEach(function (widget) {
@@ -41,9 +54,8 @@
         if (Array.isArray(blocks) && blocks.length) {
           headingEl.style.display = 'none';
         } else {
-          var _dH = 'What our customers say';
-          var _cH = (d.heading && d.heading !== _dH && d.heading !== 'Customer Reviews') ? d.heading : null;
-          headingEl.textContent = _cH || (t.defaultHeading || _dH);
+          var _cH = (d.heading && !isStockHeading(d.heading)) ? d.heading : null;
+          if (isStockHeading(headingEl.textContent)) headingEl.textContent = _cH || t.defaultHeading || 'What our customers say';
         }
       }
       if (loadingEl) loadingEl.textContent = t.loading || 'Loading reviews…';
@@ -1226,7 +1238,8 @@
           msg.textContent = t.submitSuccess || 'Thank you! Your review has been submitted for approval.';
           msg.style.cssText = 'display:block;background:#dcfce7;color:#166534';
           btn.disabled = false; btn.textContent = t.submitReview || 'Submit Review';
-          setTimeout(close, 2500);
+          if (json.coupon && json.coupon.code) { close(); trShowCoupon(json.coupon); }
+          else setTimeout(close, 2500);
         })
         .catch(function (err) {
           msg.textContent = err.message || 'Something went wrong.';

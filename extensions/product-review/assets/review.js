@@ -115,9 +115,24 @@ function removeToast(toast) {
 // Shown right after a review is submitted, when the merchant has a coupon
 // configured (Admin → Review Coupon). Purely a display + copy affordance —
 // the discount itself already exists in Shopify, this just surfaces the code.
+// Same shared, translated popup as the other widgets (assets/coupon-popup.js);
+// the built-in modal below is only a fallback if that file can't load.
+var TR_REVIEW_ASSET_BASE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/?#]*([?#].*)?$/, '');
 function showCouponModal(coupon) {
   if (!coupon || !coupon.code) return;
+  if (window.TrustReviewsCoupon) return window.TrustReviewsCoupon.show(coupon);
+  if (TR_REVIEW_ASSET_BASE && !showCouponModal.loading) {
+    showCouponModal.loading = true;
+    var sc = document.createElement('script'); sc.src = TR_REVIEW_ASSET_BASE + 'coupon-popup.js';
+    sc.onload = function () { showCouponModal.loading = false; showCouponModal(coupon); };
+    sc.onerror = function () { showCouponModal.loading = false; showLegacyCouponModal(coupon); };
+    document.head.appendChild(sc);
+    return;
+  }
+  showLegacyCouponModal(coupon);
+}
 
+function showLegacyCouponModal(coupon) {
   var existing = document.getElementById('tr-coupon-overlay');
   if (existing) existing.remove();
 

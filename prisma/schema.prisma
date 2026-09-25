@@ -440,7 +440,7 @@ model Widget {
   textAlign       String   @default("left")
   summaryPosition String   @default("left")    // "left" | "right" | "top" | "bottom"
   showWriteReviewBtn Boolean @default(false)
-  heading      String   @default("Ce qu'en disent ceux qui l'ont essayé.")
+  heading      String   @default("") // "" = translated default heading in the store's language
 
   // Typography
   fontFamily   String?  @default("inherit")

@@ -343,3 +343,17 @@ export const SLIDER_TRANSLATIONS = {
   pl: { verified: 'Zweryfikowano', noReviews: 'Brak jeszcze opinii.', couldNotLoad: 'Nie udało się wczytać opinii.', review: 'opinia', reviews: 'opinii', readReviews: 'Czytaj opinie', reviewsBtn: 'Opinie', close: 'Zamknij', customerReviews: 'Opinie klientów', previous: 'Poprzedni', next: 'Następny', defaultHeading: 'Co mówią nasi klienci', ratingExcellent: 'Doskonały', ratingVeryGood: 'Bardzo dobry', ratingGood: 'Dobry', ratingAverage: 'Przeciętny', ratingMixed: 'Mieszany', average: 'średnia', basedOn: 'Na podstawie', verifiedPurchase: 'Zweryfikowany zakup', loading: 'Ładowanie opinii…', writeReview: 'Napisz opinię', cancel: 'Anuluj', submitReview: 'Wyślij opinię', submitting: 'Wysyłanie…', uploadingPhoto: 'Przesyłanie zdjęcia…', choosePhoto: 'Wybierz zdjęcie…', photoOptional: 'Zdjęcie (opcjonalne)', loadMore: 'Załaduj więcej opinii', sort: 'Sortuj', sortNewest: 'Od najnowszych', sortHighest: 'Najwyżej oceniane', sortLowest: 'Najniżej oceniane', filterAll: 'Wszystkie', submitSuccess: 'Dziękujemy! Twoja opinia została przesłana do zatwierdzenia.', submitRequired: 'Proszę wypełnić wszystkie wymagane pola i wybrać ocenę gwiazdkową.', showFullReview: 'Pokaż pełną opinię', showLess: 'Pokaż mniej', overall: 'ogólnie', filterAllReviews: 'Wszystkie opinie' },
   ko: { verified: '인증됨', noReviews: '아직 리뷰가 없습니다.', couldNotLoad: '리뷰를 불러올 수 없습니다.', review: '리뷰', reviews: '리뷰', readReviews: '리뷰 보기', reviewsBtn: '리뷰', close: '닫기', customerReviews: '고객 리뷰', previous: '이전', next: '다음', defaultHeading: '고객님들의 후기', ratingExcellent: '훌륭함', ratingVeryGood: '매우 좋음', ratingGood: '좋음', ratingAverage: '보통', ratingMixed: '엇갈림', average: '평균', basedOn: '기준', verifiedPurchase: '구매 인증', loading: '리뷰를 불러오는 중…', writeReview: '리뷰 작성', cancel: '취소', submitReview: '리뷰 제출', submitting: '제출 중…', uploadingPhoto: '사진 업로드 중…', choosePhoto: '사진 선택…', photoOptional: '사진 (선택 사항)', loadMore: '리뷰 더 보기', sort: '정렬', sortNewest: '최신순', sortHighest: '평점 높은순', sortLowest: '평점 낮은순', filterAll: '전체', submitSuccess: '감사합니다! 리뷰가 승인 대기 중으로 제출되었습니다.', submitRequired: '필수 항목을 모두 입력하고 별점을 선택해 주세요.', showFullReview: '전체 리뷰 보기', showLess: '접기', overall: '전반적으로', filterAllReviews: '전체 리뷰' },
 };
+
+// Headings the merchant never typed: block/DB defaults (incl. the old French DB
+// default) and every language's stock heading. These are replaced with the
+// store-language translation; any other text is the merchant's own and is kept.
+const normalizeHeading = (s) => String(s || "").trim().toLowerCase().replace(/[.!。\s]+$/u, "");
+const STOCK_HEADINGS = new Set([
+  "what our customers say", "customer reviews", "ce qu'en disent ceux qui l'ont essayé",
+  ...Object.values(SLIDER_TRANSLATIONS).flatMap((t) => [t.defaultHeading, t.customerReviews]).map(normalizeHeading),
+]);
+
+export function isStockHeading(heading) {
+  const h = normalizeHeading(heading);
+  return !h || STOCK_HEADINGS.has(h);
+}

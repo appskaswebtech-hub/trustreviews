@@ -6,6 +6,20 @@
   var D_STAR_COLOR = '#F59E0B', D_TEXT_COLOR = '#333333', D_HEADING_COLOR = '#333333', D_MUTED_COLOR = '#888888',
       D_WRITE_BTN_COLOR = '#333333', D_BORDER_COLOR = '#E5E5E5', D_BG_COLOR = '#FFFFFF', D_CARD_BG = '#FFFFFF';
 
+  // Review-reward coupon: after a successful submit the server returns
+  // { coupon: { code, message } } when the merchant enabled one (Admin → Review
+  // Coupon). The shared popup (assets/coupon-popup.js, next to this file) is
+  // only downloaded when there is actually a coupon to show.
+  var TR_ASSET_BASE = ((document.currentScript && document.currentScript.src) || '').replace(/[^\/?#]*([?#].*)?$/, '');
+  function trShowCoupon(coupon) {
+    if (!coupon || !coupon.code) return;
+    if (window.TrustReviewsCoupon) return window.TrustReviewsCoupon.show(coupon);
+    if (!TR_ASSET_BASE) return;
+    var sc = document.createElement('script'); sc.src = TR_ASSET_BASE + 'coupon-popup.js';
+    sc.onload = function () { if (window.TrustReviewsCoupon) window.TrustReviewsCoupon.show(coupon); };
+    document.head.appendChild(sc);
+  }
+
   function initWidget(widget) {
     if (widget.dataset.trInit) return;
     widget.dataset.trInit = '1';
@@ -47,6 +61,8 @@
     // our app, not the storefront — prefix the app domain. Imported reviews
     // already carry an absolute CDN URL and are left as-is.
     function resolveMedia(url) { return (!url || /^(https?:)?\/\//i.test(url) || url.indexOf('data:') === 0) ? url : 'https://trustreviews.kaswebtechsolutions.com' + url; }
+    // Headings nobody typed (block defaults / old French DB default) are swapped for the store-language translation; the merchant's own text is kept.
+    function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
     function initials(name) { return (name || 'A').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2); }
     function fmtDate(iso) { return new Date(iso).toLocaleDateString(storeLocale || undefined, { year:'numeric', month:'short', day:'numeric' }); }
     function mediaHTML(r) {
@@ -295,7 +311,8 @@
           slMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true);
           slModal.querySelector('#tr-sl-name-'+bid).value=''; slModal.querySelector('#tr-sl-email-'+bid).value='';
           slModal.querySelector('#tr-sl-comment-'+bid).value=''; slModal.querySelector('#tr-sl-title-'+bid).value='';
-          slClearPreview(); slRating=0; slPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); setTimeout(slClose,2500);
+          slClearPreview(); slRating=0; slPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review');
+          if(json.coupon&&json.coupon.code){ slClose(); trShowCoupon(json.coupon); } else setTimeout(slClose,2500);
         }).catch(function(err){ slMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); });
       });
 
@@ -536,7 +553,7 @@
         if(file){ submitBtn.textContent=(s.t.uploadingPhoto||'Uploading…'); var fd=new FormData(); fd.append('file',file); uploadPromise=fetch('/apps/review',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){ if(!j.success) throw new Error('File upload failed'); return {mediaUrl:j.url,mediaType:j.mediaType,fileName:j.fileName}; }); }
         else { uploadPromise=Promise.resolve({mediaUrl:null,mediaType:null,fileName:null}); }
         uploadPromise.then(function(media){ submitBtn.textContent=(s.t.submitting||'Submitting…'); return fetch('/apps/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,productId:productId,rating:pmRating,comment:comment,title:title,customer:name,shop:shop,mediaUrl:media.mediaUrl,mediaType:media.mediaType,fileName:media.fileName})}).then(function(r){return r.json();}); })
-        .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); setTimeout(pmClose,2500); })
+        .then(function(json){ if(json.success===false) throw new Error(json.error||'Submission failed'); pmMsg(s.t.submitSuccess||'Thank you! Your review has been submitted for approval.',true); pmModal.querySelector('#tr-pm-name-'+bid).value=''; pmModal.querySelector('#tr-pm-email-'+bid).value=''; pmModal.querySelector('#tr-pm-comment-'+bid).value=''; pmModal.querySelector('#tr-pm-title-'+bid).value=''; pmClearPreview(); pmRating=0; pmPaintStars(0); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); if(json.coupon&&json.coupon.code){ pmClose(); trShowCoupon(json.coupon); } else setTimeout(pmClose,2500); })
         .catch(function(err){ pmMsg(err.message||'Something went wrong. Please try again.',false); submitBtn.disabled=false; submitBtn.textContent=(s.t.submitReview||'Submit Review'); });
       });
 
@@ -1969,7 +1986,7 @@
       var borderColor=(blockBorderColor&&blockBorderColor!==D_BORDER_COLOR)?blockBorderColor:(d.borderColor||D_BORDER_COLOR);
       var backgroundColor=(blockBgColor&&blockBgColor!==D_BG_COLOR)?blockBgColor:(d.backgroundColor||'transparent');
       var cardBackground=(blockCardBg&&blockCardBg!==D_CARD_BG)?blockCardBg:(d.cardBackground||D_CARD_BG);
-      if(headingEl){ var cur=headingEl.textContent.trim(); var customH=(d.heading&&d.heading!==D_HEADING&&d.heading!=='Customer Reviews')?d.heading:null; if(!cur||cur===D_HEADING) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
+      if(headingEl){ var customH=(d.heading&&!isStockHeading(d.heading))?d.heading:null; if(isStockHeading(headingEl.textContent)) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
       var s={t:t,accentColor:accentColor,starColor:starColor,starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,mutedTextColor:mutedTextColor,headingColor:headingColor,writeBtnColor:writeBtnColor,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:backgroundColor,cardBackground:cardBackground,textColor:textColor,borderColor:borderColor,fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
       return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ (apiData.reviews||[]).forEach(function(r){ r.mediaUrl=resolveMedia(r.mediaUrl); }); var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })

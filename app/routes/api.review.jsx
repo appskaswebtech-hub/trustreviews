@@ -3,7 +3,7 @@ import prisma from "../db.server";
 import { authenticate } from "../shopify.server";
 import fs from "fs";
 import path from "path";
-import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage } from "../utils/widgetTranslations.server";
+import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage, isStockHeading } from "../utils/widgetTranslations.server";
 import { translateReviews, translateQuestions } from "../utils/reviewTranslation.server";
 import { notifyIntegrations } from "../utils/events.server";
 import { PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
@@ -533,6 +533,9 @@ export async function loader({ request }) {
     // on that plan (e.g. it saved it, then downgraded), silently substitute
     // the free default instead of serving the locked layout.
     let finalSettings = settings || {};
+    // A default heading (incl. the old French DB default) is sent as "" so the
+    // widget shows its translation in the store's language instead.
+    if (isStockHeading(finalSettings.heading)) finalSettings = { ...finalSettings, heading: "" };
     if (finalSettings.defaultStyle && PRO_LAYOUT_VALUES.has(finalSettings.defaultStyle)) {
       if (!(await hasAdvancedAccess(shop))) {
         finalSettings = { ...finalSettings, defaultStyle: DEFAULT_FREE_LAYOUT };

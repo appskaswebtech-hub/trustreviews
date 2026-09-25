@@ -6,6 +6,7 @@ import { data, redirect } from "react-router";
 import { useLoaderData, useSubmit } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { isStockHeading } from "../utils/widgetTranslations.server";
 import WidgetCustomizeShell, {
   InstallSection, ColorField, SelectField, RangeField, TextFieldInput, ToggleField, SHELL_C,
 } from "../components/WidgetCustomizeShell";
@@ -59,6 +60,10 @@ export async function loader({ request, params }) {
       },
     });
   }
+
+  // Show a stock heading (e.g. the old French DB default) as empty, so the
+  // field makes clear the storefront uses the store-language default.
+  if (isStockHeading(settings.heading)) settings = { ...settings, heading: "" };
 
   return data({ settings, key, shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "" });
 }
@@ -408,7 +413,7 @@ export default function WidgetCustomizePage() {
         {
           key: "text", label: "Text",
           content: (
-            <TextFieldInput label="Section Heading" value={heading} onChange={setHeading} placeholder="What our customers say" />
+            <TextFieldInput label="Section Heading" value={heading} onChange={setHeading} placeholder="Auto — “What our customers say” in your store's language" />
           ),
         },
         {
