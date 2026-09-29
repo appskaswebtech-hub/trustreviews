@@ -12,7 +12,7 @@ export const PLANS = {
     name: "Advanced",
     price: 9.99,
     currencyCode: "USD",
-    trialDays: 5,
+    trialDays: 10,
   },
 };
 
@@ -69,7 +69,7 @@ export async function createSubscription(admin, shop, returnUrl) {
         name: PLANS.advanced.name,
         returnUrl,
         test: process.env.NODE_ENV !== "production",
-        trialDays: 5,
+        trialDays: PLANS.advanced.trialDays,
         lineItems: [
           {
             plan: {
