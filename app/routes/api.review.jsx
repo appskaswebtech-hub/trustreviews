@@ -6,7 +6,7 @@ import path from "path";
 import { REVIEW_TRANSLATIONS, QA_TRANSLATIONS, SLIDER_TRANSLATIONS, resolveLanguage, isStockHeading } from "../utils/widgetTranslations.server";
 import { translateReviews, translateQuestions } from "../utils/reviewTranslation.server";
 import { notifyIntegrations } from "../utils/events.server";
-import { PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
+import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -536,6 +536,13 @@ export async function loader({ request }) {
     // A default heading (incl. the old French DB default) is sent as "" so the
     // widget shows its translation in the store's language instead.
     if (isStockHeading(finalSettings.heading)) finalSettings = { ...finalSettings, heading: "" };
+    // A Homepage Reviews block can pick its own layout in the Theme Editor, so
+    // several blocks can show different designs. It replaces the app's saved
+    // layout for that block only, and goes through the same plan check below.
+    const blockLayout = url.searchParams.get("blockLayout");
+    if (widgetKey === "homepage_reviews" && blockLayout && LAYOUTS.some((l) => l.key === blockLayout)) {
+      finalSettings = { ...finalSettings, defaultStyle: blockLayout };
+    }
     if (finalSettings.defaultStyle && PRO_LAYOUT_VALUES.has(finalSettings.defaultStyle)) {
       if (!(await hasAdvancedAccess(shop))) {
         finalSettings = { ...finalSettings, defaultStyle: DEFAULT_FREE_LAYOUT };

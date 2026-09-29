@@ -15,7 +15,7 @@
   data-locale="{{ request.locale.iso_code }}"
   data-seo-enabled="{{ block.settings.enable_seo_schema }}"
   data-max="{{ block.settings.max_reviews }}"
-  data-layout="{{ block.settings.layout }}"
+  data-layout="{{ block.settings.layout_style }}"
   data-widget-key="homepage_reviews"
 >
   <h2 class="hr-heading">{{ block.settings.heading }}</h2>
@@ -38,15 +38,25 @@
     },
     {
       "type": "select",
-      "id": "layout",
+      "id": "layout_style",
       "label": "Layout Style",
-      "default": "summary_carousel",
+      "default": "app",
+      "info": "“Same as app” uses the layout chosen in Trust Reviews → Widgets → Homepage Reviews. Pick a layout here to give this block its own design, so each Homepage Reviews block can look different. Advanced layouts need the Advanced plan.",
       "options": [
+        { "value": "app",              "label": "Same as app" },
         { "value": "summary_carousel", "label": "Summary + Carousel" },
         { "value": "grid",             "label": "Card Grid" },
         { "value": "masonry",          "label": "Masonry" },
         { "value": "spotlight",        "label": "Spotlight" },
-        { "value": "ticker",           "label": "Scrolling Ticker" }
+        { "value": "ticker",           "label": "Scrolling Ticker" },
+        { "value": "hero_banner",      "label": "Hero Banner (Advanced)" },
+        { "value": "split_screen",     "label": "Split Screen (Advanced)" },
+        { "value": "marquee_strip",    "label": "Marquee Strip (Advanced)" },
+        { "value": "video_showcase",   "label": "Video Showcase (Advanced)" },
+        { "value": "stacked_cards",    "label": "Stacked Cards (Advanced)" },
+        { "value": "stats_dashboard",  "label": "Stats Dashboard (Advanced)" },
+        { "value": "accordion_panels", "label": "Accordion Panels (Advanced)" },
+        { "value": "story_circles",    "label": "Story Circles (Advanced)" }
       ]
     },
     {

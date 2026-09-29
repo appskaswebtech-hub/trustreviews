@@ -18,7 +18,7 @@ export const BLOCKS = {
   ] },
   "homepage-reviews": { name: "Homepage Reviews", settings: [
     { type: "text", label: "Heading", value: "Customer Reviews" },
-    { type: "select", label: "Layout Style", value: "Summary Carousel" },
+    { type: "select", label: "Layout Style", value: "Same as app" },
     { type: "range", label: "Max reviews", value: 9 },
     { type: "checkbox", label: "Enable SEO Rich Snippets (Organization schema for search)", value: true },
   ] },

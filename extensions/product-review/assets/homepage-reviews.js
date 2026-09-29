@@ -360,7 +360,9 @@
     var locale    = el.dataset.locale || '';
     var productId = el.dataset.productId || '';
     var widgetKey = el.dataset.widgetKey || 'homepage_reviews';
-    var layout    = el.dataset.layout || 'summary_carousel';
+    // Per-block layout from the Theme Editor; "app" (or empty) = use the app's saved layout.
+    var blockLayout = el.dataset.layout && el.dataset.layout !== 'app' ? el.dataset.layout : '';
+    var layout    = 'summary_carousel';
     var maxRev    = parseInt(el.dataset.max, 10) || 9;
     var seoEnabled = el.dataset.seoEnabled !== 'false';
 
@@ -385,7 +387,7 @@
     // depend on anything in the settings response.
     var reviewUrl = '/apps/review?shop=' + shop + (productId ? '&productId=' + productId : '') + '&widgetKey=homepage_reviews&locale=' + encodeURIComponent(locale);
     Promise.all([
-      fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale), { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch('/apps/review?shop=' + shop + '&type=widget-defaults&widgetKey=' + widgetKey + '&locale=' + encodeURIComponent(locale) + (blockLayout ? '&blockLayout=' + encodeURIComponent(blockLayout) : ''), { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
       fetch(reviewUrl, { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }),
     ])
       .then(function (results) {
