@@ -4,6 +4,21 @@
   function trResolveMedia(url) { return (!url || /^(https?:)?\/\//i.test(url) || url.indexOf('data:') === 0) ? url : 'https://trustreviews.kaswebtechsolutions.com' + url; }
   var D_ACCENT = '#f59e0b', D_TEXT = '#111111', D_PANEL_BG = '#111111';
 
+  // Review media can be a photo or a video. A video URL in an <img src> shows
+  // a broken image, so pick the right tag. `preview` = muted looping video with
+  // no controls, for small thumbnails such as the story circles.
+  function isVideo(r) {
+    return /^video\//i.test(r.mediaType || '') || /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(r.mediaUrl || '');
+  }
+  function mediaTag(r, cls, preview) {
+    var src = String(r.mediaUrl).replace(/"/g, '&quot;');
+    if (isVideo(r)) {
+      return '<video class="' + cls + '" src="' + src + '" ' +
+        (preview ? 'muted autoplay loop playsinline' : 'controls playsinline preload="metadata"') + '></video>';
+    }
+    return '<img class="' + cls + '" src="' + src + '" alt="review" loading="lazy">';
+  }
+
   function starHTML(rating, color) {
     var s = '';
     for (var i = 0; i < 5; i++) s += '<span class="tr-extensions-product-review-assets-homepage-reviews-span-1" style="color:' + (i < rating ? (color || D_ACCENT) : '#ddd') + '">&#9733;</span>';
@@ -30,7 +45,7 @@
     var verifiedHtml = (s.showVerified && r.verified)
       ? '<div class="hr-card-verified"><span class="tr-extensions-product-review-assets-homepage-reviews-span-2">&#10003;</span> ' + (t.verifiedPurchase || 'Verified purchase') + '</div>' : '';
     var imgHtml = (s.showMedia && r.mediaUrl)
-      ? '<div class="hr-card-img"><img class="tr-extensions-product-review-assets-homepage-reviews-img-3" src="' + r.mediaUrl + '" alt="review" loading="lazy"></div>' : '';
+      ? '<div class="hr-card-img">' + mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-3') + '</div>' : '';
 
     div.innerHTML =
       '<div class="hr-card-header"><span class="hr-card-name">' + (r.customer || 'Customer') + '</span><span class="hr-card-stars">' + starsHtml + '</span></div>' +
@@ -203,7 +218,7 @@
       var r = items[i];
       var row = document.createElement('div');
       row.className = 'hr-ss-row' + (i % 2 ? ' hr-ss-row--rev' : '');
-      var imgHtml = (s.showMedia && r.mediaUrl) ? '<img class="tr-extensions-product-review-assets-homepage-reviews-img-8" src="' + r.mediaUrl + '" alt="review">' : '<div class="hr-ss-placeholder">&#128247;</div>';
+      var imgHtml = (s.showMedia && r.mediaUrl) ? mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-8') : '<div class="hr-ss-placeholder">&#128247;</div>';
       row.innerHTML =
         '<div class="hr-ss-media">' + imgHtml + '</div>' +
         '<div class="hr-ss-content"><div class="hr-ss-stars">' + starHTML(r.rating, s.starColor) + '</div>' +
@@ -242,7 +257,7 @@
       var r = items[i];
       var card = document.createElement('div');
       card.className = 'hr-vs-card';
-      var mediaHtml = r.mediaUrl ? '<img class="tr-extensions-product-review-assets-homepage-reviews-img-10" src="' + r.mediaUrl + '" alt="review">' : '<div class="hr-vs-placeholder">&#9654;</div>';
+      var mediaHtml = r.mediaUrl ? mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-10') : '<div class="hr-vs-placeholder">&#9654;</div>';
       card.innerHTML = mediaHtml +
         '<div class="hr-vs-overlay"><span class="tr-extensions-product-review-assets-homepage-reviews-span-11">' + starHTML(r.rating, s.starColor) + '</span><strong class="tr-extensions-product-review-assets-homepage-reviews-strong-12">' + (r.customer || 'Customer') + '</strong></div>';
       grid.appendChild(card);
@@ -316,7 +331,7 @@
       var r = items[i];
       var item = document.createElement('div');
       item.className = 'hr-story-item';
-      var mediaHtml = (s.showMedia && r.mediaUrl) ? '<img class="tr-extensions-product-review-assets-homepage-reviews-img-18" src="' + r.mediaUrl + '" alt="review">' : '<span class="tr-extensions-product-review-assets-homepage-reviews-span-19">' + initials(r.customer) + '</span>';
+      var mediaHtml = (s.showMedia && r.mediaUrl) ? mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-18', true) : '<span class="tr-extensions-product-review-assets-homepage-reviews-span-19">' + initials(r.customer) + '</span>';
       item.innerHTML = '<div class="hr-story-ring"><div class="hr-story-avatar">' + mediaHtml + '</div></div>' +
         '<div class="hr-story-name">' + (r.customer || 'Customer') + '</div>' +
         '<div class="hr-story-stars">' + starHTML(r.rating, s.starColor) + '</div>';
