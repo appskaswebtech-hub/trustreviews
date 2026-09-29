@@ -14,6 +14,7 @@ import { signOnboardingToken } from "../utils/onboarding-token.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import EmbeddedOnboardingModal from "../components/EmbeddedOnboardingModal";
 import FreePlanUpsellModal from "../components/FreePlanUpsellModal";
+import HelpButton from "../components/HelpButton";
 import "@shopify/polaris/build/esm/styles.css";
 
 export const loader = async ({ request }) => {
@@ -193,6 +194,7 @@ export default function App() {
           </NavMenu>
 
           <Outlet />
+          <HelpButton />
 
           {onboardingModalData && <EmbeddedOnboardingModal {...onboardingModalData} />}
           {!onboardingModalData && showFreeUpsell && <FreePlanUpsellModal />}
