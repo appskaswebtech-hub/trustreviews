@@ -1,0 +1,142 @@
+.hiw-page {
+  --accent: #4c6fff;
+  --accent-lt: #eaf0ff;
+  --text: #17171c;
+  --muted: #6b6b78;
+  --border: #e5e4ec;
+  --surface: #fff;
+  --bg: rgb(242, 247, 251);
+  --title: #4F7392;
+  --sub: #829CAF;
+  --line: #D6E6F2;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.hiw-page * { box-sizing: border-box; }
+.hiw-page h1, .hiw-page h2, .hiw-page h3 { margin: 0; letter-spacing: -0.01em; }
+
+.hiw-topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 24px; background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.hiw-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.hiw-logo { width: 32px; height: 32px; border-radius: 9px; display: inline-block; flex: none; }
+.hiw-muted { color: var(--muted); font-weight: 500; }
+.hiw-topnav { display: flex; gap: 18px; font-size: 14px; }
+.hiw-topnav a { color: var(--muted); text-decoration: none; }
+.hiw-topnav a:hover { color: var(--accent); }
+
+.hiw-hero {
+  max-width: 1180px; margin: 0 auto; padding: 48px 24px 32px;
+  display: grid; grid-template-columns: 1fr 1.25fr; gap: 40px; align-items: center;
+}
+.hiw-heroText h1 { font-size: 38px; line-height: 1.15; margin: 8px 0 14px; }
+.hiw-heroText p { color: var(--muted); margin: 0 0 22px; }
+.hiw-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.hiw-heroCtas { display: flex; gap: 10px; flex-wrap: wrap; }
+.hiw-btnPrimary, .hiw-btnGhost { padding: 10px 18px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 14px; }
+.hiw-btnPrimary { background: var(--accent); color: #fff; }
+.hiw-btnGhost { border: 1px solid var(--border); background: #fff; color: var(--text); }
+.hiw-caption { font-size: 13px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+.hiw-main { max-width: 1180px; margin: 0 auto; padding: 0 24px 60px; }
+.hiw-section { margin-top: 56px; scroll-margin-top: 70px; }
+.hiw-section h2 { font-size: 26px; margin-bottom: 8px; color: var(--title); }
+.hiw-lead { color: var(--muted); margin: 0 0 20px; }
+.hiw-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; scroll-margin-top: 70px; }
+.hiw-card h2 { font-size: 20px; margin-bottom: 10px; }
+.hiw-card h3 { font-size: 17px; margin-bottom: 6px; }
+.hiw-card p { margin: 0 0 10px; }
+.hiw-checklist { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.hiw-small { font-size: 13px; color: var(--muted); }
+
+.hiw-stepGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.hiw-step { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.hiw-step h3 { font-size: 16px; margin: 10px 0 4px; }
+.hiw-step p { margin: 0; color: var(--muted); font-size: 14px; }
+.hiw-stepNum { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-lt); color: var(--accent); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+
+.hiw-pin { width: 22px; height: 22px; flex: none; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.hiw-editorMap { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #f1f1f1; font-size: 13px; }
+.hiw-mapTop { height: 46px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; }
+.hiw-mapSave { position: absolute; right: 14px; display: flex; align-items: center; gap: 8px; }
+.hiw-mapBody { display: grid; grid-template-columns: 50px 220px 1fr 200px; height: 220px; }
+.hiw-mapRail { background: #fff; border-right: 1px solid var(--border); display: flex; justify-content: center; padding-top: 14px; }
+.hiw-mapSidebar { background: #fff; border-right: 1px solid var(--border); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.hiw-mapSidebar { flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
+.hiw-mapAdd { width: 100%; margin-top: 60px; color: #005bd3; display: flex; align-items: center; gap: 8px; }
+.hiw-mapPreview { margin: 14px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--muted); border: 1px dashed #cfcfd8; }
+.hiw-mapSettings { background: #fff; border-left: 1px solid var(--border); padding: 14px; display: flex; gap: 8px; align-items: flex-start; }
+.hiw-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 20px 0; }
+.hiw-legend > div { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.hiw-twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.hiw-bullets { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.hiw-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.hiw-tags span { background: var(--accent-lt); color: #2f47b8; border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
+
+.hiw-chipOn { background: var(--text); color: #fff; border-color: var(--text); }
+
+
+.hiw-faq { display: grid; gap: 8px; }
+.hiw-faqItem { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.hiw-faqItem summary { cursor: pointer; font-weight: 600; }
+.hiw-faqItem p { margin: 8px 0 0; color: var(--muted); }
+
+.hiw-footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px; border-top: 1px solid var(--border); }
+
+.hiw-modalBackdrop { position: fixed; inset: 0; z-index: 50; background: rgba(15,15,25,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.hiw-modal { background: #fff; border-radius: 16px; width: min(1180px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 18px 20px 20px; }
+.hiw-modalHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.hiw-modalTitle { font-size: 20px; margin-top: 2px; }
+.hiw-close { border: 0; background: #f1f1f5; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; flex: none; }
+.hiw-modalBody { display: grid; grid-template-columns: 1.7fr 1fr; gap: 20px; align-items: start; }
+.hiw-modalVideo { width: 100%; }
+.hiw-blockTag { font-size: 13px; background: var(--accent-lt); color: #2f47b8; border-radius: 8px; padding: 6px 10px; display: inline-block; margin-bottom: 10px; }
+.hiw-steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; }
+
+/* widget cards: same layout as the app's Widgets page */
+.hiw-widgetsHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; padding: 24px 26px; margin-bottom: 22px; background: linear-gradient(135deg, #fff 0%, #F2F7FB 100%); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 14px 38px rgba(79,115,146,.08); }
+.hiw-widgetsHeader .hiw-lead { margin: 4px 0 0; color: var(--sub); font-size: 14px; }
+.hiw-search { width: 260px; height: 40px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; font-size: 14px; background: #F7FAFD; outline: none; }
+.hiw-search:focus { border-color: #8DB4D6; background: #fff; box-shadow: 0 0 0 3px rgba(141,180,214,.14); }
+.hiw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.hiw-widgetCard { all: unset; box-sizing: border-box; cursor: pointer; background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 1px 4px rgba(0,0,0,.05); transition: transform .18s, border-color .18s, box-shadow .18s; }
+.hiw-widgetCard:hover { transform: translateY(-3px); border-color: #8DB4D6; box-shadow: 0 16px 36px rgba(79,115,146,.12); }
+.hiw-widgetCard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hiw-thumb { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.hiw-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hiw-letter { position: relative; width: 44px; height: 44px; border-radius: 50%; color: #fff; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.hiw-badge { position: absolute; top: 10px; left: 10px; font-size: 9.5px; font-weight: 600; background: var(--accent); color: #fff; border-radius: 20px; padding: 3px 10px; letter-spacing: .04em; text-transform: uppercase; }
+.hiw-duration { position: absolute; right: 10px; bottom: 10px; background: rgba(0,0,0,.72); color: #fff; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 2px 8px; }
+.hiw-cardBody { padding: 15px 16px; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.hiw-cardTitle { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+.hiw-cardDesc { font-size: 14px; color: var(--muted); line-height: 1.55; flex: 1; }
+.hiw-cardActions { display: flex; gap: 7px; margin-top: 6px; flex-wrap: wrap; }
+.hiw-btnSolid, .hiw-btnSoft { font-size: 13px; font-weight: 600; border-radius: 8px; padding: 6px 12px; }
+.hiw-btnSolid { background: var(--accent); color: #fff; }
+.hiw-btnSoft { background: var(--accent-lt); color: var(--accent); }
+.hiw-empty { color: var(--muted); padding: 40px 0; text-align: center; grid-column: 1 / -1; font-weight: 600; }
+.hiw-manual { margin-top: 14px; }
+.hiw-manual p { margin: 0; font-size: 14px; color: #44444f; }
+
+@media (max-width: 900px) {
+  .hiw-hero { grid-template-columns: 1fr; padding-top: 28px; }
+  .hiw-heroText h1 { font-size: 30px; }
+  .hiw-stepGrid { grid-template-columns: 1fr 1fr; }
+  .hiw-search { width: 100%; }
+  .hiw-legend, .hiw-twoCol, .hiw-modalBody { grid-template-columns: 1fr; }
+  .hiw-mapBody { grid-template-columns: 40px 1fr 1fr; }
+  .hiw-mapSettings { display: none; }
+  .hiw-topnav { display: none; }
+}
+@media (max-width: 560px) {
+  .hiw-hero, .hiw-main { padding-left: 16px; padding-right: 16px; }
+  .hiw-stepGrid { grid-template-columns: 1fr; }
+  .hiw-mapBody { grid-template-columns: 40px 1fr; }
+  .hiw-mapPreview { display: none; }
+}
