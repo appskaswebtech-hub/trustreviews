@@ -42,7 +42,7 @@
     div.className = 'hr-card';
 
     var starsHtml = starHTML(r.rating, s.starColor);
-    var verifiedHtml = (s.showVerified && r.verified)
+    var verifiedHtml = s.showVerified
       ? '<div class="hr-card-verified"><span class="tr-extensions-product-review-assets-homepage-reviews-span-2">&#10003;</span> ' + (t.verifiedPurchase || 'Verified purchase') + '</div>' : '';
     var imgHtml = (s.showMedia && r.mediaUrl)
       ? '<div class="hr-card-img">' + mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-3') + '</div>' : '';
@@ -168,7 +168,7 @@
         '<div class="tr-extensions-product-review-assets-homepage-reviews-div-4" style="font-size:.85rem;margin-bottom:4px">' + starHTML(r.rating, s.starColor) + '</div>' +
         '<div class="hr-spotlight-text">"' + (r.comment || '') + '"</div>' +
         '<div class="hr-spotlight-meta"><strong class="tr-extensions-product-review-assets-homepage-reviews-strong-5">' + (r.customer || 'Customer') + '</strong>' +
-        (r.verified ? ' &middot; &#10003; ' + (t.verified || 'Verified') : '') + '</div>';
+        (s.showVerified ? ' &middot; &#10003; ' + (t.verified || 'Verified') : '') + '</div>';
       right.appendChild(card);
     }
     wrap.appendChild(right);
@@ -251,13 +251,13 @@
   function buildVideoShowcase(reviews, s, t) {
     var grid = document.createElement('div');
     grid.className = 'hr-video-showcase';
-    var withMedia = reviews.filter(function (r) { return r.mediaUrl; });
+    var withMedia = s.showMedia ? reviews.filter(function (r) { return r.mediaUrl; }) : [];
     var items = (withMedia.length ? withMedia : reviews).slice(0, s.maxRev || 9);
     for (var i = 0; i < items.length; i++) {
       var r = items[i];
       var card = document.createElement('div');
       card.className = 'hr-vs-card';
-      var mediaHtml = r.mediaUrl ? mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-10') : '<div class="hr-vs-placeholder">&#9654;</div>';
+      var mediaHtml = (s.showMedia && r.mediaUrl) ? mediaTag(r, 'tr-extensions-product-review-assets-homepage-reviews-img-10') : '<div class="hr-vs-placeholder">&#9654;</div>';
       card.innerHTML = mediaHtml +
         '<div class="hr-vs-overlay"><span class="tr-extensions-product-review-assets-homepage-reviews-span-11">' + starHTML(r.rating, s.starColor) + '</span><strong class="tr-extensions-product-review-assets-homepage-reviews-strong-12">' + (r.customer || 'Customer') + '</strong></div>';
       grid.appendChild(card);

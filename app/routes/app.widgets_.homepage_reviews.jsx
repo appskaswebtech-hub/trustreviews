@@ -1686,7 +1686,7 @@ export default function HomepageReviewsSettings() {
           },
           {
             key: "showMedia",
-            label: "Show Review Images",
+            label: "Show Review Photos & Videos",
           },
         ].map(({ key, label }) => (
           <div
