@@ -3086,7 +3086,6 @@ export default function ReviewsPage() {
           "0 14px 38px rgba(79,115,146,.08)",
 
         position: "relative",
-        overflow: "hidden",
       }}
     >
       <div
