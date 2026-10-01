@@ -1,5 +1,5 @@
 // app/routes/api.top-reviews.jsx
-// Returns top approved 5-star reviews for a shop (or specific product)
+// Returns top approved reviews (any rating, best first) for a shop (or specific product)
 // GET /api/top-reviews
 // GET /api/top-reviews?product_id=123456
 
@@ -45,7 +45,6 @@ export async function loader({ request }) {
     const where = {
       storeId: store.id,
       status: "approved",
-      rating: 5,
     };
 
     if (productId) {
@@ -56,10 +55,11 @@ export async function loader({ request }) {
       if (product) where.productId = product.id;
     }
 
-    // Fetch top 5-star reviews (latest 12, shown in slider)
+    // Fetch top approved reviews of any rating (latest 12, shown in slider) —
+    // highest-rated first so the best reviews surface when there's a mix.
     const reviews = await db.review.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
       take: 12,
       select: {
         id: true,
