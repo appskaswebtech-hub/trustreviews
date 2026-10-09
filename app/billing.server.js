@@ -22,11 +22,8 @@ export function isAdvancedOrHigher(shopPlan) {
   return shopPlan?.plan === "advanced";
 }
 
-/** Check if the shop is a development store — dev stores skip billing */
-export async function isDevStore(admin) {
-  // Local-testing escape hatch: force the real (non-dev) billing flow even on a
-  // Partner development store. Set BYPASS_DEV_STORE_BILLING=true in .env, test, then unset it.
-  if (process.env.BYPASS_DEV_STORE_BILLING === "true") return false;
+/** Whether Shopify says this is a Partner development (test) store. */
+async function isPartnerDevelopmentStore(admin) {
   try {
     const response = await admin.graphql(
       `{ shop { plan { partnerDevelopment } } }`,
@@ -36,6 +33,14 @@ export async function isDevStore(admin) {
   } catch {
     return false;
   }
+}
+
+/** Check if the shop is a development store — dev stores skip billing */
+export async function isDevStore(admin) {
+  // Local-testing escape hatch: force the real (non-dev) billing flow even on a
+  // Partner development store. Set BYPASS_DEV_STORE_BILLING=true in .env, test, then unset it.
+  if (process.env.BYPASS_DEV_STORE_BILLING === "true") return false;
+  return isPartnerDevelopmentStore(admin);
 }
 
 /** Get or create ShopPlan row */
@@ -49,6 +54,12 @@ export async function getShopPlan(shop) {
 
 /** Create Shopify AppSubscription and return confirmationUrl */
 export async function createSubscription(admin, shop, returnUrl) {
+  // Development stores can only approve test charges (a real charge asks for a
+  // payment method the store can't add), so they always get one — also when
+  // BYPASS_DEV_STORE_BILLING sends a dev store through this flow. Real stores
+  // are never development stores, so their charges stay real in production.
+  const test = process.env.NODE_ENV !== "production" || (await isPartnerDevelopmentStore(admin));
+
   const response = await admin.graphql(
     `#graphql
     mutation AppSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean,$trialDays: Int) {
@@ -68,7 +79,7 @@ export async function createSubscription(admin, shop, returnUrl) {
       variables: {
         name: PLANS.advanced.name,
         returnUrl,
-        test: process.env.NODE_ENV !== "production",
+        test,
         trialDays: PLANS.advanced.trialDays,
         lineItems: [
           {
