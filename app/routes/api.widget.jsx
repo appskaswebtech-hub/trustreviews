@@ -40,6 +40,7 @@ export async function loader({ request }) {
     background:     settings?.background    ?? "#FFFFFF",
     widgetStyle:    settings?.widgetStyle   ?? "compact",
     secondaryStat:  settings?.secondaryStat ?? "",
+    shop:           shop || "",
     // Full word table baked in (not just one language) so the widget can pick
     // the right words from the storefront's current language at render time,
     // even though this script is generated once per request.
@@ -81,7 +82,7 @@ export async function loader({ request }) {
           'padding:2px 6px;">' +
           stars(avg) +
           '<span class="trust-avg" style="font-size:' + (CFG.countFontSize - 1) + 'px;font-weight:600;color:#111827;margin-left:4px;">' + avg.toFixed(1) + '</span>' +
-          '<span class="trust-count" style="font-size:' + CFG.countFontSize + 'px;color:' + CFG.countColor + ';margin-left:3px;">- ' + count + ' ' + words.reviews + '</span>' +
+          '<span class="trust-count" style="font-size:' + CFG.countFontSize + 'px;color:' + CFG.countColor + ';margin-left:3px;">- ' + count + ' ' + (count === 1 ? words.review : words.reviews) + '</span>' +
         '</span>'
       );
     },
@@ -114,7 +115,7 @@ export async function loader({ request }) {
           'padding:3px 10px;">' +
           '<span  style="color:' + CFG.starColor + ';font-size:' + CFG.starSize + 'px;line-height:1;">★</span>' +
           '<span class="trust-avg" style="font-size:' + (CFG.countFontSize - 1) + 'px;font-weight:700;color:#111827;">' + avg.toFixed(1) + '</span>' +
-          '<span class="trust-count" style="font-size:' + CFG.countFontSize + 'px;color:' + CFG.countColor + ';">· ' + count + ' ' + words.reviews + '</span>' +
+          '<span class="trust-count" style="font-size:' + CFG.countFontSize + 'px;color:' + CFG.countColor + ';">· ' + count + ' ' + (count === 1 ? words.review : words.reviews) + '</span>' +
         '</span>'
       );
     },
@@ -150,20 +151,29 @@ export async function loader({ request }) {
 
   var render = renderers[CFG.widgetStyle] || renderers.compact;
 
-  /* ── fetch + inject ───────────────────────────── */
+  /* ── fetch + inject (one request for every badge on the page) ── */
   function loadRatings() {
-    document.querySelectorAll('[data-trust-product-id]').forEach(function(el) {
-      var pid = el.getAttribute('data-trust-product-id');
-      fetch(APP_URL + '/api/ratings?product_id=' + pid)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.count > 0 || CFG.showEmpty) {
-            el.innerHTML  = render(data.average, data.count, currentWords());
-            el.style.cssText = 'display:inline-block;';
-          }
-        })
-        .catch(function() {});
+    var els = Array.prototype.slice.call(document.querySelectorAll('[data-trust-product-id]:not([data-trust-loaded])'));
+    if (!els.length) return;
+    els.forEach(function(el) { el.setAttribute('data-trust-loaded', ''); });
+    var ids = [];
+    els.forEach(function(el) {
+      var id = el.getAttribute('data-trust-product-id');
+      if (id && ids.indexOf(id) < 0) ids.push(id);
     });
+    var shop = CFG.shop || (window.Shopify && window.Shopify.shop) || '';
+    fetch(APP_URL + '/api/ratings?shop=' + encodeURIComponent(shop) + '&product_ids=' + ids.join(','))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        els.forEach(function(el) {
+          var r = (data.ratings || {})[el.getAttribute('data-trust-product-id')];
+          if (r && (r.count > 0 || CFG.showEmpty)) {
+            el.innerHTML = render(r.average, r.count, currentWords());
+            el.style.display = 'inline-block';
+          }
+        });
+      })
+      .catch(function() {});
   }
 
   document.readyState === 'loading'

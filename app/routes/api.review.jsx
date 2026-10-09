@@ -116,6 +116,54 @@ async function resolveAutoWidgetKey(shop, blockId, designMode) {
   }
 }
 
+// ── Product-page blocks: move to their spot on new installs ─────────────────
+// "Install" on the app's Widgets page adds these blocks to the product info
+// section, but Shopify puts them at the end of it, so each block moves itself
+// (snippets/block-position.liquid) under the title or under the buy buttons.
+// Only a block added from that Install click moves (same claim window as the
+// Auto widget above); every block that already existed is pinned to "here" on
+// its first render, so live stores never change layout.
+const POSITIONED_WIDGETS = new Set([
+  "inline_rating", "star_rating_badge", "verified_counter", "trust_medals", "ai_reviews_summary",
+]);
+
+async function resolveBlockPlacement(shop, widget, blockId, designMode) {
+  if (!blockId || !POSITIONED_WIDGETS.has(widget)) return "here";
+  const MOVE = `${widget}:move`;
+  const HERE = `${widget}:here`;
+  try {
+    const existing = await prisma.widgetBlockAssignment.findUnique({
+      where: { shop_blockId: { shop, blockId } },
+      select: { widgetKey: true },
+    });
+    if (existing) return existing.widgetKey === MOVE ? "move" : "here";
+
+    let widgetKey = HERE;
+    if (designMode) {
+      const install = await prisma.widgetInstall.findFirst({
+        where: { shop, widgetKey: widget, installedAt: { gte: new Date(Date.now() - AUTO_CLAIM_WINDOW_MS) } },
+        select: { installedAt: true },
+      });
+      const claimed = install && await prisma.widgetBlockAssignment.findFirst({
+        where: { shop, widgetKey: MOVE, createdAt: { gte: install.installedAt } },
+        select: { id: true },
+      });
+      if (install && !claimed) widgetKey = MOVE;
+    }
+
+    const saved = await prisma.widgetBlockAssignment.upsert({
+      where: { shop_blockId: { shop, blockId } },
+      update: {},
+      create: { shop, blockId, widgetKey },
+      select: { widgetKey: true },
+    });
+    return saved.widgetKey === MOVE ? "move" : "here";
+  } catch (e) {
+    console.error("[block placement] resolve failed:", e.message);
+    return "here";
+  }
+}
+
 // ── Store / product upsert ─────────────────────────────────────────────────────
 async function ensureStoreAndProduct(shop, rawProductId) {
   const shopifyProductId = normalizeProductId(rawProductId);
@@ -157,6 +205,17 @@ async function handleFileUpload(file) {
 // ── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
   const { shop, url } = await getScopedShop(request);
+
+  // ── Product-page block placement ("move" | "here") ───────────────────────
+  if (url.searchParams.get("type") === "block-placement") {
+    const placement = await resolveBlockPlacement(
+      shop,
+      url.searchParams.get("widget") || "",
+      url.searchParams.get("blockId"),
+      url.searchParams.get("designMode") === "true",
+    );
+    return Response.json({ placement });
+  }
 
   // ── Custom CSS / JS injection ─────────────────────────────────────────────
   if (url.searchParams.get("type") === "custom-code") {

@@ -61,10 +61,14 @@
 })();
 </script>
 
+{% render 'block-position', widget: 'trust_medals', spot: 'under_buy_buttons', position: block.settings.position, block_id: block.id %}
+
 {% schema %}
 {
   "name": "Trust Medals",
   "target": "section",
-  "settings": []
+  "settings": [
+    {"type": "select", "id": "position", "label": "Position", "default": "auto", "options": [{"value": "auto", "label": "Automatic (recommended)"}, {"value": "under_buy_buttons", "label": "Under the buy buttons"}, {"value": "here", "label": "Where I place the block"}], "info": "Automatic: added from the Trust Reviews app → shows under the buy buttons. Blocks you placed yourself stay where they are."}
+  ]
 }
 {% endschema %}

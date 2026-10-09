@@ -147,11 +147,14 @@
 })();
 </script>
 
+{% render 'block-position', widget: 'inline_rating', spot: 'under_title', position: block.settings.position, block_id: block.id %}
+
 {% schema %}
 {
   "name": "Inline Star Rating",
   "target": "section",
   "settings": [
+    {"type": "select", "id": "position", "label": "Position", "default": "auto", "options": [{"value": "auto", "label": "Automatic (recommended)"}, {"value": "under_title", "label": "Under the product title"}, {"value": "here", "label": "Where I place the block"}], "info": "Automatic: added from the Trust Reviews app → shows under the product title. Blocks you placed yourself stay where they are."},
     { "type": "header",   "content": "Stars" },
     { "type": "color",    "id": "star_color", "label": "Star Color",         "default": "#F59E0B" },
     { "type": "range",    "id": "star_size",  "label": "Star Size",          "min": 12, "max": 40, "step": 1,  "default": 18 },

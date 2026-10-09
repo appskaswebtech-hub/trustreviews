@@ -517,7 +517,7 @@ export function ToggleField({ label, checked, onChange, helpText }) {
 }
 
 export default function WidgetCustomizeShell({
-  title, backHref = "/app/widgets", installSection, sections, preview, onSave, saved,
+  title, backHref = "/app/widgets", installSection, sections, preview, onSave, saved, embedded = false,
 }) {
   return (
     <div style={{ minHeight: "100vh", background: SHELL_C.bg, fontFamily: "var(--app-font-family)" }} className="tr-app-components-widgetcustomizeshell-div-39">
@@ -563,6 +563,7 @@ export default function WidgetCustomizeShell({
           </button>
         </div>
       </div> */}
+      {!embedded && (
       <div
   className="nab-bar"
   style={{
@@ -833,6 +834,7 @@ export default function WidgetCustomizeShell({
     </button>
   </div>
 </div>
+      )}
 
       {/* <div className="widget-customize-shell-contentss" style={{ display: "flex", height: "calc(100vh - 56px)" }}>
 

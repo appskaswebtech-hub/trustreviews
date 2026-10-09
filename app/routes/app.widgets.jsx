@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
-import { WIDGETS } from "../utils/widgetCatalog";
+import { WIDGETS, PURPOSES, editorTemplateFor, editorTargetFor } from "../utils/widgetCatalog";
+import { guideFor } from "../utils/widgetGuides";
+import InstallVideo from "./how-to-install-widgets/InstallVideo";
+import { WIDGETS as VIDEO_WIDGETS } from "./how-to-install-widgets/guideData";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -64,15 +67,18 @@ function darken(hex, amount) {
   return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
+function installUrlFor(widget, shop, apiKey) {
+  if (!widget.blockHandle) return null;
+  return `https://${shop}/admin/themes/current/editor` +
+    `?template=${editorTemplateFor(widget.blockHandle)}&addAppBlockId=${encodeURIComponent(apiKey)}/${encodeURIComponent(widget.blockHandle)}` +
+    `&target=${editorTargetFor(widget.blockHandle)}`;
+}
+
+function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideClick }) {
   const navigate = useNavigate();
   const t = useAdminT();
   const canInstall = Boolean(widget.blockHandle);
-  const installUrl = canInstall
-    ? `https://${shop}/admin/themes/current/editor` +
-      `?template=product&addAppBlockId=${encodeURIComponent(apiKey)}/${encodeURIComponent(widget.blockHandle)}` +
-      `&target=newAppsSection`
-    : null;
+  const installUrl = installUrlFor(widget, shop, apiKey);
 
   return (
     <div
@@ -135,9 +141,26 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
         )}
       </div>
       <div className="headingss" style={{ padding: "15px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, color: C.text, letterSpacing: "-.01em" }} className="tr-app-routes-app-widgets-div-4">
-          {widget.title}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, letterSpacing: "-.01em" }} className="tr-app-routes-app-widgets-div-4">
+            {widget.title}
+          </div>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onGuideClick(widget); }}
+            title="What does this widget do?"
+            aria-label={`How ${widget.title} works`}
+            style={{
+              flexShrink: 0, width: 24, height: 24, borderRadius: "50%", cursor: "pointer",
+              border: `1px solid ${C.border}`, background: C.accentLt, color: C.accent,
+              fontSize: 13, fontWeight: 700, fontFamily: "Georgia, serif", lineHeight: 1,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            i
+          </button>
         </div>
+        {PURPOSES[widget.purpose] && <PurposeTag purpose={widget.purpose} />}
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.55, flex: 1 }} className="tr-app-routes-app-widgets-div-5">
           {widget.description}
         </div>
@@ -175,11 +198,125 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick }) {
   );
 }
 
+// "Shows reviews + Write a review" / "Shows reviews only" / … — tells the
+// merchant at a glance which widget lets customers leave a review.
+function PurposeTag({ purpose }) {
+  const p = PURPOSES[purpose];
+  return (
+    <span style={{
+      alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5,
+      fontSize: 11.5, fontWeight: 650, color: p.color, background: p.bg,
+      borderRadius: 20, padding: "3px 10px",
+    }}>
+      <span aria-hidden="true">{p.icon}</span>{p.label}
+    </span>
+  );
+}
+
+// ⓘ guide: what the widget does, where it shows, how to install it — with the
+// same 20-second Theme Editor walkthrough as the public install guide.
+function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onClose }) {
+  const navigate = useNavigate();
+  const guide = guideFor(widget);
+  const video = VIDEO_WIDGETS.find((w) => w.key === widget.key && w.hasVideo);
+  const installUrl = installUrlFor(widget, shop, apiKey);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const label = { fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".05em", margin: "18px 0 6px" };
+
+  return (
+    <div
+      role="presentation"
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(23,32,42,.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="widget-guide-title"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 720, maxHeight: "92vh", overflowY: "auto", background: C.surface,
+          borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: "0 24px 60px rgba(23,32,42,.25)",
+          padding: "20px 22px", fontFamily: "var(--app-font-family)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <h2 id="widget-guide-title" style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text }}>{widget.title}</h2>
+            {PURPOSES[widget.purpose] && <div style={{ marginTop: 8 }}><PurposeTag purpose={widget.purpose} /></div>}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.text, borderRadius: 8, width: 32, height: 32, fontSize: 15, cursor: "pointer", flexShrink: 0 }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={label}>What it does</div>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: C.text }}>{widget.description}</p>
+
+        <div style={label}>Where it shows on your store</div>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: C.text }}>{guide.where}</p>
+
+        <div style={label}>How to use it</div>
+        <ol style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: C.text }}>
+          {guide.steps.map((s) => <li key={s}>{s}</li>)}
+        </ol>
+
+        {guide.tip && (
+          <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 10, background: "#FFF9E8", border: "1px solid #F2D58A", fontSize: 13, lineHeight: 1.55, color: "#7A5212" }}>
+            💡 {guide.tip}
+          </div>
+        )}
+
+        {video && (
+          <>
+            <div style={label}>Watch: installing it in the Theme Editor</div>
+            <InstallVideo widget={video} />
+          </>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
+          <button
+            type="button"
+            onClick={() => navigate(widget.href)}
+            style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
+          >
+            {installUrl ? "Configure →" : "Learn more →"}
+          </button>
+          {installUrl && !installed && (
+            <a
+              href={installUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => onInstallClick(widget.key)}
+              style={{ fontSize: 14, fontWeight: 600, color: "#fff", background: C.accent, borderRadius: 8, padding: "8px 14px", textDecoration: "none" }}
+            >
+              Install ↗
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WidgetsGalleryPage() {
   const { shop, apiKey, installedKeys } = useLoaderData();
   const t = useAdminT();
   const [installed, setInstalled] = useState(new Set(installedKeys));
   const [search, setSearch] = useState("");
+  const [purposeFilter, setPurposeFilter] = useState("all");
+  const [guideWidget, setGuideWidget] = useState(null);
 
   const markInstalled = (key) => {
     setInstalled((prev) => new Set(prev).add(key));
@@ -188,12 +325,12 @@ export default function WidgetsGalleryPage() {
     fetch("/app/widgets", { method: "POST", body: fd }).catch(() => {});
   };
 
-  const filteredWidgets = search.trim()
-    ? WIDGETS.filter((w) =>
-        w.title.toLowerCase().includes(search.toLowerCase()) ||
-        w.description.toLowerCase().includes(search.toLowerCase())
-      )
-    : WIDGETS;
+  const filteredWidgets = WIDGETS
+    .filter((w) => purposeFilter === "all" || w.purpose === purposeFilter)
+    .filter((w) => !search.trim() ||
+      w.title.toLowerCase().includes(search.toLowerCase()) ||
+      w.description.toLowerCase().includes(search.toLowerCase())
+    );
 
   const installedCount = WIDGETS.filter((w) => installed.has(w.key)).length;
 
@@ -267,6 +404,7 @@ export default function WidgetsGalleryPage() {
                 shop={shop}
                 apiKey={apiKey}
                 onInstallClick={markInstalled}
+                onGuideClick={setGuideWidget}
               />
             ))}
           </div>
@@ -468,6 +606,31 @@ export default function WidgetsGalleryPage() {
     </div>
   </div>
 
+  {/* What does it do? filter */}
+  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+    {[["all", { label: "All widgets", icon: "", color: "#4F7392", bg: "#FFFFFF" }], ...Object.entries(PURPOSES)].map(([key, p]) => {
+      const active = purposeFilter === key;
+      const count = key === "all" ? WIDGETS.length : WIDGETS.filter((w) => w.purpose === key).length;
+      return (
+        <button
+          key={key}
+          onClick={() => setPurposeFilter(key)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
+            fontSize: 12.5, fontWeight: 650, fontFamily: "inherit",
+            color: p.color, background: active ? p.bg : "#FFFFFF",
+            border: active ? `1.5px solid ${p.color}` : "1px solid #D6E6F2",
+            borderRadius: 20, padding: "6px 13px",
+          }}
+        >
+          {p.icon && <span aria-hidden="true">{p.icon}</span>}
+          {p.label}
+          <span style={{ opacity: 0.65 }}>({count})</span>
+        </button>
+      );
+    })}
+  </div>
+
   {/* Widgets */}
   {filteredWidgets.length === 0 ? (
     <div
@@ -513,6 +676,7 @@ export default function WidgetsGalleryPage() {
           shop={shop}
           apiKey={apiKey}
           onInstallClick={markInstalled}
+          onGuideClick={setGuideWidget}
         />
       ))}
     </div>
@@ -540,6 +704,17 @@ export default function WidgetsGalleryPage() {
     widget" setting. Each widget&apos;s appearance is saved independently.
   </p>
 </div>
+
+      {guideWidget && (
+        <WidgetGuideModal
+          widget={guideWidget}
+          shop={shop}
+          apiKey={apiKey}
+          installed={installed.has(guideWidget.key)}
+          onInstallClick={markInstalled}
+          onClose={() => setGuideWidget(null)}
+        />
+      )}
     </div>
   );
 }

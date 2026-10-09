@@ -2,12 +2,44 @@
 // and in the public install guide (app/routes/how-to-install-widgets). Keep one list so
 // names, order and images stay identical in both places.
 
+// purpose = what the widget does on the storefront, shown as a label on each
+// card (see PURPOSES): "write" also lets customers write a review, "show" only
+// displays reviews, "stars" is a rating/count badge, "qa" is questions & answers.
+export const PURPOSES = {
+  write: { label: "Shows reviews + Write a review", icon: "✍", color: "#1f7a4d", bg: "#e7f4ec" },
+  show:  { label: "Shows reviews only",             icon: "👁", color: "#4C6FFF", bg: "#eaf0ff" },
+  stars: { label: "Stars & review count only",      icon: "★", color: "#b45309", bg: "#fef3c7" },
+  qa:    { label: "Questions & answers",            icon: "?", color: "#7c3aed", bg: "#f3e8ff" },
+};
+
+// Theme Editor template to open when installing a block — must be one the block
+// is enabled on (see `enabled_on` in extensions/product-review/blocks/*.liquid).
+const BLOCK_TEMPLATES = { "homepage-reviews": "index" };
+export function editorTemplateFor(blockHandle) {
+  return BLOCK_TEMPLATES[blockHandle] || "product";
+}
+
+// Where the deep link drops the block: small product badges go into the product
+// info section (they then move themselves under the title / buy buttons — see
+// snippets/block-position.liquid); full-width widgets get their own Apps section.
+const BLOCK_TARGETS = {
+  "inline-rating": "mainSection",
+  "star_rating": "mainSection",
+  "verified-counter": "mainSection",
+  "trust-medals": "mainSection",
+  "ai-summary": "mainSection",
+};
+export function editorTargetFor(blockHandle) {
+  return BLOCK_TARGETS[blockHandle] || "newAppsSection";
+}
+
 // blockHandle = the theme app extension block's .liquid filename (without extension),
 // used to build the "addAppBlockId" deep link into the Theme Editor.
 export const WIDGETS = [
   {
     key: "review_wall",
-    title: "Review Wall",
+    purpose: "show",
+    title: "Review Wall (All Reviews Page)",
     image: "/images/Review%20Wall%202.png",
     description: "A full dedicated page showing all your store reviews in a searchable, filterable grid. Great for SEO — auto-injects AggregateRating schema for Google star snippets.",
     href: "/app/widgets/review-wall",
@@ -17,6 +49,7 @@ export const WIDGETS = [
   },
   {
     key: "homepage_reviews",
+    purpose: "show",
     title: "Homepage Reviews",
     description: "Full-page review showcase for your home page — 5 layouts: Summary Carousel, Grid, Masonry, Spotlight, Ticker. Colors and fonts managed from the app.",
     href: "/app/widgets/homepage_reviews",
@@ -26,6 +59,7 @@ export const WIDGETS = [
   },
   {
     key: "custom_template",
+    purpose: "show",
     title: "Custom Template",
     description: "Use your own design from the Customize page — layout, colors, cards and fonts all driven by your active template.",
     href: "/app/customize",
@@ -35,14 +69,17 @@ export const WIDGETS = [
   },
   {
     key: "review_widget",
-    title: "Review Widget",
-    description: "Collect and display product reviews directly on your product pages.",
+    purpose: "show",
+    title: "Reviews Showcase",
+    image: "/images/Review%20Widget.png",
+    description: "Show your product reviews on product pages in a styled grid. Display only — pair it with \"Write a Review Form\" so customers can leave reviews.",
     href: "/app/widgets/review_widget",
     blockHandle: "reviews-widget",
     bg: "linear-gradient(135deg,#dff5e1,#bfe9c6)",
   },
   {
     key: "inline_rating",
+    purpose: "stars",
     title: "Inline Star Rating",
     description: "A compact ★★★★★ 4.6 out of 5 based on 1,634 reviews badge — embed anywhere via a single div snippet.",
     href: "/app/widgets/inline_rating",
@@ -51,38 +88,46 @@ export const WIDGETS = [
   },
   {
     key: "star_rating_badge",
+    purpose: "stars",
     title: "Star Rating Badge",
     description: "Show off your product ratings and review count with a compact badge.",
-    href: "/app/widget-settings",
+    href: "/app/custom-code?tab=settings",
     blockHandle: "star_rating",
     bg: "linear-gradient(135deg,#d9ecff,#bcd9f9)",
   },
   {
     key: "reviews_summary",
-    title: "Reviews Summary",
-    description: "Heading, star rating breakdown, write-a-review button, trust badges, sort and pagination — all in one widget.",
+    purpose: "write",
+    title: "Reviews Summary + Write a Review",
+    image: "/images/Reviews%20Summary.png",
+    description: "Rating breakdown, review list with sort and pagination, trust badges and a Write a Review button — everything in one block.",
     href: "/app/widgets/reviews-summary",
     blockHandle: "reviews-summary",
     bg: "linear-gradient(135deg,#ede9fe,#ddd6fe)",
   },
   {
     key: "write_review",
-    title: "Write a Review",
-    description: "Make it easy for customers to speak up — a clean, on-brand review form.",
+    purpose: "write",
+    title: "Write a Review Form",
+    image: "/images/Write%20a%20Review.png",
+    description: "The Write a Review button and form customers use to submit reviews. Added with the \"Reviews + Write Review\" block, which also shows the product's reviews.",
     href: "/app/widgets/write-review",
     blockHandle: "review",
     bg: "linear-gradient(135deg,#e8f5d0,#cfe8a8)",
   },
   {
     key: "review_list",
-    title: "Review List Design",
-    description: "Pick a layout for your review list, style the cards, and set how many reviews show per page.",
+    purpose: "write",
+    title: "Product Reviews List",
+    image: "/images/Review%20List%20Design.png",
+    description: "Style the review list shown under the Write a Review button — layout, cards and reviews per page. Same \"Reviews + Write Review\" block as the form.",
     href: "/app/widgets/review-list",
     blockHandle: "review",
     bg: "linear-gradient(135deg,#fde8e8,#f7c2c2)",
   },
   {
     key: "cards_carousel",
+    purpose: "show",
     title: "Cards Carousel",
     description: "Bring your best reviews to life in an eye-catching carousel.",
     href: "/app/widgets/cards_carousel",
@@ -91,6 +136,7 @@ export const WIDGETS = [
   },
   {
     key: "testimonial_carousel",
+    purpose: "show",
     title: "Testimonial Carousel",
     description: "Showcase your best testimonials beautifully so visitors notice them.",
     href: "/app/widgets/testimonial_carousel",
@@ -99,6 +145,7 @@ export const WIDGETS = [
   },
   {
     key: "videos_carousel",
+    purpose: "show",
     title: "Videos Carousel",
     description: "Bring reviews to life with a wall of customer photos and videos.",
     href: "/app/widgets/videos_carousel",
@@ -107,6 +154,7 @@ export const WIDGETS = [
   },
   {
     key: "popup_reviews",
+    purpose: "show",
     title: "Pop-up Reviews",
     description: "Perfect timing is everything. Showcase your best reviews exactly when shoppers need that little push.",
     href: "/app/widgets/popup_reviews",
@@ -115,6 +163,7 @@ export const WIDGETS = [
   },
   {
     key: "ai_reviews_summary",
+    purpose: "show",
     title: "AI Reviews Summary",
     description: "Showcase an AI generated summary of your store's reviews to build instant trust.",
     href: "/app/widgets/ai-summary",
@@ -123,6 +172,7 @@ export const WIDGETS = [
   },
   {
     key: "single_review",
+    purpose: "show",
     title: "Single Review",
     description: "Show one review at a time with simple next/previous paging — clean and focused.",
     href: "/app/widgets/single_review",
@@ -131,6 +181,7 @@ export const WIDGETS = [
   },
   {
     key: "summary_list",
+    purpose: "show",
     title: "Summary + List",
     image: "/images/summary-list.png",
     description: "Rating breakdown panel beside a full review list — position the summary left, right, top, or bottom.",
@@ -140,6 +191,7 @@ export const WIDGETS = [
   },
   {
     key: "classic_list",
+    purpose: "show",
     title: "Classic Reviews List",
     description: "Clean paginated list with sort dropdown — the most readable layout for long, detailed reviews.",
     href: "/app/widgets/classic_list",
@@ -148,6 +200,7 @@ export const WIDGETS = [
   },
   {
     key: "review_snippets",
+    purpose: "show",
     title: "Review Snippets",
     description: "Boost conversions by showing your best review snippets, giving shoppers instant social proof.",
     href: "/app/widgets/review_snippets",
@@ -156,6 +209,7 @@ export const WIDGETS = [
   },
   {
     key: "questions_answers",
+    purpose: "qa",
     title: "Questions & Answers",
     image: "/images/questions-answers.png",
     description: "Let shoppers ask questions and get answers right on your product pages.",
@@ -165,6 +219,7 @@ export const WIDGETS = [
   },
   {
     key: "happy_customers",
+    purpose: "show",
     title: "Happy Customers widget",
     description: "Bring reviews to life with a wall of happy, smiling customers.",
     href: "/app/widgets/happy_customers",
@@ -173,6 +228,7 @@ export const WIDGETS = [
   },
   {
     key: "reviews_grid",
+    purpose: "show",
     title: "Reviews Grid",
     description: "Display your reviews in a clean, scannable grid layout.",
     href: "/app/widgets/reviews_grid",
@@ -182,6 +238,7 @@ export const WIDGETS = [
   },
   {
     key: "insta_stories",
+    purpose: "show",
     title: "Insta Stories",
     description: "Instagram-style photo & video reviews in six designs: Stories tray, Reels feed, Reels Carousel, Social Mix collage, Phone Showcase and Swipe Deck. Switch designs in Widget Design.",
     href: "/app/widgets/insta_stories",
@@ -191,6 +248,7 @@ export const WIDGETS = [
   },
   {
     key: "hero_quote_carousel",
+    purpose: "show",
     title: "Hero Quote Carousel",
     description: "Full-bleed crossfading slides with a review's photo as the backdrop and a large centered quote overlay — a magazine-style hero look.",
     href: "/app/widgets/hero_quote_carousel",
@@ -201,6 +259,7 @@ export const WIDGETS = [
   },
   {
     key: "coverflow_carousel",
+    purpose: "show",
     title: "Coverflow Carousel",
     description: "The active review sits centered at full size while neighboring cards peek in at reduced scale on either side — tap a side card to jump to it.",
     href: "/app/widgets/coverflow_carousel",
@@ -210,6 +269,7 @@ export const WIDGETS = [
   },
   {
     key: "split_media_carousel",
+    purpose: "show",
     title: "Split Media Carousel",
     description: "Photo or video on one side, the review text on the other — one review per slide, premium testimonial-section styling.",
     href: "/app/widgets/split_media_carousel",
@@ -219,6 +279,7 @@ export const WIDGETS = [
   },
   {
     key: "floating_reviews_tab",
+    purpose: "show",
     title: "Floating Reviews Tab",
     description: "Access all your reviews through a floating tab at the side of the page.",
     href: "/app/widgets/floating_reviews_tab",
@@ -227,6 +288,7 @@ export const WIDGETS = [
   },
   {
     key: "trust_medals",
+    purpose: "stars",
     title: "Trust Medals",
     description: "Display a trust badge with your rating, review count, and a verified ribbon.",
     href: "/app/widgets/trust_medals",
@@ -235,6 +297,7 @@ export const WIDGETS = [
   },
   {
     key: "verified_counter",
+    purpose: "stars",
     title: "Verified Reviews Counter",
     description: "Display the number of verified reviews a product has received.",
     href: "/app/widgets/verified_counter",
@@ -243,6 +306,7 @@ export const WIDGETS = [
   },
   {
     key: "all_reviews_counter",
+    purpose: "stars",
     title: "All Reviews Counter",
     description: "Show the total number of reviews you've received and their average rating.",
     href: "/app/widgets/all_reviews_counter",
@@ -251,6 +315,7 @@ export const WIDGETS = [
   },
   {
     key: "instagram_shopping",
+    purpose: "show",
     title: "UCC Instagram Shopping",
     description: "Take your favorite user-generated content from Instagram and pull it into a grid.",
     href: "/app/widgets/instagram-shopping",
@@ -258,6 +323,7 @@ export const WIDGETS = [
   },
   {
     key: "google_reviews",
+    purpose: "show",
     title: "Google Reviews",
     description: "Pull your store's own Google rating and reviews onto the storefront — 15 designs, from a minimal badge to a full testimonial wall.",
     href: "/app/widgets/google-reviews",
@@ -267,6 +333,7 @@ export const WIDGETS = [
   },
   {
     key: "customer_accounts",
+    purpose: "write",
     title: "Customer accounts widgets",
     description: "Let customers write and view reviews, and see rewards directly on the order confirmation page.",
     href: "/app/widgets/customer-accounts",

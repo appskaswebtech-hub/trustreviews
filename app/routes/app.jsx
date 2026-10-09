@@ -164,10 +164,6 @@ export default function App() {
               Widgets
             </Link>
 
-            <Link to="/app/widget-settings">
-              Settings
-            </Link>
-
             <Link to="/app/review-groups">
               Product Groups
             </Link>

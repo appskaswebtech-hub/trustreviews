@@ -42,10 +42,14 @@
 })();
 </script>
 
+{% render 'block-position', widget: 'verified_counter', spot: 'under_title', position: block.settings.position, block_id: block.id %}
+
 {% schema %}
 {
   "name": "Verified Reviews Counter",
   "target": "section",
-  "settings": []
+  "settings": [
+    {"type": "select", "id": "position", "label": "Position", "default": "auto", "options": [{"value": "auto", "label": "Automatic (recommended)"}, {"value": "under_title", "label": "Under the product title"}, {"value": "here", "label": "Where I place the block"}], "info": "Automatic: added from the Trust Reviews app → shows under the product title. Blocks you placed yourself stay where they are."}
+  ]
 }
 {% endschema %}

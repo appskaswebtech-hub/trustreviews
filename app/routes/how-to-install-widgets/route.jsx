@@ -163,7 +163,7 @@ export default function HowToInstallWidgets() {
               ["Pick the page", "Top dropdown → Products › Default product, Home page or any other page."],
               ["Add the block", "Add section → Apps tab → search “Trust” → choose the widget's block."],
               ["Move it", "Drag the ⋮⋮ handle to place the widget where you want it."],
-              ["Block settings", "For the Trust Reviews block, “Show this widget” picks which widget it shows."],
+              ["Block settings", "For the Reviews Showcase block, “Show this widget” picks which widget it shows."],
               ["Save", "Click Save in the top-right. Open your store to check the widget."],
             ].map(([title, text], i) => (
               <div key={title} className="hiw-step">
@@ -227,7 +227,7 @@ export default function HowToInstallWidgets() {
             {[
               ["I can't see Trust Reviews under the Apps tab.", "Make sure the app is installed and your theme is an Online Store 2.0 theme. Some sections don't accept app blocks. If so, use Add section → Apps instead of Add block."],
               ["The block is added but nothing shows on the storefront.", "Make sure you clicked Save in the Theme Editor. Check that the product has reviews, or that the widget is enabled in the app."],
-              ["The wrong widget is showing.", "Select the Trust Reviews block and change “Show this widget” from Auto to the widget you want."],
+              ["The wrong widget is showing.", "Select the Reviews Showcase block and change “Show this widget” from Auto to the widget you want."],
               ["It shows on one product but not another.", "That product uses a different product template. Switch to it in the template dropdown and add the block there too."],
               ["How do I remove a widget?", "Select the block in the sidebar, click Remove block at the bottom of its settings, then Save."],
             ].map(([q, a]) => (

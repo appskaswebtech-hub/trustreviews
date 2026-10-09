@@ -1,0 +1,75 @@
+{% comment %}
+  Moves a product-page app block to its natural spot after it is installed from
+  the Trust Reviews app. Shopify's "Install" deep link adds the block at the end
+  of the product info section; this puts it under the title or under the buy
+  buttons instead.
+
+  Params:
+    widget   — install key from the app's Widgets page (e.g. "inline_rating")
+    spot     — "under_title" | "under_buy_buttons"
+    position — the block's "Position" setting: "auto" | <spot> | "here"
+    block_id — block.id
+
+  "auto" asks the app (once per browser, then cached): only a block added from
+  the app's Install button moves. Every block that was already on a store is
+  pinned to "here" on its first render, so live stores never change layout.
+{% endcomment %}
+<script>
+(function () {
+  var me = document.currentScript;
+  var wrap = me && (me.closest('.shopify-app-block') || me.parentElement);
+  if (!wrap) return;
+
+  var WIDGET   = {{ widget | json }};
+  var SPOT     = {{ spot | json }};
+  var POSITION = {{ position | default: 'auto' | json }};
+  var BLOCK_ID = {{ block_id | json }};
+  var DESIGN   = {{ request.design_mode | json }};
+  var SHOP     = {{ shop.permanent_domain | json }};
+
+  var TARGETS = {
+    under_title: ['.product__title', '.product-single__title', '.product_title', '.product-title',
+      '.product-meta__title', '.product-info__title', '[data-product-title]', 'h1'],
+    under_buy_buttons: ['product-form', 'form[action*="/cart/add"]']
+  };
+
+  function isVisible(el) { return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0; }
+
+  function move() {
+    var scope = wrap.closest('.shopify-section') || document;
+    var selectors = TARGETS[SPOT] || [];
+    for (var i = 0; i < selectors.length; i++) {
+      var found = scope.querySelectorAll(selectors[i]);
+      for (var j = 0; j < found.length; j++) {
+        var target = found[j];
+        if (target.contains(wrap) || wrap.contains(target) || !isVisible(target)) continue;
+        if (SPOT === 'under_title' && !target.textContent.trim()) continue;
+        // Go up to the target's block in the same list as this block (e.g. the
+        // whole "Buy buttons" block, not just its <form>).
+        var level = target;
+        while (level.parentElement && !level.parentElement.contains(wrap)) level = level.parentElement;
+        if (level.nextElementSibling !== wrap) level.insertAdjacentElement('afterend', wrap);
+        return;
+      }
+    }
+  }
+
+  function placement(done) {
+    if (POSITION !== 'auto') return done(POSITION === SPOT);
+    var key = 'tr-pos-' + SHOP + '-' + BLOCK_ID;
+    try { var cached = localStorage.getItem(key); if (cached) return done(cached === 'move'); } catch (e) {}
+    fetch('/apps/review?type=block-placement&widget=' + encodeURIComponent(WIDGET) +
+          '&blockId=' + encodeURIComponent(BLOCK_ID) + '&designMode=' + DESIGN)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var p = d.placement === 'move' ? 'move' : 'here';
+        try { localStorage.setItem(key, p); } catch (e) {}
+        done(p === 'move');
+      })
+      .catch(function () {});
+  }
+
+  function run() { placement(function (shouldMove) { if (shouldMove) move(); }); }
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', run) : run();
+})();
+</script>

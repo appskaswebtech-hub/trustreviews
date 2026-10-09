@@ -2,6 +2,10 @@
 
 <script class="tr-extensions-product-review-blocks-custom-code-script-2">
 (function () {
+  // Custom CSS/JS can be loaded by this block and by the Trust Reviews app
+  // embed — whichever runs first does it, so the merchant's JS never runs twice.
+  if (window.__trCustomCodeLoaded) return;
+  window.__trCustomCodeLoaded = true;
   var SHOP = {{ shop.permanent_domain | json }};
   var BASE = '/apps/review';
 

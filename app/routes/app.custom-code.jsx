@@ -6,15 +6,17 @@ import { SHELL_C } from "../components/WidgetCustomizeShell";
 import { useAdminT } from "../utils/adminTranslations";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
+import StarBadgeSettings, { DEFAULT_BADGE_SETTINGS } from "../components/StarBadgeSettings";
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
 
-  const [store, customCode, isPro] = await Promise.all([
+  const [store, customCode, isPro, badgeSettings] = await Promise.all([
     prisma.store.findUnique({ where: { shop: session.shop }, select: { language: true } }),
     prisma.storeCustomCode.findUnique({ where: { shop: session.shop } }),
     hasAdvancedAccess(session.shop),
+    prisma.widgetSettings.findUnique({ where: { shop: session.shop } }),
   ]);
 
   return {
@@ -23,6 +25,8 @@ export async function loader({ request }) {
     customCss: customCode?.customCss || "",
     customJs:  customCode?.customJs  || "",
     isPro,
+    badgeSettings: badgeSettings || DEFAULT_BADGE_SETTINGS,
+    initialTab: new URL(request.url).searchParams.get("tab") || "snippets",
   };
 }
 
@@ -52,6 +56,22 @@ export async function action({ request }) {
     return { success: true };
   }
 
+  if (body.actionType === "badge-settings") {
+    const data = {
+      starColor: body.starColor || "#F59E0B", starSize: Number(body.starSize) || 15,
+      countColor: body.countColor || "#6B7280", countFontSize: Number(body.countFontSize) || 12,
+      showEmpty: Boolean(body.showEmpty), borderRadius: Number(body.borderRadius) || 0,
+      background: body.background || "#FFFFFF", widgetStyle: body.widgetStyle || "compact",
+      secondaryStat: body.secondaryStat || "",
+    };
+    await prisma.widgetSettings.upsert({
+      where:  { shop: session.shop },
+      update: data,
+      create: { shop: session.shop, ...data },
+    });
+    return { success: true };
+  }
+
   return { success: false };
 }
 
@@ -68,6 +88,7 @@ const TABS = [
   { id: "snippets", icon: "⟨/⟩" },
   { id: "language", icon: "⊙"  },
   { id: "code",     icon: "✦"   },
+  { id: "settings", icon: "⚙"   },
 ];
 
 const SNIPPETS = [
@@ -110,9 +131,76 @@ const SNIPPETS = [
 ];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
+// Manual install steps for the review widget div (shown on the dashboard after
+// "Install Widget" before that button opened the Theme Editor walkthrough).
+const WIDGET_DIV = '<div data-trust-product-id="{{ product.id }}"></div>';
+const MANUAL_STEPS = [
+  { n: 1, title: "Go to Theme Editor", body: <>Navigate to <strong>Online Store → Themes</strong> and click <strong>Customize</strong> on your active theme.</> },
+  { n: 2, title: "Find Your Product Template", body: <>In the theme editor, navigate to <strong>Products → Default Product</strong>.</> },
+  { n: 3, title: "Edit Code", body: <>Click <strong>⋮</strong> → <strong>Edit code</strong>. Find <code style={{ background: "#F2F7FB", padding: "2px 6px", borderRadius: 4 }}>sections/main-product.liquid</code></> },
+  { n: 4, title: "Paste the Widget Code", body: null },
+  { n: 5, title: "Save & Preview", body: <>Click <strong>Save</strong>, then view any product page to see your review widget live.</> },
+];
+
+function ManualInstallGuide() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard?.writeText(WIDGET_DIV).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div style={{
+      marginTop: 20, background: SHELL_C.surface, borderRadius: 16,
+      border: `1px solid ${SHELL_C.border}`, padding: "18px 20px",
+      boxShadow: "0 1px 4px rgba(0,0,0,.05)",
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: SHELL_C.text }}>Manual install (Edit code)</div>
+      <div style={{ fontSize: 14, color: SHELL_C.muted, marginTop: 2, marginBottom: 18, lineHeight: 1.4 }}>
+        Prefer code over the Theme Editor block? Paste the widget div straight into your product template.
+      </div>
+
+      {MANUAL_STEPS.map(({ n, title, body }) => (
+        <div key={n} style={{ marginBottom: n === MANUAL_STEPS.length ? 0 : 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 15, fontWeight: 600, color: SHELL_C.text }}>
+            <span style={{
+              width: 26, height: 26, borderRadius: "50%", background: "#D6E6F2", color: "#4F7392",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0,
+            }}>{n}</span>
+            {title}
+          </div>
+          {body ? (
+            <p style={{ fontSize: 13.5, color: SHELL_C.muted, margin: "0 0 0 36px", lineHeight: 1.6 }}>{body}</p>
+          ) : (
+            <div style={{
+              marginLeft: 36, background: "#1e1e2e", borderRadius: 10, padding: "14px 16px",
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+            }}>
+              <code style={{ fontSize: 14, color: "#a6e3a1", fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>
+                {WIDGET_DIV}
+              </code>
+              <button
+                onClick={copy}
+                style={{
+                  border: "none", borderRadius: 7, padding: "6px 14px", cursor: "pointer",
+                  background: copied ? "#1f7a4d" : "#4C6FFF", color: "#fff", fontWeight: 600, fontSize: 13, flexShrink: 0,
+                }}
+              >
+                {copied ? "✓ Copied!" : "Copy"}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TabBar({ active, onChange }) {
   const tr = useAdminT();
-  const TAB_LABELS = { snippets: tr.snippetsTab, language: tr.languageTab, code: tr.codeTab };
+  const TAB_LABELS = { snippets: tr.snippetsTab, language: tr.languageTab, code: tr.codeTab, settings: tr.settingsTab };
   return (
     // <div style={{
     //   display: "flex", gap: 4, padding: "16px 24px 0",
@@ -318,10 +406,10 @@ function CodeEditor({ label, value, onChange, placeholder, hint }) {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function CustomCodePage() {
-  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro } = useLoaderData();
+  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro, badgeSettings, initialTab } = useLoaderData();
 
   const t = useAdminT();
-  const [tab, setTab]         = useState("snippets");
+  const [tab, setTab]         = useState(initialTab);
   const [lang, setLang]       = useState(initialLang);
   const [css, setCss]         = useState(initialCss);
   const [js, setJs]           = useState(initialJs);
@@ -754,7 +842,7 @@ export default function CustomCodePage() {
   {/* ── Content ── */}
   <div
     style={{
-      maxWidth: 920,
+      maxWidth: tab === "settings" ? 1280 : 920,
       margin: "0 auto",
       padding: "26px 24px 34px",
     }}
@@ -827,6 +915,8 @@ export default function CustomCodePage() {
             <SnippetCard key={s.id} snippet={s} shop={shop} />
           ))}
         </div>
+
+        <ManualInstallGuide />
 
         {/* How it works */}
         <div
@@ -1085,6 +1175,9 @@ export default function CustomCodePage() {
       </div>
     )}
 
+    {/* ── SETTINGS TAB (Star Rating Badge) ── */}
+    {tab === "settings" && <StarBadgeSettings settings={badgeSettings} />}
+
     {/* ── CUSTOM CSS & JS TAB ── */}
     {tab === "code" &&
       (isPro ? (
@@ -1122,15 +1215,7 @@ export default function CustomCodePage() {
               }}
               className="tr-app-routes-app-custom-code-p-66"
             >
-              Add custom styles or scripts that run on your storefront alongside the review widgets.
-              Requires the{" "}
-              <strong
-                className="tr-app-routes-app-custom-code-strong-67"
-                style={{ color: "#4F7392" }}
-              >
-                Custom Code Injector
-              </strong>{" "}
-              block added to your theme.
+              Add custom styles or scripts that run on every page of your storefront alongside the review widgets.
             </p>
           </div>
 
@@ -1165,12 +1250,12 @@ export default function CustomCodePage() {
               }}
               className="tr-app-routes-app-custom-code-div-70"
             >
-              Go to your Theme Editor → add the{" "}
+              On the Home page click{" "}
               <strong className="tr-app-routes-app-custom-code-strong-71">
-                "Trust Custom Code"
+                Install Widget
               </strong>{" "}
-              block to your theme's header or footer section.
-              This block loads your CSS and JS on every page. You only need to do this once.
+              → <strong>Continue to Theme Editor</strong> → <strong>Save</strong>. That turns on the
+              Trust Reviews app embed, which loads your CSS and JS on every page. You only need to do this once.
             </div>
           </div>
 
@@ -1200,7 +1285,7 @@ export default function CustomCodePage() {
 .review-card {
   border-radius: 16px;
 }`}
-                hint="Styles are injected via a <style> tag on every storefront page where the block is active."
+                hint="Styles are injected via a <style> tag on every storefront page once the Trust Reviews app embed is on."
               />
             </div>
 

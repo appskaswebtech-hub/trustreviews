@@ -4,7 +4,7 @@ import { WIDGETS as CATALOG } from "../../utils/widgetCatalog";
 // `name` is the block's schema name (what the Theme Editor shows) and `settings`
 // are its first settings, so the videos show the same fields merchants see.
 export const BLOCKS = {
-  "reviews-widget": { name: "Trust Reviews", settings: [
+  "reviews-widget": { name: "Reviews Showcase", settings: [
     { type: "select", label: "Show this widget", value: "Auto (installed from app)" },
     { type: "select", label: "Design override (optional)", value: "Same as the widget (recommended)" },
     { type: "text", label: "Section Heading", value: "What our customers say" },
@@ -33,16 +33,16 @@ export const BLOCKS = {
     { type: "range", label: "Gap Between Stars", value: 2 },
     { type: "checkbox", label: "Show rating text", value: true },
   ] },
-  star_rating: { name: "Star Rating", settings: [
+  star_rating: { name: "Star Rating Badge", settings: [
     { type: "text", label: "Product", value: "Current product" },
     { type: "color", label: "Star Colour", value: "#ff0000" },
   ] },
-  "reviews-summary": { name: "Reviews Summary", settings: [
+  "reviews-summary": { name: "Summary + Write Review", settings: [
     { type: "text", label: "Heading", value: "Customer Reviews" },
     { type: "checkbox", label: "Show \"Write a Review\" button and form", value: true },
     { type: "checkbox", label: "Show \"Verified\" badge on every review", value: true },
   ] },
-  review: { name: "Product Review", settings: [
+  review: { name: "Reviews + Write Review", settings: [
     { type: "checkbox", label: "Show \"Write a Review\" button and form", value: true },
     { type: "select", label: "Review helpfulness voting", value: "Simple" },
     { type: "color", label: "Accent Color (buttons & stars)", value: "#1a1a1a" },

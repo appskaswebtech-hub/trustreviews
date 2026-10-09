@@ -183,7 +183,15 @@ export default function AiSummaryPage() {
 
   const installUrl =
     `https://${shop}/admin/themes/current/editor` +
-    `?template=product&addAppBlockId=${encodeURIComponent(apiKey)}/ai-summary&target=newAppsSection`;
+    `?template=product&addAppBlockId=${encodeURIComponent(apiKey)}/ai-summary&target=mainSection`;
+
+  // Lets the new block move itself under the buy buttons (see api.review.jsx
+  // resolveBlockPlacement), same as "Install" on the Widgets page.
+  const recordInstall = () => {
+    const fd = new FormData();
+    fd.set("widgetKey", "ai_reviews_summary");
+    fetch("/app/widgets", { method: "POST", body: fd }).catch(() => {});
+  };
 
   return (
     <WidgetCustomizeShell
@@ -194,6 +202,7 @@ export default function AiSummaryPage() {
         <InstallSection
           description="Showcase an AI generated summary of your store's reviews to build instant trust."
           installUrl={installUrl}
+          onInstall={recordInstall}
           note={!aiConfigured ? (
             <span className="tr-app-routes-app-widgets-ai-summary-span-14">Add <code className="tr-app-routes-app-widgets-ai-summary-code-15">ANTHROPIC_API_KEY</code> to your <code className="tr-app-routes-app-widgets-ai-summary-code-16">.env</code> to enable AI summary generation.</span>
           ) : null}

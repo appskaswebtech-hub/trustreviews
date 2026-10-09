@@ -4,6 +4,7 @@ import { redirect } from "react-router";
 import db from "../db.server";
 import { useState, useRef, useEffect } from "react";
 import { notifyIntegrations } from "../utils/events.server";
+import InstallWidgetModal from "../components/InstallWidgetModal";
 //import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -154,6 +155,7 @@ export const loader = async ({ request }) => {
       allCount: 0, approvedCount: 0, pendingCount: 0, rejectedCount: 0,
       ratingBreakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }, avgRating: 0, newThisWeek: 0,
       tab, search, autoPublish: false,
+      shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "",
     };
   }
 
@@ -270,6 +272,7 @@ export const loader = async ({ request }) => {
     ratingBreakdown, avgRating, newThisWeek,
     tab, search,
     autoPublish: store.autoPublish,
+    shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "",
   };
 
 
@@ -1279,95 +1282,6 @@ function RatingSummaryCard({ avgRating, approvedCount, ratingBreakdown, newThisW
     })}
   </div>
 </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   INSTALLATION DOCS MODAL
-───────────────────────────────────────── */
-function InstallDocsModal({ onClose, t }) {
-  const codeSnippet = '<div data-trust-product-id="{{ product.id }}"></div>';
-  const [copied, setCopied] = useState(false);
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(codeSnippet);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="tr-dashboard-install-overlay" style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
-    }} onClick={onClose}>
-      <div className="tr-dashboard-install-modal" style={{
-        background: C.surface, borderRadius: 20, padding: 32, width: 650,
-        maxHeight: "90vh", overflow: "auto",
-        boxShadow: "0 24px 64px rgba(0,0,0,.22)", position: "relative",
-      }} onClick={(e) => e.stopPropagation()}>
-        <button className="tr-dashboard-install-close" onClick={onClose} style={{
-          position: "absolute", top: 14, right: 14, width: 30, height: 30,
-          borderRadius: 8, border: "none", background: "#f3f4f6",
-          cursor: "pointer", fontSize: 15, color: C.muted,
-        }}>✕</button>
-
-        <div className="tr-dashboard-install-title" style={{ fontSize: 22, fontWeight: 600, color: C.text, marginBottom: 8 }}>
-          {t.widgetInstalled}
-        </div>
-        <p className="tr-dashboard-install-subtitle" style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>{t.widgetSubtitle}</p>
-
-        {[
-          { n: 1, title: "Go to Theme Editor", body: <>Navigate to <strong className="tr-dashboard-install-theme-location">Online Store → Themes</strong> and click <strong className="tr-dashboard-install-customize-label">Customize</strong> on your active theme.</> },
-          { n: 2, title: "Find Your Product Template", body: <>In the theme editor, navigate to <strong className="tr-dashboard-install-product-template">Products → Default Product</strong>.</> },
-          { n: 3, title: "Edit Code", body: <>Click <strong className="tr-dashboard-install-menu-label">⋮</strong> → <strong className="tr-dashboard-install-edit-code-label">Edit code</strong>. Find <code className="tr-dashboard-install-section-file" style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4 }}>sections/main-product.liquid</code></> },
-          { n: 5, title: "Save & Preview", body: <>Click <strong className="tr-dashboard-install-save-label">Save</strong>, then view any product page to see your review widget live.</> },
-        ].map(({ n, title, body }) => (
-          <div className="tr-dashboard-install-step" key={n} style={{ marginBottom: 24 }}>
-            <div className="tr-dashboard-install-step-title" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 600, color: C.text }}>
-              <span className="tr-dashboard-install-step-number" style={{
-                width: 28, height: 28, borderRadius: "50%", background: C.accentLt,
-                color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, fontWeight: 600,
-              }}>{n}</span>
-              {title}
-            </div>
-            <p className="tr-dashboard-install-step-description" style={{ fontSize: 13, color: C.muted, marginLeft: 38, lineHeight: 1.6 }}>{body}</p>
-          </div>
-        ))}
-
-        <div className="tr-dashboard-install-code-step" style={{ marginBottom: 24 }}>
-          <div className="tr-dashboard-install-code-title" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 16, fontWeight: 600, color: C.text }}>
-            <span className="tr-dashboard-install-code-step-number" style={{
-              width: 28, height: 28, borderRadius: "50%", background: C.accentLt,
-              color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 600,
-            }}>4</span>
-            Paste the Widget Code
-          </div>
-          <div className="tr-dashboard-install-code-block" style={{
-            background: "#1e293b", borderRadius: 10, padding: "14px 16px",
-            marginLeft: 38, position: "relative", border: "1px solid #334155",
-          }}>
-            <code className="tr-dashboard-install-code-snippet" style={{ color: "#e2e8f0", fontFamily: "monospace", fontSize: 13, display: "block", whiteSpace: "pre" }}>
-              {codeSnippet}
-            </code>
-            <button className="tr-dashboard-install-copy-button" onClick={copyCode} style={{
-              position: "absolute", top: 10, right: 10,
-              background: copied ? C.green : C.accent,
-              color: "#fff", border: "none", borderRadius: 6,
-              padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer",
-            }}>
-              {copied ? "✓ Copied!" : "Copy"}
-            </button>
-          </div>
-        </div>
-
-        <button className="tr-dashboard-install-done-button" onClick={onClose} style={{
-          width: "100%", border: "none", borderRadius: 10, padding: "12px",
-          background: C.accent, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer",
-        }}>{t.gotIt}</button>
-      </div>
-    </div>
   );
 }
 
@@ -2414,7 +2328,7 @@ export default function ReviewsPage() {
     shopLocale, grouped, total, page, limit,
     allCount, approvedCount, pendingCount, rejectedCount,
     ratingBreakdown, avgRating, newThisWeek,
-    tab, search, autoPublish,
+    tab, search, autoPublish, shop, apiKey,
   } = useLoaderData();
 
   const submit = useSubmit();
@@ -2521,20 +2435,9 @@ export default function ReviewsPage() {
     submit(fd, { method: "post" });
   };
 
-  const handleInstallScript = async () => {
-    setInstalling(true); setInstallMsg(""); setInstallOk(null);
-    try {
-      const res  = await fetch("/api/install-script");
-      const data = await res.json();
-      setInstallMsg(data.message || "Installed!");
-      setInstallOk(true);
-      setTimeout(() => { setShowInstallDocs(true); setInstallMsg(""); }, 1000);
-    } catch {
-      setInstallMsg("Error installing script");
-      setInstallOk(false);
-      setTimeout(() => { setInstallMsg(""); setInstallOk(null); }, 4000);
-    } finally { setInstalling(false); }
-  };
+  // Opens the install walkthrough popup; "Continue" turns on the app embed
+  // in the Theme Editor (that is what loads the review widgets' engine).
+  const handleInstallScript = () => setShowInstallDocs(true);
 
   const exportCSV = () => {
     const toCSVCell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
@@ -3055,9 +2958,10 @@ export default function ReviewsPage() {
     )}
 
     {showInstallDocs && (
-      <InstallDocsModal
+      <InstallWidgetModal
+        shop={shop}
+        apiKey={apiKey}
         onClose={() => setShowInstallDocs(false)}
-        t={t}
       />
     )}
 

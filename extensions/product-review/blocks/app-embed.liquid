@@ -23,6 +23,41 @@
 </script>
 <script src="{{ 'review.js' | asset_url }}" defer class="tr-extensions-product-review-blocks-app-embed-script-2"></script>
 
+{%- comment -%}
+  Merchant's Custom CSS & JS (app → Custom Code → Custom CSS & JS), on every
+  page, so new stores don't need the "Trust Custom Code" block (still
+  supported for stores that already have it). The embed is switched on from
+  the dashboard's "Install Widget" button.
+{%- endcomment -%}
+<style id="tr-custom-css"></style>
+<script>
+(function () {
+  // Custom CSS/JS can be loaded by this block and by the Trust Reviews app
+  // embed — whichever runs first does it, so the merchant's JS never runs twice.
+  if (window.__trCustomCodeLoaded) return;
+  window.__trCustomCodeLoaded = true;
+  var BASE = '/apps/review?type=custom-code&shop=' + encodeURIComponent({{ shop.permanent_domain | json }});
+
+  fetch(BASE + '&field=css')
+    .then(function (r) { return r.text(); })
+    .then(function (css) {
+      if (css && css.trim()) document.getElementById('tr-custom-css').textContent = css;
+    })
+    .catch(function () {});
+
+  fetch(BASE + '&field=js')
+    .then(function (r) { return r.text(); })
+    .then(function (js) {
+      if (js && js.trim()) {
+        var sc = document.createElement('script');
+        sc.textContent = js;
+        document.head.appendChild(sc);
+      }
+    })
+    .catch(function () {});
+})();
+</script>
+
 {% schema %}
 {
   "name": "Trust Reviews Engine",
