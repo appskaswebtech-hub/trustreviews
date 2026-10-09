@@ -125,17 +125,15 @@ export const loader = async ({ request }) => {
     console.error("[billing gate] error, skipping:", err.message);
   }*/
 
-  // ── Fetch shop's primary locale ──────────────────────────────────────────────
-  let shopLocale = "en";
-  try {
-    const res  = await admin.graphql(`{ shop { primaryLocale } }`);
-    const data = await res.json();
-    shopLocale = mapLocale(data?.data?.shop?.primaryLocale || "en");
-  } catch (e) {
-    console.error("[locale fetch] failed, defaulting to en:", e.message);
-  }
-
   const url = new URL(request.url);
+
+  // ── Admin language ───────────────────────────────────────────────────────────
+  // Shopify passes the admin user's language as ?locale= when it opens the
+  // embedded app. (Shop.primaryLocale no longer exists in the Admin API — the
+  // query failed on every dashboard load — and its replacement, shopLocales,
+  // needs the read_locales scope, which would make every store re-approve.)
+  // The language saved in Settings still wins below.
+  let shopLocale = mapLocale(url.searchParams.get("locale") || "en");
   const page = Math.max(1, Number(url.searchParams.get("page") || 1));
   const tab = url.searchParams.get("tab") || "all";
   const search = url.searchParams.get("search") || "";
