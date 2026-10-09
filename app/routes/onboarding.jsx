@@ -16,7 +16,7 @@
 // app.jsx hands out (see utils/onboarding-token.server.js) and talks to the
 // Admin API via unauthenticated.admin(shop) instead.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useFetcher } from "react-router";
 import { redirect } from "react-router";
 import db from "../db.server";
@@ -224,12 +224,21 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
   // sub-step within step 0, not a new entry in STEPS/the step indicator.
   const [businessSubStep, setBusinessSubStep] = useState(initialStep === 1 ? 1 : 0);
   const [form, setForm] = useState(initial);
-  const isSubmitting = fetcher.state !== "idle";
+  const [pendingAction, setPendingAction] = useState(null);
 
   const destination = fetcher.data?.confirmationUrl || fetcher.data?.redirectUrl;
-  if (destination) {
-    window.location.href = destination;
-  }
+  // Still "busy" after the response arrives while the browser leaves for
+  // Shopify, so the button doesn't flash back to normal first.
+  const isSubmitting = fetcher.state !== "idle" || Boolean(destination);
+
+  // Navigate once, from an effect — not on every render.
+  const leftRef = useRef(false);
+  useEffect(() => {
+    if (destination && !leftRef.current) {
+      leftRef.current = true;
+      window.location.href = destination;
+    }
+  }, [destination]);
 
   const canNext = () => {
     if (step === 0) {
@@ -271,6 +280,8 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
   const skipStep = () => advance();
 
   const submitPlan = (actionType) => {
+    if (isSubmitting) return;
+    setPendingAction(actionType);
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     fd.append("actionType", actionType);
@@ -724,6 +735,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           setForm={setForm}
           devStore={devStore}
           isSubmitting={isSubmitting}
+          pendingAction={pendingAction}
           canNext={canNext()}
           goNext={goNext}
           goBack={goBack}

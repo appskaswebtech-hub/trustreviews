@@ -32,6 +32,8 @@ export const labelStyle = {
 export const WIZARD_CSS = `
 @keyframes trwStepIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes trwPopIn { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes trwSpin { to { transform: rotate(360deg); } }
+.trw-spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: trwSpin .7s linear infinite; flex-shrink: 0; }
 .trw-step { animation: trwStepIn 320ms cubic-bezier(.2,.7,.3,1); }
 .trw-dot { transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, box-shadow 280ms ease, transform 280ms ease; }
 .trw-dot-check { animation: trwPopIn 220ms cubic-bezier(.3,1.5,.5,1); }
@@ -179,7 +181,12 @@ export function WidgetPreviewStep() {
 }
 
 /* ── Plan step ── */
-export function PlanStep({ devStore, isSubmitting, onAdvance, onFree }) {
+// isSubmitting = a plan choice is in flight (or we're already leaving for
+// Shopify's approval screen); pendingAction = which button was pressed, so
+// only that one shows the spinner. Buttons keep a fixed size while loading.
+export function PlanStep({ devStore, isSubmitting, pendingAction, onAdvance, onFree }) {
+  const advancing = isSubmitting && pendingAction === "advance";
+  const choosingFree = isSubmitting && pendingAction === "free";
   return (
     <div className="trw-plan-step" style={{ textAlign: "center" }}>
       <div className="trw-plan-title" style={{ fontSize: 21, fontWeight: 700, color: C.text, marginBottom: 8, letterSpacing: "-.01em" }}>
@@ -187,7 +194,7 @@ export function PlanStep({ devStore, isSubmitting, onAdvance, onFree }) {
       </div>
       <p className="trw-plan-description" style={{ fontSize: 13, color: C.muted, marginBottom: 22, lineHeight: 1.6, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
         Your Free plan already includes unlimited reviews &amp; storefront widgets.{" "}
-        {devStore ? "Development stores get Advanced free:" : "Try Advanced free for 5 days:"}
+        {devStore ? "Development stores get Advanced free:" : "Try Advanced free for 10 days:"}
       </p>
 
       <div className="trw-plan-features-card" style={{
@@ -224,36 +231,44 @@ export function PlanStep({ devStore, isSubmitting, onAdvance, onFree }) {
         <button
           onClick={onAdvance}
           disabled={isSubmitting}
+          aria-busy={advancing}
           className="trw-btn-primary"
           style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+            minWidth: 230, minHeight: 48,
             border: "none", borderRadius: 10, padding: "14px 36px",
             background: "linear-gradient(135deg, #111827, #2d3444)",
             color: "#fff", fontSize: 14.5, fontWeight: 650,
-            cursor: isSubmitting ? "wait" : "pointer", opacity: isSubmitting ? 0.6 : 1,
+            cursor: isSubmitting ? "default" : "pointer",
+            opacity: isSubmitting && !advancing ? 0.55 : 1,
+            transition: "opacity .2s ease",
             boxShadow: "0 6px 18px rgba(17,24,39,.22)",
           }}
         >
-          {isSubmitting ? "Please wait…" : devStore ? "Try Advanced" : "Try Advanced for $0"}
-          {!isSubmitting && <IconChevronRight />}
+          {advancing ? "Starting your trial…" : devStore ? "Try Advanced" : "Try Advanced for $0"}
+          {advancing ? <span className="trw-spinner" aria-hidden="true" /> : <IconChevronRight />}
         </button>
       </div>
       <div className="trw-plan-pricing-note" style={{ fontSize: 11.5, color: C.muted, marginTop: 12 }}>
-        {devStore ? "Free for development and testing." : "Free for 5 days. Then $9.99/month. Cancel anytime."}
+        {devStore ? "Free for development and testing." : "Free for 10 days. Then $9.99/month. Cancel anytime."}
       </div>
 
       <div className="trw-plan-free-action" style={{ marginTop: 20 }}>
         <button
           onClick={onFree}
           disabled={isSubmitting}
+          aria-busy={choosingFree}
           className="trw-btn-ghost"
           style={{
-            border: "none", background: "none", cursor: isSubmitting ? "wait" : "pointer",
+            display: "inline-flex", alignItems: "center", gap: 8,
+            border: "none", background: "none", cursor: isSubmitting ? "default" : "pointer",
             color: "#9ca3af", fontSize: 16, fontWeight: 600, padding: "6px 4px",
             borderBottom: "1px solid transparent",
+            opacity: isSubmitting && !choosingFree ? 0.55 : 1, transition: "opacity .2s ease",
           }}
         >
           Continue with the Free plan
+          {choosingFree && <span className="trw-spinner" aria-hidden="true" />}
         </button>
       </div>
     </div>
@@ -263,7 +278,7 @@ export function PlanStep({ devStore, isSubmitting, onAdvance, onFree }) {
 /* ── Step indicator + card + nav buttons — the reusable wizard body ── */
 export function OnboardingCard({
   step, businessSubStep, form, setForm,
-  devStore, isSubmitting,
+  devStore, isSubmitting, pendingAction,
   canNext, goNext, goBack, skipStep,
   onAdvance, onFree,
 }) {
@@ -576,6 +591,7 @@ export function OnboardingCard({
             <PlanStep
               devStore={devStore}
               isSubmitting={isSubmitting}
+              pendingAction={pendingAction}
               onAdvance={onAdvance}
               onFree={onFree}
             />
@@ -1059,6 +1075,7 @@ export function OnboardingCard({
       <PlanStep
         devStore={devStore}
         isSubmitting={isSubmitting}
+        pendingAction={pendingAction}
         onAdvance={onAdvance}
         onFree={onFree}
       />

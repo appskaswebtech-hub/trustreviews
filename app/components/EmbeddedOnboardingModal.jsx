@@ -7,7 +7,7 @@
 // onboarding isn't finished. Resumes at whatever step/sub-step the merchant
 // last reached. Posts to routes/app.onboarding-embed.jsx's action.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { STEPS, flatStepFor, OnboardingCard } from "./onboardingWizardUI";
 
@@ -23,17 +23,26 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
   // within step 0, not a new entry in STEPS/the step indicator.
   const [businessSubStep, setBusinessSubStep] = useState(initialStep === 1 ? 1 : 0);
   const [form, setForm] = useState(initial);
-  const isSubmitting = fetcher.state !== "idle";
+  const [pendingAction, setPendingAction] = useState(null);
 
   const confirmationUrl = fetcher.data?.confirmationUrl;
-  if (confirmationUrl) {
-    // Breaking out to Shopify's real subscription-approval screen — same
-    // App-Bridge-cooperative technique app.jsx's OnboardingBounce uses. A
-    // raw window.top.location.href write throws SecurityError from inside a
-    // cross-origin iframe; window.open(url, "_top") is allowed once App
-    // Bridge (already loaded by AppProvider in app.jsx) has initialized.
-    window.open(confirmationUrl, "_top");
-  }
+  // Still "busy" after the response arrives while we leave for Shopify's
+  // approval screen, so the button doesn't flash back to normal first.
+  const isSubmitting = fetcher.state !== "idle" || Boolean(confirmationUrl);
+
+  // Breaking out to Shopify's real subscription-approval screen — same
+  // App-Bridge-cooperative technique app.jsx's OnboardingBounce uses. A
+  // raw window.top.location.href write throws SecurityError from inside a
+  // cross-origin iframe; window.open(url, "_top") is allowed once App
+  // Bridge (already loaded by AppProvider in app.jsx) has initialized.
+  // In an effect, once — not on every render.
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (confirmationUrl && !openedRef.current) {
+      openedRef.current = true;
+      window.open(confirmationUrl, "_top");
+    }
+  }, [confirmationUrl]);
 
   // Finalized (Free or dev-Advance) — hide right away instead of waiting for
   // app.jsx's loader to revalidate and stop passing this component down.
@@ -74,6 +83,8 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
   const skipStep = () => advance();
 
   const submitPlan = (actionType) => {
+    if (isSubmitting) return;
+    setPendingAction(actionType);
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     fd.append("actionType", actionType);
@@ -657,6 +668,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           setForm={setForm}
           devStore={devStore}
           isSubmitting={isSubmitting}
+          pendingAction={pendingAction}
           canNext={canNext()}
           goNext={goNext}
           goBack={goBack}
