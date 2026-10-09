@@ -71,6 +71,7 @@ export const WIDGETS = CATALOG.map((w) => {
 export const NON_THEME_NOTES = {
   instagram_shopping: "Set it up from Trust Reviews → Widgets → UCC Instagram Shopping. It is not added as a theme block.",
   customer_accounts: "Uses a Customer Account UI extension, not a theme block, so there are no Theme Editor steps.",
+  collection_ratings: "An app embed, not a block: in the Theme Editor open App embeds, switch on \"Collection Star Ratings\" and press Save. Stars then appear under the product name on product cards across the store; colors, size, text and where it shows are set right there.",
 };
 
 export function widgetImage(w) {

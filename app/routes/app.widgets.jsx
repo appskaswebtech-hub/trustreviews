@@ -68,6 +68,11 @@ function darken(hex, amount) {
 }
 
 function installUrlFor(widget, shop, apiKey) {
+  // App embed: opens Theme Editor → App embeds with it switched on.
+  if (widget.embedHandle) {
+    return `https://${shop}/admin/themes/current/editor` +
+      `?context=apps&activateAppId=${encodeURIComponent(apiKey)}/${encodeURIComponent(widget.embedHandle)}`;
+  }
   if (!widget.blockHandle) return null;
   return `https://${shop}/admin/themes/current/editor` +
     `?template=${editorTemplateFor(widget.blockHandle)}&addAppBlockId=${encodeURIComponent(apiKey)}/${encodeURIComponent(widget.blockHandle)}` +
@@ -77,12 +82,15 @@ function installUrlFor(widget, shop, apiKey) {
 function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideClick }) {
   const navigate = useNavigate();
   const t = useAdminT();
-  const canInstall = Boolean(widget.blockHandle);
+  const canInstall = Boolean(widget.blockHandle || widget.embedHandle);
   const installUrl = installUrlFor(widget, shop, apiKey);
+  // An app embed has no settings page in the app — its settings live in the
+  // Theme Editor, so the card opens the guide and "Customize" opens the editor.
+  const isEmbed = Boolean(widget.embedHandle);
 
   return (
     <div
-      onClick={() => navigate(widget.href)}
+      onClick={() => (isEmbed ? onGuideClick(widget) : navigate(widget.href))}
       style={{
         background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`,
         overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column",
@@ -179,19 +187,35 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideCl
               {t.install} ↗
             </a>
           )}
-          <Link
-            to={widget.href}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              fontSize: 14, fontWeight: 600,
-              color: installed ? "#fff" : C.accent,
-              background: installed ? C.accent : C.accentLt,
-              border: "none",
-              borderRadius: 8, padding: "6px 13px", textDecoration: "none",
-            }}
-          >
-            {canInstall ? `${t.configure} →` : "Learn more →"}
-          </Link>
+          {isEmbed ? (
+            <a
+              href={installUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                fontSize: 14, fontWeight: 600, color: installed ? "#fff" : C.accent,
+                background: installed ? C.accent : C.accentLt,
+                borderRadius: 8, padding: "6px 13px", textDecoration: "none",
+              }}
+            >
+              Customize ↗
+            </a>
+          ) : (
+            <Link
+              to={widget.href}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                fontSize: 14, fontWeight: 600,
+                color: installed ? "#fff" : C.accent,
+                background: installed ? C.accent : C.accentLt,
+                border: "none",
+                borderRadius: 8, padding: "6px 13px", textDecoration: "none",
+              }}
+            >
+              {canInstall ? `${t.configure} →` : "Learn more →"}
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -204,11 +228,11 @@ function PurposeTag({ purpose }) {
   const p = PURPOSES[purpose];
   return (
     <span style={{
-      alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5,
+      alignSelf: "flex-start", display: "inline-flex", alignItems: "center",
       fontSize: 11.5, fontWeight: 650, color: p.color, background: p.bg,
       borderRadius: 20, padding: "3px 10px",
     }}>
-      <span aria-hidden="true">{p.icon}</span>{p.label}
+      {p.label}
     </span>
   );
 }
@@ -286,13 +310,24 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
         )}
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
-          <button
-            type="button"
-            onClick={() => navigate(widget.href)}
-            style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
-          >
-            {installUrl ? "Configure →" : "Learn more →"}
-          </button>
+          {widget.embedHandle ? (
+            <a
+              href={installUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, borderRadius: 8, padding: "8px 14px", textDecoration: "none" }}
+            >
+              Customize ↗
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate(widget.href)}
+              style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
+            >
+              {installUrl ? "Configure →" : "Learn more →"}
+            </button>
+          )}
           {installUrl && !installed && (
             <a
               href={installUrl}
@@ -608,7 +643,7 @@ export default function WidgetsGalleryPage() {
 
   {/* What does it do? filter */}
   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-    {[["all", { label: "All widgets", icon: "", color: "#4F7392", bg: "#FFFFFF" }], ...Object.entries(PURPOSES)].map(([key, p]) => {
+    {[["all", { label: "All widgets", color: "#4F7392", bg: "#FFFFFF" }], ...Object.entries(PURPOSES)].map(([key, p]) => {
       const active = purposeFilter === key;
       const count = key === "all" ? WIDGETS.length : WIDGETS.filter((w) => w.purpose === key).length;
       return (
@@ -623,7 +658,6 @@ export default function WidgetsGalleryPage() {
             borderRadius: 20, padding: "6px 13px",
           }}
         >
-          {p.icon && <span aria-hidden="true">{p.icon}</span>}
           {p.label}
           <span style={{ opacity: 0.65 }}>({count})</span>
         </button>

@@ -8,6 +8,7 @@ import { translateReviews, translateQuestions } from "../utils/reviewTranslation
 import { notifyIntegrations } from "../utils/events.server";
 import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
+import { batchRatings } from "../utils/ratings.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -205,6 +206,11 @@ async function handleFileUpload(file) {
 // ── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
   const { shop, url } = await getScopedShop(request);
+
+  // ── Star ratings for many products at once (Collection Star Ratings embed) ──
+  if (url.searchParams.get("type") === "ratings-batch") {
+    return Response.json(await batchRatings(shop, url.searchParams.get("product_ids") || ""));
+  }
 
   // ── Product-page block placement ("move" | "here") ───────────────────────
   if (url.searchParams.get("type") === "block-placement") {

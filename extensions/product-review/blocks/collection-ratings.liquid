@@ -1,0 +1,108 @@
+{% comment %}
+  Collection Star Ratings — app EMBED (Theme Editor → App embeds).
+  Shows star ratings under the product name on product cards: collection pages,
+  home page (featured collection / featured product), search results and the
+  related products on a product page. Off until the merchant switches it on, so
+  stores that never turn it on are not affected. See assets/collection-ratings.js.
+{% endcomment %}
+{%- liquid
+  assign page_type = request.page_type
+  assign show = false
+  case page_type
+    when 'collection', 'list-collections'
+      assign show = block.settings.on_collection
+    when 'index'
+      assign show = block.settings.on_home
+    when 'search'
+      assign show = block.settings.on_search
+    when 'product'
+      assign show = block.settings.on_product
+    else
+      assign show = block.settings.on_other
+  endcase
+
+  assign justify = 'flex-start'
+  if block.settings.align == 'center'
+    assign justify = 'center'
+  elsif block.settings.align == 'right'
+    assign justify = 'flex-end'
+  endif
+-%}
+{%- if show -%}
+<script type="application/json" id="trust-cr-config">
+  {
+    "starColor": {{ block.settings.star_color | json }},
+    "emptyColor": {{ block.settings.empty_color | json }},
+    "starSize": {{ block.settings.star_size | json }},
+    "starGap": {{ block.settings.star_gap | json }},
+    "textFormat": {{ block.settings.text_format | json }},
+    "textColor": {{ block.settings.text_color | json }},
+    "textSize": {{ block.settings.text_size | json }},
+    "reviewWord": {{ block.settings.review_word | default: 'review' | json }},
+    "reviewsWord": {{ block.settings.reviews_word | default: 'reviews' | json }},
+    "showEmpty": {{ block.settings.show_empty | json }},
+    "justify": {{ justify | json }},
+    "marginTop": {{ block.settings.margin_top | json }},
+    "marginBottom": {{ block.settings.margin_bottom | json }},
+    "currentProductId": {% if product %}{{ product.id | append: '' | json }}{% else %}null{% endif %}
+  }
+</script>
+<script src="{{ 'collection-ratings.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Collection Star Ratings",
+  "target": "body",
+  "settings": [
+    { "type": "header", "content": "Where to show" },
+    { "type": "paragraph", "content": "Stars appear under the product name on every product card. Turn this whole embed off above to stop it everywhere." },
+    { "type": "checkbox", "id": "on_collection", "label": "Collection pages", "default": true },
+    { "type": "checkbox", "id": "on_home", "label": "Home page (featured collection & featured product)", "default": true },
+    { "type": "checkbox", "id": "on_search", "label": "Search results", "default": true },
+    { "type": "checkbox", "id": "on_product", "label": "Product pages (related / recommended products)", "default": true },
+    { "type": "checkbox", "id": "on_other", "label": "All other pages", "default": true },
+
+    { "type": "header", "content": "Stars" },
+    { "type": "color", "id": "star_color", "label": "Star color", "default": "#F59E0B" },
+    { "type": "color", "id": "empty_color", "label": "Empty star color", "default": "#D1D5DB" },
+    { "type": "range", "id": "star_size", "label": "Star size", "min": 10, "max": 30, "step": 1, "unit": "px", "default": 15 },
+    { "type": "range", "id": "star_gap", "label": "Gap between stars", "min": 0, "max": 8, "step": 1, "unit": "px", "default": 1 },
+    { "type": "checkbox", "id": "show_empty", "label": "Show grey stars on products with no reviews", "default": false },
+
+    { "type": "header", "content": "Text next to the stars" },
+    {
+      "type": "select",
+      "id": "text_format",
+      "label": "Text",
+      "default": "count",
+      "options": [
+        { "value": "none", "label": "No text" },
+        { "value": "rating", "label": "4.5" },
+        { "value": "count", "label": "(12)" },
+        { "value": "rating_count", "label": "4.5 (12)" },
+        { "value": "count_word", "label": "12 reviews" }
+      ]
+    },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#6B7280" },
+    { "type": "range", "id": "text_size", "label": "Text size", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 13 },
+    { "type": "text", "id": "review_word", "label": "Word for 1 review", "default": "review" },
+    { "type": "text", "id": "reviews_word", "label": "Word for several reviews", "default": "reviews" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "align",
+      "label": "Alignment",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "range", "id": "margin_top", "label": "Space above", "min": 0, "max": 20, "step": 1, "unit": "px", "default": 4 },
+    { "type": "range", "id": "margin_bottom", "label": "Space below", "min": 0, "max": 20, "step": 1, "unit": "px", "default": 4 }
+  ]
+}
+{% endschema %}

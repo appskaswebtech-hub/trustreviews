@@ -6,10 +6,10 @@
 // card (see PURPOSES): "write" also lets customers write a review, "show" only
 // displays reviews, "stars" is a rating/count badge, "qa" is questions & answers.
 export const PURPOSES = {
-  write: { label: "Shows reviews + Write a review", icon: "✍", color: "#1f7a4d", bg: "#e7f4ec" },
-  show:  { label: "Shows reviews only",             icon: "👁", color: "#4C6FFF", bg: "#eaf0ff" },
-  stars: { label: "Stars & review count only",      icon: "★", color: "#b45309", bg: "#fef3c7" },
-  qa:    { label: "Questions & answers",            icon: "?", color: "#7c3aed", bg: "#f3e8ff" },
+  write: { label: "Shows reviews + Write a review", color: "#1f7a4d", bg: "#e7f4ec" },
+  show:  { label: "Shows reviews only",             color: "#4C6FFF", bg: "#eaf0ff" },
+  stars: { label: "Stars & review count only",      color: "#b45309", bg: "#fef3c7" },
+  qa:    { label: "Questions & answers",            color: "#7c3aed", bg: "#f3e8ff" },
 };
 
 // Theme Editor template to open when installing a block — must be one the block
@@ -33,7 +33,8 @@ export function editorTargetFor(blockHandle) {
   return BLOCK_TARGETS[blockHandle] || "newAppsSection";
 }
 
-// blockHandle = the theme app extension block's .liquid filename (without extension),
+// blockHandle = the theme app extension block's .liquid filename
+// embedHandle = same, for an app embed (blocks/*.liquid with target "body") (without extension),
 // used to build the "addAppBlockId" deep link into the Theme Editor.
 export const WIDGETS = [
   {
@@ -312,6 +313,18 @@ export const WIDGETS = [
     href: "/app/widgets/all_reviews_counter",
     blockHandle: "all-reviews-counter",
     bg: "linear-gradient(135deg,#fdeacb,#f8d59a)",
+  },
+  {
+    key: "collection_ratings",
+    purpose: "stars",
+    title: "Collection Star Ratings",
+    description: "Star ratings under the product name on every product card — collection pages, featured collection and featured product on the home page, search results and related products.",
+    href: "/app/widgets",
+    // An app embed, not a block: switched on once in Theme Editor → App embeds,
+    // where its colors, size, text and on/off per page type are set.
+    embedHandle: "collection-ratings",
+    bg: "linear-gradient(135deg,#fff4d6,#fde3a1)",
+    badge: "NEW",
   },
   {
     key: "instagram_shopping",

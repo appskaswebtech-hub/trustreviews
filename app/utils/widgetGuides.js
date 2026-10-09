@@ -66,6 +66,10 @@ const DETAILS = {
     where: "Product page — its own section. Shoppers ask questions; answered ones show on the product.",
     tip: "Answer new questions in the app: Widgets → Questions & Answers → Manage questions.",
   },
+  collection_ratings: {
+    where: "Every product card — collection pages, featured collection and featured product on the home page, search results and related products on a product page. Right under the product name.",
+    tip: "Shows only on products with approved reviews (or grey stars, if you turn that on). Stores that never switch it on are not affected.",
+  },
   all_reviews_counter: {
     where: "Any page — total number of reviews in your store and the average rating.",
   },
@@ -94,7 +98,11 @@ export function guideFor(widget) {
     : "Product page — its own full-width section, usually below the product details. Works on the home page too (shows reviews from the whole store there).");
 
   const steps = [];
-  if (widget.blockHandle) {
+  if (widget.embedHandle) {
+    steps.push("Click Install — Shopify's Theme Editor opens on App embeds with \"" + widget.title + "\" already switched on.");
+    steps.push("Press Save — stars now show on product cards across your store.");
+    steps.push("To change star color, size, text or where it shows, open Customize → App embeds → " + widget.title + ". Switch it off there to stop it everywhere.");
+  } else if (widget.blockHandle) {
     steps.push(`Click Configure to pick the design, colors and texts — preview updates live — then Save.`);
     const page = TEMPLATE_LABEL[editorTemplateFor(widget.blockHandle)] || "product page";
     steps.push(`Click Install — Shopify's Theme Editor opens on your ${page}.`);
