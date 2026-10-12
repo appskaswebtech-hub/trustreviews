@@ -70,7 +70,7 @@ function CouponPreview({ enabled, code, message }) {
       }} className="tr-app-routes-app-review-coupon-div-4">
         <span style={{ fontFamily: "monospace", fontSize: 15, fontWeight: 600, color: SHELL_C.text, letterSpacing: ".04em" }} className="tr-app-routes-app-review-coupon-span-5">{code}</span>
         <span style={{
-          fontSize: 11.5, fontWeight: 600, color: "#fff", background: SHELL_C.accent,
+          fontSize: 11.5, fontWeight: 600, color: SHELL_C.onAccent, background: SHELL_C.accent,
           borderRadius: 6, padding: "5px 11px",
         }} className="tr-app-routes-app-review-coupon-span-6">Copy</span>
       </div>
@@ -153,7 +153,7 @@ export default function ReviewCouponSettings() {
             disabled={enabled && !code.trim()}
             style={{
               border: "none", borderRadius: 8, padding: "8px 20px",
-              background: SHELL_C.accent, color: "#fff",
+              background: SHELL_C.accent, color: SHELL_C.onAccent,
               fontWeight: 600, fontSize: 13, cursor: enabled && !code.trim() ? "default" : "pointer",
               opacity: enabled && !code.trim() ? 0.5 : 1,
             }}

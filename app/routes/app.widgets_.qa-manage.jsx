@@ -3,6 +3,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useState } from "react";
 import { notifyIntegrations } from "../utils/events.server";
+import { BRAND } from "../utils/brand";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
@@ -169,11 +170,12 @@ export const action = async ({ request }) => {
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78",
-  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  text: BRAND.navy, muted: "#6b6b78",
+  accent: BRAND.blue, accentLt: BRAND.blueLight,
   green: "#1f7a4d", greenLt: "#e7f4ec",
   amber: "#a3690f", amberLt: "#f7f0e2",
   red:   "#a5423b", redLt:   "#f7eae8",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 const statusStyle = (s) =>
@@ -191,7 +193,7 @@ function QuestionRow({ question, onAction }) {
         <div style={{
           width: 30, height: 30, borderRadius: "50%", background: C.accentLt,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontWeight: 600, fontSize: 12, color: C.accent, flexShrink: 0,
+          fontWeight: 600, fontSize: 12, color: C.accentText, flexShrink: 0,
         }} className="tr-app-routes-app-widgets-qa-manage-div-3">{(question.customer || "?")[0].toUpperCase()}</div>
         <strong style={{ fontSize: 13 }} className="tr-app-routes-app-widgets-qa-manage-strong-4">{question.customer}</strong>
         {question.email && <span style={{ color: C.muted, fontSize: 12 }} className="tr-app-routes-app-widgets-qa-manage-span-5">{question.email}</span>}
@@ -258,7 +260,7 @@ function ProductGroup({ group, onAction }) {
           style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: `1px solid ${C.border}` }}
          className="tr-app-routes-app-widgets-qa-manage-img-18"/>
         <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: C.text }} className="tr-app-routes-app-widgets-qa-manage-span-19">{group.productTitle}</span>
-        <span style={{ fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent, borderRadius: 20, padding: "3px 10px" }} className="tr-app-routes-app-widgets-qa-manage-span-20">
+        <span style={{ fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accentText, borderRadius: 20, padding: "3px 10px" }} className="tr-app-routes-app-widgets-qa-manage-span-20">
           {group.questions.length} {group.questions.length !== 1 ? "questions" : "question"}
         </span>
       </div>
@@ -304,7 +306,7 @@ export default function QaManagePage() {
             onClick={() => setSearchParams({ tab: key })}
             style={{
               border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              background: tab === key ? C.accent : "transparent", color: tab === key ? "#fff" : C.muted,
+              background: tab === key ? C.accent : "transparent", color: tab === key ? C.onAccent : C.muted,
               display: "flex", alignItems: "center", gap: 6,
             }}
            className="tr-app-routes-app-widgets-qa-manage-button-27">

@@ -137,7 +137,7 @@ const WIDGET_DIV = '<div data-trust-product-id="{{ product.id }}"></div>';
 const MANUAL_STEPS = [
   { n: 1, title: "Go to Theme Editor", body: <>Navigate to <strong>Online Store → Themes</strong> and click <strong>Customize</strong> on your active theme.</> },
   { n: 2, title: "Find Your Product Template", body: <>In the theme editor, navigate to <strong>Products → Default Product</strong>.</> },
-  { n: 3, title: "Edit Code", body: <>Click <strong>⋮</strong> → <strong>Edit code</strong>. Find <code style={{ background: "#F2F7FB", padding: "2px 6px", borderRadius: 4 }}>sections/main-product.liquid</code></> },
+  { n: 3, title: "Edit Code", body: <>Click <strong>⋮</strong> → <strong>Edit code</strong>. Find <code style={{ background: "#EAF3FE", padding: "2px 6px", borderRadius: 4 }}>sections/main-product.liquid</code></> },
   { n: 4, title: "Paste the Widget Code", body: null },
   { n: 5, title: "Save & Preview", body: <>Click <strong>Save</strong>, then view any product page to see your review widget live.</> },
 ];
@@ -166,7 +166,7 @@ function ManualInstallGuide() {
         <div key={n} style={{ marginBottom: n === MANUAL_STEPS.length ? 0 : 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 15, fontWeight: 600, color: SHELL_C.text }}>
             <span style={{
-              width: 26, height: 26, borderRadius: "50%", background: "#D6E6F2", color: "#4F7392",
+              width: 26, height: 26, borderRadius: "50%", background: "#D5E6FB", color: "#10224A",
               display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0,
             }}>{n}</span>
             {title}
@@ -236,8 +236,8 @@ function TabBar({ active, onChange }) {
     display: "flex",
     gap: 6,
     padding: "12px 20px 0",
-    borderBottom: "1px solid #D6E6F2",
-    background: "linear-gradient(180deg,#FFFFFF 0%,#F9FCFE 100%)",
+    borderBottom: "1px solid #D5E6FB",
+    background: "linear-gradient(180deg,#FFFFFF 0%,#F8FBFF 100%)",
   }}
 >
   {TABS.map((tab) => {
@@ -255,17 +255,17 @@ function TabBar({ active, onChange }) {
           borderRadius: "9px 9px 0 0",
           fontSize: 14,
           fontWeight: isActive ? 700 : 550,
-          color: isActive ? "#4F7392" : "#829CAF",
+          color: isActive ? "#10224A" : "#5B6B85",
           background: isActive ? "#FFFFFF" : "transparent",
           borderBottom: isActive
-            ? "3px solid #8DB4D6"
+            ? "3px solid #73AFF1"
             : "3px solid transparent",
           display: "flex",
           alignItems: "center",
           gap: 7,
           transition: "all .16s ease",
           boxShadow: isActive
-            ? "0 -2px 10px rgba(141,180,214,.06)"
+            ? "0 -2px 10px rgba(115,175,241,.06)"
             : "none",
         }}
       >
@@ -279,10 +279,10 @@ function TabBar({ active, onChange }) {
             alignItems: "center",
             justifyContent: "center",
             fontSize: 11,
-            background: isActive ? "#D6E6F2" : "#F2F7FB",
-            color: isActive ? "#4F7392" : "#8DA7BC",
+            background: isActive ? "#D5E6FB" : "#EAF3FE",
+            color: isActive ? "#10224A" : "#8DA7BC",
             border: isActive
-              ? "1px solid rgba(141,180,214,.45)"
+              ? "1px solid rgba(115,175,241,.45)"
               : "1px solid #E3EDF4",
           }}
         >
@@ -360,7 +360,7 @@ function SnippetCard({ snippet, shop }) {
               border: "none", cursor: "pointer", borderRadius: 7,
               padding: "6px 12px", fontSize: 11.5, fontWeight: 600, flexShrink: 0,
               background: copied ? "#059669" : SHELL_C.accent,
-              color: "#fff", transition: "background .2s",
+              color: SHELL_C.onAccent, transition: "background .2s",
             }}
            className="tr-app-routes-app-custom-code-button-22">
             {copied ? "✓ Copied" : "Copy"}
@@ -370,7 +370,7 @@ function SnippetCard({ snippet, shop }) {
 
       {/* Prerequisite note */}
       <div style={{ padding: "12px 20px", background: SHELL_C.accentLt }} className="tr-app-routes-app-custom-code-div-23">
-        <div style={{ fontSize: 14, color: SHELL_C.accent, lineHeight: 1.5 }} className="tr-app-routes-app-custom-code-div-24">
+        <div style={{ fontSize: 14, color: SHELL_C.accentText, lineHeight: 1.5 }} className="tr-app-routes-app-custom-code-div-24">
           {snippet.prerequisite}
         </div>
       </div>
@@ -690,7 +690,7 @@ export default function CustomCodePage() {
     <div
   style={{
     minHeight: "100vh",
-    background: "#F2F7FB",
+    background: "#EAF3FE",
     fontFamily: "var(--app-font-family)",
   }}
   className="tr-app-routes-app-custom-code-div-29"
@@ -703,12 +703,12 @@ export default function CustomCodePage() {
       justifyContent: "space-between",
       padding: "0 24px",
       height: 62,
-      background: "linear-gradient(135deg,#FFFFFF 0%,#F2F7FB 100%)",
-      borderBottom: "1px solid #D6E6F2",
+      background: "linear-gradient(135deg,#FFFFFF 0%,#EAF3FE 100%)",
+      borderBottom: "1px solid #D5E6FB",
       position: "sticky",
       top: 0,
       zIndex: 100,
-      boxShadow: "0 6px 18px rgba(79,115,146,.06)",
+      boxShadow: "0 6px 18px rgba(16,34,74,.06)",
     }}
     className="tr-app-routes-app-custom-code-div-30"
   >
@@ -729,12 +729,12 @@ export default function CustomCodePage() {
           width: 34,
           height: 34,
           borderRadius: 9,
-          border: "1px solid #D6E6F2",
-          color: "#4F7392",
+          border: "1px solid #D5E6FB",
+          color: "#10224A",
           textDecoration: "none",
           fontSize: 15,
           background: "#FFFFFF",
-          boxShadow: "0 4px 10px rgba(79,115,146,.05)",
+          boxShadow: "0 4px 10px rgba(16,34,74,.05)",
         }}
       >
         ←
@@ -747,7 +747,7 @@ export default function CustomCodePage() {
           gap: 6,
           padding: "5px 9px",
           background: "#FFFFFF",
-          border: "1px solid #D6E6F2",
+          border: "1px solid #D5E6FB",
           borderRadius: 8,
         }}
         className="tr-app-routes-app-custom-code-div-32"
@@ -756,7 +756,7 @@ export default function CustomCodePage() {
           to="/app"
           style={{
             fontSize: 14,
-            color: "#829CAF",
+            color: "#5B6B85",
             textDecoration: "none",
           }}
         >
@@ -777,7 +777,7 @@ export default function CustomCodePage() {
           style={{
             fontSize: 16,
             fontWeight: 700,
-            color: "#4F7392",
+            color: "#10224A",
           }}
           className="tr-app-routes-app-custom-code-span-34"
         >
@@ -803,11 +803,11 @@ export default function CustomCodePage() {
               gap: 5,
               fontSize: 11.5,
               fontWeight: 700,
-              color: "#4F7392",
-              background: "#D6E6F2",
+              color: "#10224A",
+              background: "#D5E6FB",
               padding: "5px 11px",
               borderRadius: 20,
-              border: "1px solid rgba(141,180,214,.45)",
+              border: "1px solid rgba(115,175,241,.45)",
             }}
             className="tr-app-routes-app-custom-code-span-36"
           >
@@ -821,12 +821,12 @@ export default function CustomCodePage() {
             border: "none",
             borderRadius: 9,
             padding: "9px 18px",
-            background: "linear-gradient(135deg,#8DB4D6,#6F96B6)",
-            color: "#fff",
+            background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+            color: "#10224A",
             fontWeight: 700,
             fontSize: 12.5,
             cursor: "pointer",
-            boxShadow: "0 6px 16px rgba(79,115,146,.17)",
+            boxShadow: "0 6px 16px rgba(16,34,74,.17)",
           }}
           className="tr-app-routes-app-custom-code-button-37"
         >
@@ -855,10 +855,10 @@ export default function CustomCodePage() {
           style={{
             marginBottom: 18,
             padding: "18px 20px",
-            background: "linear-gradient(135deg,#FFFFFF,#F2F7FB)",
-            border: "1px solid #D6E6F2",
+            background: "linear-gradient(135deg,#FFFFFF,#EAF3FE)",
+            border: "1px solid #D5E6FB",
             borderRadius: 14,
-            boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+            boxShadow: "0 7px 20px rgba(16,34,74,.05)",
           }}
           className="tr-app-routes-app-custom-code-div-40"
         >
@@ -866,7 +866,7 @@ export default function CustomCodePage() {
             style={{
               fontSize: 22,
               fontWeight: 750,
-              color: "#4F7392",
+              color: "#10224A",
               margin: "0 0 6px",
               letterSpacing: "-.02em",
             }}
@@ -878,7 +878,7 @@ export default function CustomCodePage() {
           <p
             style={{
               fontSize: 14,
-              color: "#829CAF",
+              color: "#5B6B85",
               margin: 0,
               lineHeight: 1.65,
             }}
@@ -889,8 +889,8 @@ export default function CustomCodePage() {
             <code
               style={{
                 fontFamily: "monospace",
-                background: "#D6E6F2",
-                color: "#4F7392",
+                background: "#D5E6FB",
+                color: "#10224A",
                 padding: "2px 6px",
                 borderRadius: 5,
                 fontSize: 14,
@@ -924,9 +924,9 @@ export default function CustomCodePage() {
             marginTop: 20,
             background: "#FFFFFF",
             borderRadius: 14,
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
             padding: "16px 18px",
-            boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+            boxShadow: "0 7px 20px rgba(16,34,74,.05)",
           }}
           className="tr-app-routes-app-custom-code-div-45"
         >
@@ -934,7 +934,7 @@ export default function CustomCodePage() {
             style={{
               fontSize: 16,
               fontWeight: 700,
-              color: "#4F7392",
+              color: "#10224A",
               marginBottom: 10,
             }}
             className="tr-app-routes-app-custom-code-div-46"
@@ -971,7 +971,7 @@ export default function CustomCodePage() {
                   gap: 10,
                   alignItems: "flex-start",
                   padding: "8px 10px",
-                  background: "#F9FCFE",
+                  background: "#F8FBFF",
                   border: "1px solid #E1ECF4",
                   borderRadius: 9,
                 }}
@@ -982,8 +982,8 @@ export default function CustomCodePage() {
                     width: 24,
                     height: 24,
                     borderRadius: "50%",
-                    background: "#8DB4D6",
-                    color: "#fff",
+                    background: "#73AFF1",
+                    color: "#10224A",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -999,7 +999,7 @@ export default function CustomCodePage() {
                 <span
                   style={{
                     fontSize: 14,
-                    color: "#6F8FA9",
+                    color: "#5B6B85",
                     lineHeight: 1.6,
                   }}
                   className="tr-app-routes-app-custom-code-span-50"
@@ -1020,10 +1020,10 @@ export default function CustomCodePage() {
           style={{
             marginBottom: 16,
             padding: "18px 20px",
-            background: "linear-gradient(135deg,#FFFFFF,#F2F7FB)",
-            border: "1px solid #D6E6F2",
+            background: "linear-gradient(135deg,#FFFFFF,#EAF3FE)",
+            border: "1px solid #D5E6FB",
             borderRadius: 14,
-            boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+            boxShadow: "0 7px 20px rgba(16,34,74,.05)",
           }}
           className="tr-app-routes-app-custom-code-div-52"
         >
@@ -1031,7 +1031,7 @@ export default function CustomCodePage() {
             style={{
               fontSize: 22,
               fontWeight: 750,
-              color: "#4F7392",
+              color: "#10224A",
               margin: "0 0 6px",
               letterSpacing: "-.02em",
             }}
@@ -1043,7 +1043,7 @@ export default function CustomCodePage() {
           <p
             style={{
               fontSize: 13,
-              color: "#829CAF",
+              color: "#5B6B85",
               margin: 0,
               lineHeight: 1.65,
             }}
@@ -1058,9 +1058,9 @@ export default function CustomCodePage() {
           style={{
             background: "#FFFFFF",
             borderRadius: 16,
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
             padding: 20,
-            boxShadow: "0 8px 24px rgba(79,115,146,.06)",
+            boxShadow: "0 8px 24px rgba(16,34,74,.06)",
           }}
           className="tr-app-routes-app-custom-code-div-55"
         >
@@ -1068,7 +1068,7 @@ export default function CustomCodePage() {
             style={{
               fontSize: 16,
               fontWeight: 700,
-              color: "#4F7392",
+              color: "#10224A",
               marginBottom: 9,
             }}
             className="tr-app-routes-app-custom-code-div-56"
@@ -1096,16 +1096,16 @@ export default function CustomCodePage() {
                     borderRadius: 9,
                     cursor: "pointer",
                     border: active
-                      ? "2px solid #8DB4D6"
-                      : "1px solid #D6E6F2",
-                    background: active ? "#F2F7FB" : "#FFFFFF",
-                    color: active ? "#4F7392" : "#6F8FA9",
+                      ? "2px solid #73AFF1"
+                      : "1px solid #D5E6FB",
+                    background: active ? "#EAF3FE" : "#FFFFFF",
+                    color: active ? "#10224A" : "#5B6B85",
                     fontSize: 14,
                     fontWeight: active ? 700 : 500,
                     textAlign: "left",
                     transition: "all .15s",
                     boxShadow: active
-                      ? "0 5px 14px rgba(141,180,214,.10)"
+                      ? "0 5px 14px rgba(115,175,241,.10)"
                       : "none",
                   }}
                   className="tr-app-routes-app-custom-code-button-58"
@@ -1117,7 +1117,7 @@ export default function CustomCodePage() {
                       style={{
                         float: "right",
                         fontSize: 14,
-                        color: "#8DB4D6",
+                        color: "#73AFF1",
                       }}
                       className="tr-app-routes-app-custom-code-span-59"
                     >
@@ -1134,7 +1134,7 @@ export default function CustomCodePage() {
               style={{
                 marginTop: 12,
                 fontSize: 12,
-                color: "#829CAF",
+                color: "#5B6B85",
               }}
               className="tr-app-routes-app-custom-code-div-60"
             >
@@ -1159,12 +1159,12 @@ export default function CustomCodePage() {
           <div
             style={{
               marginTop: 14,
-              background: "#F2F7FB",
-              border: "1px solid #D6E6F2",
+              background: "#EAF3FE",
+              border: "1px solid #D5E6FB",
               borderRadius: 9,
               padding: "10px 12px",
               fontSize: 14,
-              color: "#6F8FA9",
+              color: "#5B6B85",
               lineHeight: 1.55,
             }}
             className="tr-app-routes-app-custom-code-div-62"
@@ -1186,10 +1186,10 @@ export default function CustomCodePage() {
             style={{
               marginBottom: 16,
               padding: "18px 20px",
-              background: "linear-gradient(135deg,#FFFFFF,#F2F7FB)",
-              border: "1px solid #D6E6F2",
+              background: "linear-gradient(135deg,#FFFFFF,#EAF3FE)",
+              border: "1px solid #D5E6FB",
               borderRadius: 14,
-              boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+              boxShadow: "0 7px 20px rgba(16,34,74,.05)",
             }}
             className="tr-app-routes-app-custom-code-div-64"
           >
@@ -1197,7 +1197,7 @@ export default function CustomCodePage() {
               style={{
                 fontSize: 22,
                 fontWeight: 750,
-                color: "#4F7392",
+                color: "#10224A",
                 margin: "0 0 6px",
                 letterSpacing: "-.02em",
               }}
@@ -1209,7 +1209,7 @@ export default function CustomCodePage() {
             <p
               style={{
                 fontSize: 13,
-                color: "#829CAF",
+                color: "#5B6B85",
                 margin: 0,
                 lineHeight: 1.65,
               }}
@@ -1271,9 +1271,9 @@ export default function CustomCodePage() {
               style={{
                 background: "#FFFFFF",
                 borderRadius: 14,
-                border: "1px solid #D6E6F2",
+                border: "1px solid #D5E6FB",
                 padding: 20,
-                boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+                boxShadow: "0 7px 20px rgba(16,34,74,.05)",
               }}
               className="tr-app-routes-app-custom-code-div-73"
             >
@@ -1293,9 +1293,9 @@ export default function CustomCodePage() {
               style={{
                 background: "#FFFFFF",
                 borderRadius: 14,
-                border: "1px solid #D6E6F2",
+                border: "1px solid #D5E6FB",
                 padding: 20,
-                boxShadow: "0 7px 20px rgba(79,115,146,.05)",
+                boxShadow: "0 7px 20px rgba(16,34,74,.05)",
               }}
               className="tr-app-routes-app-custom-code-div-74"
             >
@@ -1326,12 +1326,12 @@ document.addEventListener('trust:review-submitted', function(e) {
                 border: "none",
                 borderRadius: 9,
                 padding: "10px 24px",
-                background: "linear-gradient(135deg,#8DB4D6,#6F96B6)",
-                color: "#fff",
+                background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+                color: "#10224A",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
-                boxShadow: "0 7px 18px rgba(79,115,146,.17)",
+                boxShadow: "0 7px 18px rgba(16,34,74,.17)",
               }}
               className="tr-app-routes-app-custom-code-button-76"
             >

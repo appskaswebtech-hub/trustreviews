@@ -1,6 +1,7 @@
 import { useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { BRAND } from "../utils/brand";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -26,13 +27,14 @@ export async function loader({ request }) {
 }
 
 const C = {
-  accent: "#6B1A2C",
-  accentL: "#fdf2f4",
-  text: "#17171c",
+  accent: BRAND.blue,
+  accentL: BRAND.blueLight,
+  text: BRAND.navy,
   muted: "#6b6b78",
   border: "#e5e4ec",
   surface: "#ffffff",
   bg: "#f6f6f8",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 const STEPS = [
@@ -165,7 +167,7 @@ export default function ReviewWallPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.16), transparent 28%), radial-gradient(circle at 100% 8%, rgba(214,230,242,.42), transparent 28%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.16), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.42), transparent 28%), #EAF3FE",
     padding: "clamp(20px, 4vw, 42px) clamp(14px, 3vw, 28px)",
     fontFamily: "inherit",
     boxSizing: "border-box",
@@ -187,10 +189,10 @@ export default function ReviewWallPage() {
         marginBottom: 22,
         padding: "clamp(20px, 3vw, 28px)",
         background:
-          "linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(242,247,251,.95) 100%)",
-        border: "1px solid #D6E6F2",
+          "linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(234,243,254,.95) 100%)",
+        border: "1px solid #D5E6FB",
         borderRadius: 20,
-        boxShadow: "0 12px 34px rgba(79,115,146,.07)",
+        boxShadow: "0 12px 34px rgba(16,34,74,.07)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -204,7 +206,7 @@ export default function ReviewWallPage() {
           right: "18%",
           height: 3,
           background:
-            "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
+            "linear-gradient(90deg, transparent, #73AFF1, transparent)",
           borderRadius: "0 0 10px 10px",
         }}
       />
@@ -223,8 +225,8 @@ export default function ReviewWallPage() {
           style={{
             margin: 0,
             fontSize: "clamp(24px, 4vw, 30px)",
-            fontWeight: 800,
-            color: "#4F7392",
+            fontWeight: 700,
+            color: "#10224A",
             letterSpacing: "-.035em",
             lineHeight: 1.15,
           }}
@@ -237,12 +239,12 @@ export default function ReviewWallPage() {
           style={{
             fontSize: 10.5,
             fontWeight: 800,
-            background: "linear-gradient(135deg,#8DB4D6,#6F96B6)",
+            background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
             color: "#fff",
             padding: "5px 10px",
             borderRadius: 20,
             letterSpacing: ".04em",
-            boxShadow: "0 4px 10px rgba(79,115,146,.14)",
+            boxShadow: "0 4px 10px rgba(16,34,74,.14)",
           }}
           className="tr-app-routes-app-widgets-review-wall-span-6"
         >
@@ -254,7 +256,7 @@ export default function ReviewWallPage() {
         style={{
           margin: 0,
           fontSize: "clamp(13px, 1.8vw, 14px)",
-          color: "#829CAF",
+          color: "#5B6B85",
           lineHeight: 1.7,
           maxWidth: 760,
         }}
@@ -284,11 +286,11 @@ export default function ReviewWallPage() {
           key={label}
           style={{
             background:
-              "linear-gradient(145deg,#FFFFFF 0%,#F8FBFD 100%)",
+              "linear-gradient(145deg,#FFFFFF 0%,#F7FAFF 100%)",
             borderRadius: 16,
             padding: "clamp(16px, 2.5vw, 20px)",
-            border: "1px solid #D6E6F2",
-            boxShadow: "0 8px 22px rgba(79,115,146,.055)",
+            border: "1px solid #D5E6FB",
+            boxShadow: "0 8px 22px rgba(16,34,74,.055)",
             minWidth: 0,
             boxSizing: "border-box",
           }}
@@ -297,8 +299,8 @@ export default function ReviewWallPage() {
           <div
             style={{
               fontSize: "clamp(21px, 3vw, 26px)",
-              fontWeight: 800,
-              color: "#4F7392",
+              fontWeight: 700,
+              color: "#10224A",
               lineHeight: 1.1,
               letterSpacing: "-.025em",
               wordBreak: "break-word",
@@ -311,7 +313,7 @@ export default function ReviewWallPage() {
           <div
             style={{
               fontSize: 12.5,
-              color: "#829CAF",
+              color: "#5B6B85",
               marginTop: 6,
               fontWeight: 550,
               lineHeight: 1.4,
@@ -329,10 +331,10 @@ export default function ReviewWallPage() {
       style={{
         background: "#FFFFFF",
         borderRadius: 18,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "clamp(18px, 3vw, 26px)",
         marginBottom: 22,
-        boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+        boxShadow: "0 10px 28px rgba(16,34,74,.06)",
       }}
       className="tr-app-routes-app-widgets-review-wall-div-12"
     >
@@ -340,7 +342,7 @@ export default function ReviewWallPage() {
         style={{
           fontSize: "clamp(15px, 2vw, 17px)",
           fontWeight: 750,
-          color: "#4F7392",
+          color: "#10224A",
           marginBottom: 18,
           letterSpacing: "-.015em",
         }}
@@ -365,9 +367,9 @@ export default function ReviewWallPage() {
               gap: "clamp(10px, 2vw, 14px)",
               padding: "clamp(13px, 2vw, 16px)",
               background:
-                "linear-gradient(135deg,#F8FBFD 0%,#F2F7FB 100%)",
+                "linear-gradient(135deg,#F7FAFF 0%,#EAF3FE 100%)",
               borderRadius: 13,
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               alignItems: "flex-start",
               boxSizing: "border-box",
             }}
@@ -379,7 +381,7 @@ export default function ReviewWallPage() {
                 height: "clamp(32px, 5vw, 36px)",
                 borderRadius: 10,
                 background:
-                  "linear-gradient(135deg,#8DB4D6 0%,#6F96B6 100%)",
+                  "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
@@ -387,7 +389,7 @@ export default function ReviewWallPage() {
                 fontSize: 13,
                 fontWeight: 800,
                 flexShrink: 0,
-                boxShadow: "0 5px 12px rgba(79,115,146,.16)",
+                boxShadow: "0 5px 12px rgba(16,34,74,.16)",
               }}
               className="tr-app-routes-app-widgets-review-wall-div-16"
             >
@@ -405,7 +407,7 @@ export default function ReviewWallPage() {
                 style={{
                   fontSize: "clamp(13.5px, 1.8vw, 14.5px)",
                   fontWeight: 750,
-                  color: "#4F7392",
+                  color: "#10224A",
                   marginBottom: 4,
                   lineHeight: 1.4,
                 }}
@@ -417,7 +419,7 @@ export default function ReviewWallPage() {
               <div
                 style={{
                   fontSize: "clamp(12px, 1.6vw, 13px)",
-                  color: "#829CAF",
+                  color: "#5B6B85",
                   lineHeight: 1.65,
                 }}
                 className="tr-app-routes-app-widgets-review-wall-div-19"
@@ -435,10 +437,10 @@ export default function ReviewWallPage() {
       style={{
         background: "#FFFFFF",
         borderRadius: 18,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "clamp(18px, 3vw, 26px)",
         marginBottom: 22,
-        boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+        boxShadow: "0 10px 28px rgba(16,34,74,.06)",
       }}
       className="tr-app-routes-app-widgets-review-wall-div-20"
     >
@@ -446,7 +448,7 @@ export default function ReviewWallPage() {
         style={{
           fontSize: "clamp(15px, 2vw, 17px)",
           fontWeight: 750,
-          color: "#4F7392",
+          color: "#10224A",
           marginBottom: 16,
           letterSpacing: "-.015em",
         }}
@@ -479,9 +481,9 @@ export default function ReviewWallPage() {
             style={{
               padding: "14px 15px",
               background:
-                "linear-gradient(145deg,#F9FCFE 0%,#F2F7FB 100%)",
+                "linear-gradient(145deg,#F8FBFF 0%,#EAF3FE 100%)",
               borderRadius: 12,
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               minWidth: 0,
               boxSizing: "border-box",
             }}
@@ -491,7 +493,7 @@ export default function ReviewWallPage() {
               style={{
                 fontSize: "clamp(12.8px, 1.7vw, 13.5px)",
                 fontWeight: 750,
-                color: "#4F7392",
+                color: "#10224A",
                 marginBottom: 5,
                 lineHeight: 1.35,
               }}
@@ -503,7 +505,7 @@ export default function ReviewWallPage() {
             <div
               style={{
                 fontSize: "clamp(11.5px, 1.5vw, 12.2px)",
-                color: "#829CAF",
+                color: "#5B6B85",
                 lineHeight: 1.55,
               }}
               className="tr-app-routes-app-widgets-review-wall-div-25"
@@ -519,11 +521,11 @@ export default function ReviewWallPage() {
     <div
       style={{
         background:
-          "linear-gradient(135deg,#F2F7FB 0%,#EAF3F9 100%)",
-        border: "1px solid #BFD6E7",
+          "linear-gradient(135deg,#EAF3FE 0%,#EAF3FE 100%)",
+        border: "1px solid #B9D7F8",
         borderRadius: 16,
         padding: "clamp(16px, 2.5vw, 20px)",
-        boxShadow: "0 8px 20px rgba(79,115,146,.055)",
+        boxShadow: "0 8px 20px rgba(16,34,74,.055)",
       }}
       className="tr-app-routes-app-widgets-review-wall-div-26"
     >
@@ -531,7 +533,7 @@ export default function ReviewWallPage() {
         style={{
           fontSize: "clamp(13px, 1.8vw, 14px)",
           fontWeight: 800,
-          color: "#4F7392",
+          color: "#10224A",
           marginBottom: 7,
           letterSpacing: "-.01em",
         }}
@@ -543,7 +545,7 @@ export default function ReviewWallPage() {
       <div
         style={{
           fontSize: "clamp(12px, 1.6vw, 13px)",
-          color: "#5F7F9A",
+          color: "#10224A",
           lineHeight: 1.7,
         }}
         className="tr-app-routes-app-widgets-review-wall-div-28"
@@ -552,7 +554,7 @@ export default function ReviewWallPage() {
         <strong
           className="tr-app-routes-app-widgets-review-wall-strong-29"
           style={{
-            color: "#4F7392",
+            color: "#10224A",
             fontWeight: 800,
           }}
         >
@@ -563,7 +565,7 @@ export default function ReviewWallPage() {
         <strong
           className="tr-app-routes-app-widgets-review-wall-strong-30"
           style={{
-            color: "#4F7392",
+            color: "#10224A",
             fontWeight: 800,
           }}
         >

@@ -86,12 +86,12 @@ export default function WriteReviewCustomizePage() {
 
   return (
     <WidgetCustomizeShell
-      title="Write a Review"
+      title="Reviews + Write a Review"
       saved={saved}
       onSave={handleSave}
       installSection={
         <InstallSection
-          description="Add the review submission form to your product pages."
+          description="Shows your product's reviews on product pages, with a Write a Review button so customers can leave their own."
           installUrl={installUrl}
         />
       }

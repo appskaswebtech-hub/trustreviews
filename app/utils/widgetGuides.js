@@ -56,11 +56,11 @@ const DETAILS = {
   },
   write_review: {
     where: "Product page — its own section. Shows the product's reviews with the Write a Review button and form.",
-    tip: "This and \"Product Reviews List\" are the same \"Reviews + Write Review\" block — install it once; each page here styles a different part.",
+    tip: "This and \"Reviews List Style\" are the same \"Reviews + Write a Review\" block — install it once; each page here styles a different part.",
   },
   review_list: {
-    where: "Product page — the review list inside the \"Reviews + Write Review\" section.",
-    tip: "Same block as \"Write a Review Form\" — install it once; this page styles the list, the other styles the form.",
+    where: "Product page — the review list inside the \"Reviews + Write a Review\" section.",
+    tip: "Same block as \"Reviews + Write a Review\" — install it once; this page styles the list, the other styles the form.",
   },
   questions_answers: {
     where: "Product page — its own section. Shoppers ask questions; answered ones show on the product.",

@@ -46,7 +46,7 @@ export default function ReviewsSummarySettingsPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.15), transparent 28%), radial-gradient(circle at 100% 8%, rgba(214,230,242,.5), transparent 30%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.15), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 30%), #EAF3FE",
     minHeight: "100vh",
     padding: "clamp(18px, 4vw, 34px)",
     display: "flex",
@@ -72,7 +72,7 @@ export default function ReviewsSummarySettingsPage() {
 
     .tr-reviews-summary-card:hover{
       border-color:#C3D9E8 !important;
-      box-shadow:0 18px 42px rgba(79,115,146,.09) !important;
+      box-shadow:0 18px 42px rgba(16,34,74,.09) !important;
       transform:translateY(-1px);
     }
 
@@ -85,7 +85,7 @@ export default function ReviewsSummarySettingsPage() {
 
     .tr-reviews-summary-primary:hover{
       transform:translateY(-1px);
-      box-shadow:0 9px 20px rgba(79,115,146,.22) !important;
+      box-shadow:0 9px 20px rgba(16,34,74,.22) !important;
       filter:brightness(.99);
     }
 
@@ -100,8 +100,8 @@ export default function ReviewsSummarySettingsPage() {
     }
 
     .tr-reviews-summary-back:hover{
-      background:#EAF3F9 !important;
-      color:#4F7392 !important;
+      background:#EAF3FE !important;
+      color:#10224A !important;
     }
 
     @media(max-width:640px){
@@ -157,13 +157,13 @@ export default function ReviewsSummarySettingsPage() {
       maxWidth: 620,
       marginTop: "clamp(26px, 7vw, 70px)",
       background:
-        "linear-gradient(145deg,#FFFFFF 0%,#F9FCFE 100%)",
+        "linear-gradient(145deg,#FFFFFF 0%,#F8FBFF 100%)",
       borderRadius: 22,
-      border: "1px solid #D6E6F2",
+      border: "1px solid #D5E6FB",
       padding: "clamp(26px, 5vw, 38px)",
       textAlign: "center",
       boxShadow:
-        "0 14px 36px rgba(79,115,146,.075)",
+        "0 14px 36px rgba(16,34,74,.075)",
       position: "relative",
       overflow: "hidden",
     }}
@@ -176,7 +176,7 @@ export default function ReviewsSummarySettingsPage() {
         width: 180,
         height: 180,
         borderRadius: "50%",
-        background: "rgba(214,230,242,.4)",
+        background: "rgba(213,230,251,.4)",
         top: -100,
         right: -65,
         pointerEvents: "none",
@@ -189,7 +189,7 @@ export default function ReviewsSummarySettingsPage() {
         width: 120,
         height: 120,
         borderRadius: "50%",
-        background: "rgba(141,180,214,.08)",
+        background: "rgba(115,175,241,.08)",
         bottom: -70,
         left: -45,
         pointerEvents: "none",
@@ -207,10 +207,10 @@ export default function ReviewsSummarySettingsPage() {
         justifyContent: "center",
         borderRadius: 18,
         background:
-          "linear-gradient(145deg,#EDF5FA 0%,#DDEBF4 100%)",
+          "linear-gradient(145deg,#EDF5FF 0%,#DDEBF4 100%)",
         border: "1px solid #D1E2ED",
-        color: "#4F7392",
-        boxShadow: "0 9px 22px rgba(79,115,146,.09)",
+        color: "#10224A",
+        boxShadow: "0 9px 22px rgba(16,34,74,.09)",
         position: "relative",
         zIndex: 1,
       }}
@@ -257,7 +257,7 @@ export default function ReviewsSummarySettingsPage() {
         fontSize: "clamp(22px, 3vw, 28px)",
         fontWeight: 800,
         margin: "0 0 10px",
-        color: "#456984",
+        color: "#10224A",
         lineHeight: 1.2,
         letterSpacing: "-.03em",
         position: "relative",
@@ -271,7 +271,7 @@ export default function ReviewsSummarySettingsPage() {
     <p
       style={{
         fontSize: 14,
-        color: "#829CAF",
+        color: "#5B6B85",
         lineHeight: 1.75,
         margin: "0 auto 22px",
         maxWidth: 520,
@@ -332,15 +332,15 @@ export default function ReviewsSummarySettingsPage() {
         justifyContent: "center",
         gap: 8,
         background:
-          "linear-gradient(135deg,#8DB4D6 0%,#7199B8 100%)",
-        color: "#FFFFFF",
+          "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+        color: "#fff",
         fontWeight: 750,
         fontSize: 13.5,
         borderRadius: 11,
         padding: "11px 20px",
         textDecoration: "none",
         boxShadow:
-          "0 7px 18px rgba(79,115,146,.18)",
+          "0 7px 18px rgba(16,34,74,.18)",
         position: "relative",
         zIndex: 1,
       }}
@@ -398,7 +398,7 @@ export default function ReviewsSummarySettingsPage() {
           gap: 6,
           fontSize: 12.5,
           fontWeight: 650,
-          color: "#829CAF",
+          color: "#5B6B85",
           textDecoration: "none",
           padding: "7px 10px",
           borderRadius: 8,

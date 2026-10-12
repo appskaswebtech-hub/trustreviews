@@ -77,7 +77,7 @@ function WidgetCard({ w, onOpen }) {
   return (
     <button type="button" className="hiw-widgetCard" onClick={() => onOpen(w.key)}>
       <div className="hiw-thumb" style={{ background: w.bg }}>
-        <img src={widgetImage(w)} alt={`${w.title} preview`} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+        {widgetImage(w) && <img src={widgetImage(w)} alt={`${w.title} preview`} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
         <span className="hiw-letter" style={{ background: darken(swatch(w.bg), 0.4) }}>{w.title.charAt(0).toUpperCase()}</span>
         {w.badge && <span className="hiw-badge">{w.badge}</span>}
         {w.hasVideo && <span className="hiw-duration">▶ 0:20</span>}

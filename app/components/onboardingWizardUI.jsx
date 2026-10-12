@@ -13,10 +13,12 @@
 // lives here.
 
 import { Fragment } from "react";
+import { BRAND } from "../utils/brand";
 
 export const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#111827",
+  text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 export const labelStyle = {
@@ -89,7 +91,7 @@ export function RadioCard({ label, hint, icon, selected, onClick }) {
           width: 34, height: 34, borderRadius: 9, flexShrink: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
           background: selected ? C.accent : "#f3f4f6",
-          color: selected ? "#fff" : "#6b7280",
+          color: selected ? C.onAccent : "#6b7280",
           transition: "background 160ms ease, color 160ms ease",
         }}>{icon}</span>
       )}
@@ -102,7 +104,7 @@ export function RadioCard({ label, hint, icon, selected, onClick }) {
         display: "flex", alignItems: "center", justifyContent: "center",
         border: selected ? "none" : `1.5px solid ${C.border}`,
         background: selected ? C.accent : "transparent",
-        color: "#fff",
+        color: C.onAccent,
         boxSizing: "border-box",
       }}>
         {selected && <span className="trw-dot-check"><IconCheck /></span>}
@@ -156,13 +158,13 @@ export function WidgetPreviewStep() {
             </div>
           ))}
           <div className="trw-dot-check" style={{
-            padding: "8px 10px", borderRadius: 7, fontSize: 12.5, fontWeight: 600, color: C.accent,
+            padding: "8px 10px", borderRadius: 7, fontSize: 12.5, fontWeight: 600, color: C.accentText,
             background: "#f4f4ff", border: `1.5px solid ${C.accent}`,
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}>
             <span className="trw-widget-preview-app-name">⭐ Trust Reviews</span>
             <span className="trw-widget-preview-app-badge" style={{
-              fontSize: 9.5, fontWeight: 700, letterSpacing: ".03em", color: "#fff",
+              fontSize: 9.5, fontWeight: 700, letterSpacing: ".03em", color: C.onAccent,
               background: C.accent, borderRadius: 20, padding: "2px 7px",
             }}>APPS</span>
           </div>
@@ -172,7 +174,7 @@ export function WidgetPreviewStep() {
       <ul className="trw-widget-preview-benefits" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         {["No code required", "Works with any theme", "Customize colors & layout anytime"].map((f) => (
           <li className="trw-widget-preview-benefit" key={f} style={{ fontSize: 14, color: "#374151", display: "flex", gap: 7 }}>
-            <span className="trw-widget-preview-benefit-check" style={{ color: C.accent, fontWeight: 600 }}>✓</span>{f}
+            <span className="trw-widget-preview-benefit-check" style={{ color: C.accentText, fontWeight: 600 }}>✓</span>{f}
           </li>
         ))}
       </ul>
@@ -221,7 +223,7 @@ export function PlanStep({ devStore, isSubmitting, pendingAction, onAdvance, onF
 
       <span className="trw-plan-trial-badge" style={{
         display: "inline-block", fontSize: 10.5, fontWeight: 700, letterSpacing: ".05em",
-        color: C.accent, background: "#eef0ff", borderRadius: 20, padding: "4px 12px",
+        color: C.accentText, background: "#eef0ff", borderRadius: 20, padding: "4px 12px",
         marginBottom: 12, textTransform: "uppercase",
       }}>
         {devStore ? "Free for development stores" : "10-day free trial"}
@@ -300,7 +302,7 @@ export function OnboardingCard({
                 width: 38, height: 38, borderRadius: 12, flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 background: i < step ? "#ecfdf5" : i === step ? C.accent : "#fff",
-                color: i < step ? "#059669" : i === step ? "#fff" : "#a8a8b3",
+                color: i < step ? "#059669" : i === step ? C.onAccent : "#a8a8b3",
                 border: i === step ? `2px solid ${C.accent}` : i < step ? "2px solid #6ee7b7" : `1.5px solid ${C.border}`,
                 boxShadow: i === step ? "0 4px 14px rgba(17,24,39,.22)" : "none",
                 transform: i === step ? "scale(1.06)" : "scale(1)",
@@ -333,10 +335,10 @@ export function OnboardingCard({
     flexWrap: "wrap",
     rowGap: 14,
     padding: "16px 18px",
-    background: "linear-gradient(135deg, #F2F7FB 0%, #FFFFFF 100%)",
-    border: "1px solid #D6E6F2",
+    background: "linear-gradient(135deg, #EAF3FE 0%, #FFFFFF 100%)",
+    border: "1px solid #D5E6FB",
     borderRadius: 18,
-    boxShadow: "0 10px 28px rgba(141,180,214,.08)",
+    boxShadow: "0 10px 28px rgba(115,175,241,.08)",
   }}
 >
   {STEPS.map((label, i) => {
@@ -368,28 +370,28 @@ export function OnboardingCard({
               alignItems: "center",
               justifyContent: "center",
               background: isCompleted
-                ? "#D6E6F2"
+                ? "#D5E6FB"
                 : isActive
-                ? "linear-gradient(135deg, #8DB4D6 0%, #AFCBE2 100%)"
+                ? "linear-gradient(135deg, #73AFF1 0%, #AFCBE2 100%)"
                 : "#FFFFFF",
 
               color: isCompleted
-                ? "#4F7392"
+                ? "#10224A"
                 : isActive
                 ? "#FFFFFF"
                 : "#A8BAC8",
 
               border: isActive
-                ? "2px solid #8DB4D6"
+                ? "2px solid #73AFF1"
                 : isCompleted
-                ? "1.5px solid #8DB4D6"
-                : "1.5px solid #D6E6F2",
+                ? "1.5px solid #73AFF1"
+                : "1.5px solid #D5E6FB",
 
               boxShadow: isActive
-                ? "0 8px 20px rgba(141,180,214,.28)"
+                ? "0 8px 20px rgba(115,175,241,.28)"
                 : isCompleted
-                ? "0 5px 14px rgba(141,180,214,.14)"
-                : "0 3px 10px rgba(141,180,214,.06)",
+                ? "0 5px 14px rgba(115,175,241,.14)"
+                : "0 3px 10px rgba(115,175,241,.06)",
 
               transform: isActive ? "scale(1.08)" : "scale(1)",
 
@@ -423,10 +425,10 @@ export function OnboardingCard({
                   height: 7,
                   borderRadius: "50%",
                   background: "#FFFFFF",
-                  border: "2px solid #8DB4D6",
+                  border: "2px solid #73AFF1",
                   bottom: -4,
                   right: -3,
-                  boxShadow: "0 2px 7px rgba(141,180,214,.3)",
+                  boxShadow: "0 2px 7px rgba(115,175,241,.3)",
                 }}
                className="tr-app-components-onboardingwizardui-span-1"/>
             )}
@@ -438,9 +440,9 @@ export function OnboardingCard({
               fontWeight: isActive ? 700 : 600,
               whiteSpace: "nowrap",
               color: isActive
-                ? "#4F7392"
+                ? "#10224A"
                 : isCompleted
-                ? "#6F8FA9"
+                ? "#5B6B85"
                 : "#A3B4C1",
 
               letterSpacing: "-.01em",
@@ -456,9 +458,9 @@ export function OnboardingCard({
               fontWeight: 600,
               lineHeight: 1,
               color: isCompleted
-                ? "#8DB4D6"
+                ? "#73AFF1"
                 : isActive
-                ? "#8DB4D6"
+                ? "#73AFF1"
                 : "#C0CDD6",
               textTransform: "uppercase",
               letterSpacing: ".06em",
@@ -491,7 +493,7 @@ export function OnboardingCard({
                 height: "100%",
                 borderRadius: 999,
                 background:
-                  "linear-gradient(90deg, #8DB4D6, #D6E6F2)",
+                  "linear-gradient(90deg, #73AFF1, #D5E6FB)",
                 transform: isCompleted
                   ? "scaleX(1)"
                   : "scaleX(0)",
@@ -574,7 +576,7 @@ export function OnboardingCard({
                         width: 40, height: 40, borderRadius: 10, margin: "0 auto 10px",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         background: selected ? C.accent : "#f3f4f6",
-                        color: selected ? "#fff" : "#6b7280",
+                        color: selected ? C.onAccent : "#6b7280",
                       }}>{icon}</span>
                       <div className="trw-dropshipper-option-label" style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 2 }}>{opt}</div>
                       <div className="trw-dropshipper-option-hint" style={{ fontSize: 11, color: C.muted }}>{hint}</div>
@@ -631,7 +633,7 @@ export function OnboardingCard({
                   display: "flex", alignItems: "center", gap: 6,
                   border: "none", borderRadius: 9, padding: "11px 26px",
                   background: canNext ? C.accent : "#d1d5db",
-                  color: "#fff", fontSize: 13, fontWeight: 600,
+                  color: C.onAccent, fontSize: 13, fontWeight: 600,
                   cursor: canNext ? "pointer" : "default",
                 }}
               >
@@ -645,13 +647,13 @@ export function OnboardingCard({
   className="trw-onboarding-card"
   style={{
     background:
-      "linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(242,247,251,.88) 100%)",
+      "linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(234,243,254,.88) 100%)",
     borderRadius: 24,
-    border: "1px solid rgba(214,230,242,.95)",
+    border: "1px solid rgba(213,230,251,.95)",
     padding: "34px 32px 30px",
     boxShadow: `
-      0 20px 50px rgba(141,180,214,.12),
-      0 6px 18px rgba(79,115,146,.05),
+      0 20px 50px rgba(115,175,241,.12),
+      0 6px 18px rgba(16,34,74,.05),
       inset 0 1px 0 rgba(255,255,255,.95)
     `,
     overflow: "hidden",
@@ -668,7 +670,7 @@ export function OnboardingCard({
     }
 
     .trw-business-options::-webkit-scrollbar-thumb {
-      background: #D6E6F2;
+      background: #D5E6FB;
       border-radius: 50px;
     }
 
@@ -682,8 +684,8 @@ export function OnboardingCard({
 
     .trw-radio:hover {
       transform: translateY(-2px);
-      border-color: #8DB4D6 !important;
-      box-shadow: 0 10px 24px rgba(141,180,214,.14) !important;
+      border-color: #73AFF1 !important;
+      box-shadow: 0 10px 24px rgba(115,175,241,.14) !important;
     }
 
     .trw-btn-primary {
@@ -695,7 +697,7 @@ export function OnboardingCard({
 
     .trw-btn-primary:not(:disabled):hover {
       transform: translateY(-1px);
-      box-shadow: 0 9px 20px rgba(141,180,214,.30);
+      box-shadow: 0 9px 20px rgba(115,175,241,.30);
     }
 
     .trw-btn-ghost {
@@ -705,7 +707,7 @@ export function OnboardingCard({
     }
 
     .trw-btn-ghost:not(:disabled):hover {
-      color: #4F7392 !important;
+      color: #10224A !important;
     }
 
     @media (max-width: 640px) {
@@ -743,7 +745,7 @@ export function OnboardingCard({
       height: 3,
       borderRadius: "0 0 10px 10px",
       background:
-        "linear-gradient(90deg, transparent, #8DB4D6 30%, #D6E6F2 70%, transparent)",
+        "linear-gradient(90deg, transparent, #73AFF1 30%, #D5E6FB 70%, transparent)",
     }}
   />
 
@@ -754,7 +756,7 @@ export function OnboardingCard({
       width: 180,
       height: 180,
       borderRadius: "50%",
-      background: "rgba(214,230,242,.30)",
+      background: "rgba(213,230,251,.30)",
       filter: "blur(25px)",
       top: -90,
       right: -70,
@@ -787,9 +789,9 @@ export function OnboardingCard({
             padding: "6px 10px",
             marginBottom: 13,
             borderRadius: 999,
-            background: "#F2F7FB",
-            border: "1px solid #D6E6F2",
-            color: "#8DB4D6",
+            background: "#EAF3FE",
+            border: "1px solid #D5E6FB",
+            color: "#73AFF1",
             fontSize: 10.5,
             fontWeight: 700,
             letterSpacing: ".04em",
@@ -801,7 +803,7 @@ export function OnboardingCard({
               width: 6,
               height: 6,
               borderRadius: "50%",
-              background: "#8DB4D6",
+              background: "#73AFF1",
             }}
            className="tr-app-components-onboardingwizardui-span-6"/>
 
@@ -814,7 +816,7 @@ export function OnboardingCard({
             fontSize: 20,
             lineHeight: 1.3,
             fontWeight: 750,
-            color: "#4F7392",
+            color: "#10224A",
             marginBottom: 7,
             letterSpacing: "-.02em",
           }}
@@ -886,12 +888,12 @@ export function OnboardingCard({
             justifyContent: "center",
 
             background:
-              "linear-gradient(135deg, #8DB4D6 0%, #D6E6F2 100%)",
+              "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
 
-            color: "#FFFFFF",
+            color: "#10224A",
 
             boxShadow:
-              "0 10px 24px rgba(141,180,214,.26)",
+              "0 10px 24px rgba(115,175,241,.26)",
 
             border: "1px solid rgba(255,255,255,.9)",
           }}
@@ -904,7 +906,7 @@ export function OnboardingCard({
           style={{
             fontSize: 20,
             fontWeight: 750,
-            color: "#4F7392",
+            color: "#10224A",
             textAlign: "center",
             marginBottom: 7,
             letterSpacing: "-.02em",
@@ -971,16 +973,16 @@ export function OnboardingCard({
                   cursor: "pointer",
 
                   border: selected
-                    ? "2px solid #8DB4D6"
-                    : "1px solid #D6E6F2",
+                    ? "2px solid #73AFF1"
+                    : "1px solid #D5E6FB",
 
                   background: selected
-                    ? "linear-gradient(145deg, #F2F7FB, #FFFFFF)"
+                    ? "linear-gradient(145deg, #EAF3FE, #FFFFFF)"
                     : "#FFFFFF",
 
                   boxShadow: selected
-                    ? "0 12px 28px rgba(141,180,214,.16)"
-                    : "0 5px 16px rgba(141,180,214,.06)",
+                    ? "0 12px 28px rgba(115,175,241,.16)"
+                    : "0 5px 16px rgba(115,175,241,.06)",
 
                   position: "relative",
                 }}
@@ -998,7 +1000,7 @@ export function OnboardingCard({
 
                       borderRadius: "50%",
 
-                      background: "#8DB4D6",
+                      background: "#73AFF1",
 
                       display: "flex",
                       alignItems: "center",
@@ -1024,16 +1026,16 @@ export function OnboardingCard({
                     justifyContent: "center",
 
                     background: selected
-                      ? "linear-gradient(135deg, #8DB4D6, #AFCBE2)"
-                      : "#F2F7FB",
+                      ? "linear-gradient(135deg, #73AFF1, #AFCBE2)"
+                      : "#EAF3FE",
 
                     border: selected
-                      ? "1px solid #8DB4D6"
-                      : "1px solid #D6E6F2",
+                      ? "1px solid #73AFF1"
+                      : "1px solid #D5E6FB",
 
                     color: selected
                       ? "#FFFFFF"
-                      : "#8DB4D6",
+                      : "#73AFF1",
                   }}
                 >
                   {icon}
@@ -1044,7 +1046,7 @@ export function OnboardingCard({
                   style={{
                     fontSize: 14,
                     fontWeight: 700,
-                    color: selected ? "#4F7392" : "#607C94",
+                    color: selected ? "#10224A" : "#607C94",
                     marginBottom: 4,
                   }}
                 >
@@ -1092,7 +1094,7 @@ export function OnboardingCard({
           margin: "28px 0 18px",
 
           background:
-            "linear-gradient(90deg, transparent, #D6E6F2 12%, #D6E6F2 88%, transparent)",
+            "linear-gradient(90deg, transparent, #D5E6FB 12%, #D5E6FB 88%, transparent)",
         }}
        className="tr-app-components-onboardingwizardui-div-9"/>
 
@@ -1196,7 +1198,7 @@ export function OnboardingCard({
                 : "default",
 
               boxShadow: canNext
-                ? "0 7px 18px rgba(141,180,214,.25)"
+                ? "0 7px 18px rgba(115,175,241,.25)"
                 : "none",
             }}
           >

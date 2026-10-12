@@ -8,6 +8,7 @@ import { TESTERS, getMailchimpLists } from "../utils/integrations.server";
 import { syncAllApprovedReviews } from "../utils/google-merchant.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
+import { BRAND } from "../utils/brand";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -156,10 +157,11 @@ export const action = async ({ request, params }) => {
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
+  text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
   green: "#1f7a4d", greenLt: "#e7f4ec",
   red: "#a5423b", redLt: "#f7eae8",
   teal: "#0f766e", tealLt: "#e3f3f0",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 function StatusDot({ connected }) {
@@ -197,7 +199,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
             </button>
           ) : (
             <button onClick={() => submit("enable")} disabled={busy}
-              style={{ border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff", cursor: "pointer" }} className="tr-app-routes-app-integrations-provider-button-9">
+              style={{ border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, background: C.accent, color: C.onAccent, cursor: "pointer" }} className="tr-app-routes-app-integrations-provider-button-9">
               Enable Flow Triggers
             </button>
           )}
@@ -252,7 +254,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
           style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-            background: C.accent, color: "#fff", textDecoration: "none",
+            background: C.accent, color: C.onAccent, textDecoration: "none",
             boxShadow: "0 2px 8px rgba(81,69,229,.25)",
           }}
          className="tr-app-routes-app-integrations-provider-a-22">
@@ -400,7 +402,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} className="tr-app-routes-app-integrations-provider-div-75">
         <button onClick={() => submit("save")} disabled={busy || !apiKey.trim()}
-          style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy || !apiKey.trim() ? "default" : "pointer", background: C.accent, color: "#fff", opacity: !apiKey.trim() ? 0.5 : 1 }} className="tr-app-routes-app-integrations-provider-button-76">
+          style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy || !apiKey.trim() ? "default" : "pointer", background: C.accent, color: C.onAccent, opacity: !apiKey.trim() ? 0.5 : 1 }} className="tr-app-routes-app-integrations-provider-button-76">
           {busy && pendingAction === "save" ? "Saving…" : "Save Settings"}
         </button>
         <button onClick={() => submit("test")} disabled={busy || !hasKey}
@@ -409,7 +411,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         </button>
         {providerKey === "google_merchant" && connected && (
           <button onClick={() => submit("sync_all")} disabled={busy}
-            style={{ border: `1px solid ${C.accent}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy ? "default" : "pointer", background: "#fff", color: C.accent }} className="tr-app-routes-app-integrations-provider-button-78">
+            style={{ border: `1px solid ${C.accent}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy ? "default" : "pointer", background: "#fff", color: C.accentText }} className="tr-app-routes-app-integrations-provider-button-78">
             {busy && pendingAction === "sync_all" ? "Syncing…" : "Sync existing approved reviews now"}
           </button>
         )}
@@ -488,7 +490,7 @@ export default function IntegrationSettingsPage() {
         <Link to="/app/integrations" style={{ fontSize: 16, color: C.text, textDecoration: "none" }}>←</Link>
         <div style={{
           width: 34, height: 34, borderRadius: "50%", background: C.accentLt || "#eaf0ff",
-          color: C.accent, display: "flex", alignItems: "center", justifyContent: "center",
+          color: C.accentText, display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 15, fontWeight: 600,
         }} className="tr-app-routes-app-integrations-provider-div-98">{provider.label.charAt(0).toUpperCase()}</div>
         <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }} className="tr-app-routes-app-integrations-provider-h1-99">{provider.label}</h1>

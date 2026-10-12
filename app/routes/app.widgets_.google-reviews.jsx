@@ -170,11 +170,11 @@ function PaywallPage() {
     padding: "clamp(24px, 5vw, 42px)",
     textAlign: "center",
     background:
-      "linear-gradient(145deg, #FFFFFF 0%, #F8FBFD 100%)",
-    border: "1px solid #D6E6F2",
+      "linear-gradient(145deg, #FFFFFF 0%, #F7FAFF 100%)",
+    border: "1px solid #D5E6FB",
     borderRadius: 22,
     boxShadow:
-      "0 16px 42px rgba(79,115,146,.08)",
+      "0 16px 42px rgba(16,34,74,.08)",
     position: "relative",
     overflow: "hidden",
     fontSize: 14,
@@ -199,8 +199,8 @@ function PaywallPage() {
     .tr-google-feature:hover{
       transform:translateY(-1px);
       border-color:#C3D9E8 !important;
-      background:#F8FBFD !important;
-      box-shadow:0 6px 16px rgba(79,115,146,.06);
+      background:#F7FAFF !important;
+      box-shadow:0 6px 16px rgba(16,34,74,.06);
     }
 
     .tr-google-upgrade{
@@ -212,7 +212,7 @@ function PaywallPage() {
 
     .tr-google-upgrade:hover{
       transform:translateY(-1px);
-      box-shadow:0 10px 24px rgba(79,115,146,.23) !important;
+      box-shadow:0 10px 24px rgba(16,34,74,.23) !important;
       filter:brightness(.99);
     }
 
@@ -264,7 +264,7 @@ function PaywallPage() {
       width: 210,
       height: 210,
       borderRadius: "50%",
-      background: "rgba(214,230,242,.48)",
+      background: "rgba(213,230,251,.48)",
       top: -125,
       right: -75,
       pointerEvents: "none",
@@ -277,7 +277,7 @@ function PaywallPage() {
       width: 130,
       height: 130,
       borderRadius: "50%",
-      background: "rgba(141,180,214,.08)",
+      background: "rgba(115,175,241,.08)",
       bottom: -80,
       left: -50,
       pointerEvents: "none",
@@ -295,11 +295,11 @@ function PaywallPage() {
       alignItems: "center",
       justifyContent: "center",
       background:
-        "linear-gradient(145deg,#EDF5FA,#DDEBF4)",
+        "linear-gradient(145deg,#EDF5FF,#DDEBF4)",
       border: "1px solid #D0E1EC",
-      color: "#4F7392",
+      color: "#10224A",
       boxShadow:
-        "0 9px 22px rgba(79,115,146,.09)",
+        "0 9px 22px rgba(16,34,74,.09)",
       position: "relative",
       zIndex: 1,
     }}
@@ -335,9 +335,9 @@ function PaywallPage() {
       gap: 6,
       padding: "5px 10px",
       borderRadius: 999,
-      background: "#EDF5FA",
-      border: "1px solid #D6E6F2",
-      color: "#5F7F9A",
+      background: "#EDF5FF",
+      border: "1px solid #D5E6FB",
+      color: "#10224A",
       fontSize: 10.5,
       fontWeight: 800,
       letterSpacing: ".055em",
@@ -380,7 +380,7 @@ function PaywallPage() {
     style={{
       fontSize: "clamp(22px,3vw,28px)",
       fontWeight: 800,
-      color: "#456984",
+      color: "#10224A",
       marginBottom: 9,
       lineHeight: 1.2,
       letterSpacing: "-.03em",
@@ -396,7 +396,7 @@ function PaywallPage() {
   <div
     style={{
       fontSize: 14,
-      color: "#829CAF",
+      color: "#5B6B85",
       lineHeight: 1.75,
       margin: "0 auto 24px",
       maxWidth: 520,
@@ -436,7 +436,7 @@ function PaywallPage() {
           gap: 9,
           alignItems: "flex-start",
           fontSize: 13,
-          color: "#5F7F9A",
+          color: "#10224A",
           lineHeight: 1.45,
           padding: "11px 12px",
           background: "#F6FAFC",
@@ -502,11 +502,11 @@ function PaywallPage() {
       fontSize: 14,
       fontWeight: 750,
       background:
-        "linear-gradient(135deg,#8DB4D6 0%,#7199B8 100%)",
-      color: "#FFFFFF",
+        "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+      color: "#10224A",
       textDecoration: "none",
       boxShadow:
-        "0 8px 20px rgba(79,115,146,.2)",
+        "0 8px 20px rgba(16,34,74,.2)",
       position: "relative",
       zIndex: 1,
     }}
@@ -536,7 +536,7 @@ function PaywallPage() {
       justifyContent: "center",
       gap: 6,
       fontSize: 11.5,
-      color: "#829CAF",
+      color: "#5B6B85",
       marginTop: 11,
       lineHeight: 1.5,
       position: "relative",
@@ -722,7 +722,7 @@ export default function GoogleReviewsWidgetPage() {
                     rel="noreferrer"
                     style={{
                       display: "inline-block", border: "none", borderRadius: 8, padding: "8px 16px",
-                      fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: "#fff", textDecoration: "none",
+                      fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: SHELL_C.onAccent, textDecoration: "none",
                     }}
                    className="tr-app-routes-app-widgets-google-reviews-a-11">
                     Connect Google Business Profile ↗
@@ -765,7 +765,7 @@ export default function GoogleReviewsWidgetPage() {
                   <button
                     onClick={handleSyncBusiness}
                     disabled={businessBusy}
-                    style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: "#fff", cursor: businessBusy ? "default" : "pointer" }}
+                    style={{ border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, background: SHELL_C.accent, color: SHELL_C.onAccent, cursor: businessBusy ? "default" : "pointer" }}
                    className="tr-app-routes-app-widgets-google-reviews-button-19">
                     {businessBusy ? "Syncing…" : "Sync all reviews now"}
                   </button>
@@ -801,7 +801,7 @@ export default function GoogleReviewsWidgetPage() {
                   style={{
                     border: "none", borderRadius: 8, padding: "8px 16px",
                     fontSize: 12.5, fontWeight: 600, cursor: connecting || !mapsUrl ? "default" : "pointer",
-                    background: SHELL_C.accent, color: "#fff", opacity: !mapsUrl ? 0.5 : 1,
+                    background: SHELL_C.accent, color: SHELL_C.onAccent, opacity: !mapsUrl ? 0.5 : 1,
                   }}
                  className="tr-app-routes-app-widgets-google-reviews-button-22">
                   {connecting ? "Detecting…" : "Detect & connect"}

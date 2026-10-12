@@ -127,15 +127,15 @@ export default function StarBadgeSettings({ settings }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 750, color: "#4F7392", margin: 0, letterSpacing: "-.02em" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 750, color: "#10224A", margin: 0, letterSpacing: "-.02em" }}>
           {t.settingsTitle}
         </h2>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {saved && (
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700,
-              color: "#4F7392", background: "#D6E6F2", padding: "5px 11px", borderRadius: 20,
-              border: "1px solid rgba(141,180,214,.45)",
+              color: "#10224A", background: "#D5E6FB", padding: "5px 11px", borderRadius: 20,
+              border: "1px solid rgba(115,175,241,.45)",
             }}>
               ✓ Saved
             </span>
@@ -144,9 +144,9 @@ export default function StarBadgeSettings({ settings }) {
             onClick={handleSave}
             style={{
               border: "none", borderRadius: 9, padding: "9px 18px",
-              background: "linear-gradient(135deg,#8DB4D6,#6F96B6)", color: "#fff",
+              background: "linear-gradient(135deg,#73AFF1,#5E9FE8)", color: "#fff",
               fontWeight: 700, fontSize: 12.5, cursor: "pointer",
-              boxShadow: "0 6px 16px rgba(79,115,146,.17)",
+              boxShadow: "0 6px 16px rgba(16,34,74,.17)",
             }}
           >
             Save Changes

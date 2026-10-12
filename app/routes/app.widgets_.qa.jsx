@@ -107,7 +107,7 @@ export default function QaStylePage() {
           note={
             <span className="tr-app-routes-app-widgets-qa-span-11">
               Need to answer pending questions?{" "}
-              <Link to="/app/widgets/qa-manage" style={{ color: SHELL_C.accent, fontWeight: 600 }}>Manage questions →</Link>
+              <Link to="/app/widgets/qa-manage" style={{ color: SHELL_C.accentText, fontWeight: 600 }}>Manage questions →</Link>
             </span>
           }
         />

@@ -1,4 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import globalStyles from "./global.css?url";
+
+export const links = () => [{ rel: "stylesheet", href: globalStyles }];
 
 export default function App() {
   return (
@@ -13,23 +16,6 @@ export default function App() {
          className="tr-app-root-link-6"/>
         <Meta />
         <Links />
-        <style className="tr-app-root-style-7">{`
-          :root {
-            --app-font-family: 'Inter var', Helvetica, Arial, sans-serif;
-          }
-
-          :root, .p-theme-light, .p-theme-dark {
-            --p-font-family-sans: var(--app-font-family);
-          }
-
-          html, body {
-            font-family: var(--app-font-family);
-          }
-
-          button, input, select, textarea {
-            font-family: inherit;
-          }
-        `}</style>
       </head>
       <body className="tr-app-root-body-8">
         <Outlet />

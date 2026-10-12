@@ -11,7 +11,7 @@ export const ADMIN_T = {
     delete: "Delete", edit: "Edit", rename: "Rename",
     search: "Search", back: "Back", close: "Close",
     copy: "Copy", copied: "Copied", add: "Add", remove: "Remove",
-    create: "Create", install: "Install", installed: "Installed",
+    create: "Create", install: "Add to store", installed: "Installed",
     noResults: "No results found.",
     // Settings page
     settingsTitle: "Star Rating Badge",

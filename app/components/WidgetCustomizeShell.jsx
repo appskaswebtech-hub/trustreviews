@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { BRAND } from "../utils/brand";
 
 export const SHELL_C = {
   bg: "#f6f6f8",
@@ -7,13 +8,14 @@ export const SHELL_C = {
   surface: "#ffffff",
   border: "#e5e4ec",
   borderLight: "#eeedf3",
-  text: "#17171c",
+  text: BRAND.navy,
   textSub: "#3f3f46",
   muted: "#6b6b78",
-  accent: "#4C6FFF",
-  accentLt: "#eaf0ff",
+  accent: BRAND.blue,
+  accentLt: BRAND.blueLight,
   green: "#1f7a4d",
   greenLt: "#e7f4ec",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 export function AccordionSection({ label, defaultOpen = false, children, icon }) {
@@ -64,8 +66,8 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
     <div
   className="tr-app-components-widgetcustomizeshell-div-1"
   style={{
-    borderBottom: "1px solid #D6E6F2",
-    background: open ? "#F9FCFE" : "#FFFFFF",
+    borderBottom: "1px solid #D5E6FB",
+    background: open ? "#F8FBFF" : "#FFFFFF",
     transition: "background .18s ease",
   }}
 >
@@ -105,14 +107,14 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
             justifyContent: "center",
             fontSize: 13,
             background: open
-              ? "linear-gradient(135deg,#8DB4D6,#D6E6F2)"
-              : "#F2F7FB",
-            color: open ? "#FFFFFF" : "#8DA7BC",
+              ? "linear-gradient(135deg,#73AFF1,#D5E6FB)"
+              : "#EAF3FE",
+            color: open ? "#10224A" : "#8DA7BC",
             border: open
-              ? "1px solid #8DB4D6"
-              : "1px solid #D6E6F2",
+              ? "1px solid #73AFF1"
+              : "1px solid #D5E6FB",
             boxShadow: open
-              ? "0 5px 12px rgba(141,180,214,.18)"
+              ? "0 5px 12px rgba(115,175,241,.18)"
               : "none",
             transition: "all .18s ease",
             flexShrink: 0,
@@ -127,7 +129,7 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
         style={{
           fontSize: 16,
           fontWeight: 700,
-          color: open ? "#4F7392" : "#5F7F9A",
+          color: open ? "#10224A" : "#10224A",
           letterSpacing: "-.01em",
         }}
       >
@@ -143,8 +145,8 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: open ? "#F2F7FB" : "transparent",
-        border: open ? "1px solid #D6E6F2" : "1px solid transparent",
+        background: open ? "#EAF3FE" : "transparent",
+        border: open ? "1px solid #D5E6FB" : "1px solid transparent",
         flexShrink: 0,
       }}
     >
@@ -162,7 +164,7 @@ export function AccordionSection({ label, defaultOpen = false, children, icon })
       >
         <path
           d="M2 4L5.5 7.5L9 4"
-          stroke={open ? "#4F7392" : "#8DA7BC"}
+          stroke={open ? "#10224A" : "#8DA7BC"}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -224,10 +226,10 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
   style={{
     padding: "18px 18px 16px",
 
-    borderBottom: "1px solid #D6E6F2",
+    borderBottom: "1px solid #D5E6FB",
 
     background:
-      "linear-gradient(135deg, #F2F7FB 0%, #FFFFFF 100%)",
+      "linear-gradient(135deg, #EAF3FE 0%, #FFFFFF 100%)",
 
     position: "relative",
 
@@ -249,7 +251,7 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
       borderRadius: "0 0 10px 10px",
 
       background:
-        "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
+        "linear-gradient(90deg, transparent, #73AFF1, transparent)",
 
       opacity: 0.75,
     }}
@@ -277,12 +279,12 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
         alignItems: "center",
         justifyContent: "center",
         background:
-          "linear-gradient(135deg, #8DB4D6 0%, #D6E6F2 100%)",
-        color: "#FFFFFF",
+          "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
+        color: "#10224A",
         fontSize: 14,
         fontWeight: 700,
         boxShadow:
-          "0 6px 14px rgba(141,180,214,.20)",
+          "0 6px 14px rgba(115,175,241,.20)",
         flexShrink: 0,
       }}
     >
@@ -294,7 +296,7 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
       style={{
         fontSize: 16,
         fontWeight: 700,
-        color: "#4F7392",
+        color: "#10224A",
         letterSpacing: "-.01em",
       }}
     >
@@ -306,7 +308,7 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
     className="tr-app-components-widgetcustomizeshell-p-12"
     style={{
       fontSize: 14,
-      color: "#829CAF",
+      color: "#5B6B85",
       margin: `0 0 ${installUrl ? 12 : 0}px`,
       lineHeight: 1.65,
       paddingLeft: 0,
@@ -331,19 +333,19 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
         minHeight: 36,
         fontSize: 12.5,
         fontWeight: 700,
-        color: "#FFFFFF",
+        color: "#fff",
         background:
-          "linear-gradient(135deg, #8DB4D6 0%, #6F96B6 100%)",
+          "linear-gradient(135deg, #73AFF1 0%, #5E9FE8 100%)",
         borderRadius: 10,
         padding: "8px 14px",
         textDecoration: "none",
         boxShadow:
-          "0 7px 18px rgba(79,115,146,.18)",
+          "0 7px 18px rgba(16,34,74,.18)",
         transition:
           "transform .16s ease, box-shadow .16s ease",
       }}
     >
-      Install to Theme ↗
+      Add to store ↗
     </a>
   )}
 
@@ -353,14 +355,14 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
       style={{
         marginTop: 12,
         background: "#FFFFFF",
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         borderRadius: 11,
         padding: "11px 13px",
         fontSize: 14,
-        color: "#6F8FA9",
+        color: "#5B6B85",
         lineHeight: 1.55,
         boxShadow:
-          "0 5px 14px rgba(141,180,214,.06)",
+          "0 5px 14px rgba(115,175,241,.06)",
         position: "relative",
       }}
     >
@@ -371,7 +373,7 @@ export function InstallSection({ description, installUrl, note, onInstall }) {
           width: 6,
           height: 6,
           borderRadius: "50%",
-          background: "#8DB4D6",
+          background: "#73AFF1",
           marginRight: 7,
           verticalAlign: "middle",
         }}
@@ -462,7 +464,7 @@ export function RangeField({ label, value, onChange, min, max, step = 1, unit = 
         <div style={{
           minWidth: 44, height: 28, borderRadius: 7, background: SHELL_C.accentLt,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 11.5, fontWeight: 600, color: SHELL_C.accent, flexShrink: 0,
+          fontSize: 11.5, fontWeight: 600, color: SHELL_C.accentText, flexShrink: 0,
         }} className="tr-app-components-widgetcustomizeshell-div-28">
           {value}{unit}
         </div>
@@ -556,7 +558,7 @@ export default function WidgetCustomizeShell({
           <span className="simple-preview" style={{ fontSize: 11.5, color: SHELL_C.muted }}>Sample preview</span>
           <button onClick={onSave} style={{
             border: "none", borderRadius: 8, padding: "8px 20px",
-            background: SHELL_C.accent, color: "#fff",
+            background: SHELL_C.accent, color: SHELL_C.onAccent,
             fontWeight: 600, fontSize: 13, cursor: "pointer",
           }}>
             Save Changes
@@ -573,13 +575,13 @@ export default function WidgetCustomizeShell({
     minHeight: 62,
     padding: "0 24px",
     background:
-      "linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(242,247,251,.96) 100%)",
-    borderBottom: "1px solid #D6E6F2",
+      "linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(234,243,254,.96) 100%)",
+    borderBottom: "1px solid #D5E6FB",
     position: "sticky",
     top: 0,
     zIndex: 100,
     boxShadow:
-      "0 6px 20px rgba(79,115,146,.07)",
+      "0 6px 20px rgba(16,34,74,.07)",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
   }}
@@ -597,19 +599,19 @@ export default function WidgetCustomizeShell({
 
     .nab-bar-back:hover {
       transform: translateX(-2px);
-      border-color: #8DB4D6 !important;
+      border-color: #73AFF1 !important;
       background: #FFFFFF !important;
-      box-shadow: 0 6px 16px rgba(141,180,214,.14);
-      color: #4F7392 !important;
+      box-shadow: 0 6px 16px rgba(115,175,241,.14);
+      color: #10224A !important;
     }
 
     .nab-bar-breadcrumb:hover {
-      color: #4F7392 !important;
+      color: #10224A !important;
     }
 
     .nab-bar-save:hover {
       transform: translateY(-1px);
-      box-shadow: 0 9px 20px rgba(79,115,146,.22) !important;
+      box-shadow: 0 9px 20px rgba(16,34,74,.22) !important;
     }
 
     @media (max-width: 700px) {
@@ -653,9 +655,9 @@ export default function WidgetCustomizeShell({
 
         borderRadius: 10,
 
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
 
-        color: "#5F7F9A",
+        color: "#10224A",
 
         textDecoration: "none",
 
@@ -663,10 +665,10 @@ export default function WidgetCustomizeShell({
 
         fontWeight: 700,
 
-        background: "#F2F7FB",
+        background: "#FFFFFF",
 
         boxShadow:
-          "0 4px 12px rgba(141,180,214,.07)",
+          "0 4px 12px rgba(115,175,241,.07)",
 
         flexShrink: 0,
       }}
@@ -686,12 +688,12 @@ export default function WidgetCustomizeShell({
 
         background: "#FFFFFF",
 
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
 
         borderRadius: 9,
 
         boxShadow:
-          "0 3px 10px rgba(141,180,214,.05)",
+          "0 3px 10px rgba(115,175,241,.05)",
       }}
      className="tr-app-components-widgetcustomizeshell-div-42">
       <Link
@@ -700,7 +702,7 @@ export default function WidgetCustomizeShell({
         style={{
           fontSize: 16,
 
-          color: "#829CAF",
+          color: "#5B6B85",
 
           textDecoration: "none",
 
@@ -730,7 +732,7 @@ export default function WidgetCustomizeShell({
 
           fontWeight: 700,
 
-          color: "#4F7392",
+          color: "#10224A",
 
           whiteSpace: "nowrap",
 
@@ -763,12 +765,12 @@ export default function WidgetCustomizeShell({
           gap: 6,
           fontSize: 11.5,
           fontWeight: 700,
-          color: "#4F7392",
-          background: "#D6E6F2",
+          color: "#10224A",
+          background: "#D5E6FB",
           padding: "6px 11px",
           borderRadius: 20,
           border:
-            "1px solid rgba(141,180,214,.45)",
+            "1px solid rgba(115,175,241,.45)",
 
           whiteSpace: "nowrap",
         }}
@@ -781,8 +783,8 @@ export default function WidgetCustomizeShell({
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "50%",
-            background: "#8DB4D6",
-            color: "#FFFFFF",
+            background: "#73AFF1",
+            color: "#10224A",
             fontSize: 9,
           }}
          className="tr-app-components-widgetcustomizeshell-span-46">
@@ -797,9 +799,9 @@ export default function WidgetCustomizeShell({
       className="simple-preview"
       style={{
         fontSize: 16,
-        color: "#8BA2B4",
-        background: "#F2F7FB",
-        border: "1px solid #D6E6F2",
+        color: "#5B6B85",
+        background: "#FFFFFF",
+        border: "1px solid #D5E6FB",
         padding: "6px 10px",
         borderRadius: 8,
         whiteSpace: "nowrap",
@@ -817,13 +819,13 @@ export default function WidgetCustomizeShell({
         height: 38,
         padding: "0 20px",
         background:
-          "linear-gradient(135deg, #8DB4D6 0%, #6F96B6 100%)",
-        color: "#FFFFFF",
+          "linear-gradient(135deg, #73AFF1 0%, #5E9FE8 100%)",
+        color: "#fff",
         fontWeight: 700,
         fontSize: 16,
         cursor: "pointer",
         boxShadow:
-          "0 7px 18px rgba(79,115,146,.18)",
+          "0 7px 18px rgba(16,34,74,.18)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -883,7 +885,7 @@ export default function WidgetCustomizeShell({
     display: "flex",
     height: "calc(100vh - 62px)",
     minHeight: 620,
-    background: "#EEF5FA",
+    background: "#EEF5FF",
     fontFamily: "var(--app-font-family)",
     "--tr-star-color": "#F5B301",
   }}
@@ -931,7 +933,7 @@ export default function WidgetCustomizeShell({
     .tr-customizer-sidebar select,
     .tr-customizer-sidebar textarea {
       border-radius: 10px !important;
-      border-color: #D6E6F2 !important;
+      border-color: #D5E6FB !important;
       transition:
         border-color .16s ease,
         box-shadow .16s ease,
@@ -942,9 +944,9 @@ export default function WidgetCustomizeShell({
     .tr-customizer-sidebar select:focus,
     .tr-customizer-sidebar textarea:focus {
       outline: none !important;
-      border-color: #8DB4D6 !important;
+      border-color: #73AFF1 !important;
       background: #FFFFFF !important;
-      box-shadow: 0 0 0 3px rgba(141,180,214,.14) !important;
+      box-shadow: 0 0 0 3px rgba(115,175,241,.14) !important;
     }
 
     .tr-customizer-preview-frame {
@@ -957,8 +959,8 @@ export default function WidgetCustomizeShell({
     .tr-customizer-preview-frame:hover {
       border-color: #B8D2E6 !important;
       box-shadow:
-        0 28px 72px rgba(79,115,146,.14),
-        0 10px 24px rgba(141,180,214,.07) !important;
+        0 28px 72px rgba(16,34,74,.14),
+        0 10px 24px rgba(115,175,241,.07) !important;
     }
 
     .tr-customizer-preview-canvas {
@@ -971,7 +973,7 @@ export default function WidgetCustomizeShell({
       border-color: #C7DBE9 !important;
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.95),
-        0 8px 24px rgba(79,115,146,.05);
+        0 8px 24px rgba(16,34,74,.05);
     }
 
     .tr-customizer-live-dot {
@@ -980,11 +982,11 @@ export default function WidgetCustomizeShell({
 
     @keyframes trCustomizerLivePulse {
       0%, 100% {
-        box-shadow: 0 0 0 0 rgba(141,180,214,.30);
+        box-shadow: 0 0 0 0 rgba(115,175,241,.30);
       }
 
       50% {
-        box-shadow: 0 0 0 7px rgba(141,180,214,0);
+        box-shadow: 0 0 0 7px rgba(115,175,241,0);
       }
     }
 
@@ -1011,7 +1013,7 @@ export default function WidgetCustomizeShell({
         width: 100% !important;
         max-height: 390px;
         border-right: none !important;
-        border-bottom: 1px solid #D6E6F2 !important;
+        border-bottom: 1px solid #D5E6FB !important;
       }
 
       .tr-customizer-preview-area {
@@ -1055,13 +1057,13 @@ export default function WidgetCustomizeShell({
       flexShrink: 0,
 
       background:
-        "linear-gradient(180deg, #FFFFFF 0%, #FAFCFD 58%, #F4F9FC 100%)",
-      borderRight: "1px solid #D6E6F2",
+        "linear-gradient(180deg, #FFFFFF 0%, #F9FBFF 58%, #F4F9FC 100%)",
+      borderRight: "1px solid #D5E6FB",
       overflowY: "auto",
       position: "relative",
       zIndex: 3,
       boxShadow:
-        "12px 0 34px rgba(79,115,146,.045)",
+        "12px 0 34px rgba(16,34,74,.045)",
     }}
   >
     <div
@@ -1072,9 +1074,9 @@ export default function WidgetCustomizeShell({
         top: 0,
         zIndex: 6,
         background:
-          "linear-gradient(90deg, #8DB4D6 0%, #AFCBE2 50%, #D6E6F2 100%)",
+          "linear-gradient(90deg, #73AFF1 0%, #AFCBE2 50%, #D5E6FB 100%)",
         boxShadow:
-          "0 3px 10px rgba(141,180,214,.12)",
+          "0 3px 10px rgba(115,175,241,.12)",
       }}
     />
 
@@ -1124,18 +1126,18 @@ export default function WidgetCustomizeShell({
       background: `
         radial-gradient(
           760px circle at 100% -8%,
-          rgba(214,230,242,.76),
+          rgba(213,230,251,.76),
           transparent 58%
         ),
         radial-gradient(
           560px circle at -5% 108%,
-          rgba(141,180,214,.15),
+          rgba(115,175,241,.15),
           transparent 62%
         ),
         linear-gradient(
           180deg,
-          #EEF5FA 0%,
-          #F8FBFD 100%
+          #EEF5FF 0%,
+          #F7FAFF 100%
         )
       `,
     }}
@@ -1153,12 +1155,12 @@ export default function WidgetCustomizeShell({
 
         backgroundImage: `
           linear-gradient(
-            rgba(141,180,214,.11) 1px,
+            rgba(115,175,241,.11) 1px,
             transparent 1px
           ),
           linear-gradient(
             90deg,
-            rgba(141,180,214,.11) 1px,
+            rgba(115,175,241,.11) 1px,
             transparent 1px
           )
         `,
@@ -1185,7 +1187,7 @@ export default function WidgetCustomizeShell({
         borderRadius: "50%",
 
         background:
-          "rgba(214,230,242,.38)",
+          "rgba(213,230,251,.38)",
 
         filter: "blur(34px)",
 
@@ -1203,15 +1205,15 @@ export default function WidgetCustomizeShell({
 
         background: "#FFFFFF",
 
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
 
         borderRadius: 28,
 
         overflow: "hidden",
 
         boxShadow: `
-          0 24px 64px rgba(79,115,146,.11),
-          0 8px 22px rgba(141,180,214,.06)
+          0 24px 64px rgba(16,34,74,.11),
+          0 8px 22px rgba(115,175,241,.06)
         `,
 
         position: "relative",
@@ -1227,7 +1229,7 @@ export default function WidgetCustomizeShell({
           height: 4,
 
           background:
-            "linear-gradient(90deg, #8DB4D6 0%, #AFCBE2 52%, #D6E6F2 100%)",
+            "linear-gradient(90deg, #73AFF1 0%, #AFCBE2 52%, #D5E6FB 100%)",
         }}
       />
 
@@ -1274,13 +1276,13 @@ export default function WidgetCustomizeShell({
               justifyContent: "center",
 
               background:
-                "linear-gradient(135deg, #8DB4D6 0%, #C3DAEB 100%)",
+                "linear-gradient(135deg, #73AFF1 0%, #C3DAEB 100%)",
 
               border:
                 "1px solid rgba(255,255,255,.92)",
 
               boxShadow:
-                "0 8px 20px rgba(141,180,214,.24)",
+                "0 8px 20px rgba(115,175,241,.24)",
             }}
           >
             <span
@@ -1291,7 +1293,7 @@ export default function WidgetCustomizeShell({
                 borderRadius: "50%",
                 background: "#FFFFFF",
                 border:
-                  "2px solid rgba(79,115,146,.12)",
+                  "2px solid rgba(16,34,74,.12)",
               }}
             />
           </div>
@@ -1311,7 +1313,7 @@ export default function WidgetCustomizeShell({
                 style={{
                   fontSize: 16,
                   fontWeight: 700,
-                  color: "#4F7392",
+                  color: "#10224A",
                   letterSpacing: ".015em",
                 }}
               >
@@ -1364,13 +1366,13 @@ export default function WidgetCustomizeShell({
             padding: "8px 13px",
             borderRadius: 999,
             background:
-              "linear-gradient(135deg, #F2F7FB, #FFFFFF)",
-            border: "1px solid #D6E6F2",
-            color: "#6F8FA9",
+              "linear-gradient(135deg, #EAF3FE, #FFFFFF)",
+            border: "1px solid #D5E6FB",
+            color: "#5B6B85",
             fontSize: 12,
             fontWeight: 700,
             boxShadow:
-              "0 4px 12px rgba(141,180,214,.07)",
+              "0 4px 12px rgba(115,175,241,.07)",
           }}
         >
           <span
@@ -1381,10 +1383,10 @@ export default function WidgetCustomizeShell({
 
               borderRadius: "50%",
 
-              background: "#8DB4D6",
+              background: "#73AFF1",
 
               boxShadow:
-                "0 0 0 3px rgba(141,180,214,.12)",
+                "0 0 0 3px rgba(115,175,241,.12)",
             }}
           />
 
@@ -1405,7 +1407,7 @@ export default function WidgetCustomizeShell({
           background: `
             radial-gradient(
               440px circle at 100% 0%,
-              rgba(242,247,251,.95),
+              rgba(234,243,254,.95),
               transparent 70%
             ),
             linear-gradient(
@@ -1428,7 +1430,7 @@ export default function WidgetCustomizeShell({
             left: -90,
             borderRadius: "50%",
             background:
-              "rgba(141,180,214,.08)",
+              "rgba(115,175,241,.08)",
             filter: "blur(25px)",
             pointerEvents: "none",
           }}
@@ -1444,11 +1446,11 @@ export default function WidgetCustomizeShell({
             zIndex: 1,
             background: "#FFFFFF",
             border:
-              "1px solid rgba(214,230,242,.92)",
+              "1px solid rgba(213,230,251,.92)",
             borderRadius: 22,
             boxShadow:
               "inset 0 1px 0 rgba(255,255,255,.95)",
-            color: "#4F7392",
+            color: "#10224A",
             fontSize: 15.5,
             lineHeight: 1.65,
           }}

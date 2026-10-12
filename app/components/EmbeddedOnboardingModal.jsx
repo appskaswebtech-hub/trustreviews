@@ -172,7 +172,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
     inset: 0,
     zIndex: 1000,
 
-    background: "rgba(79,115,146,.34)",
+    background: "rgba(16,34,74,.34)",
 
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
@@ -218,9 +218,9 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
     }
 
     .trw-modal-close:hover {
-      background: #F2F7FB !important;
-      border-color: #8DB4D6 !important;
-      box-shadow: 0 8px 20px rgba(141,180,214,.18);
+      background: #EAF3FE !important;
+      border-color: #73AFF1 !important;
+      box-shadow: 0 8px 20px rgba(115,175,241,.18);
       transform: rotate(90deg);
     }
 
@@ -233,7 +233,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
     }
 
     .trw-modal-container::-webkit-scrollbar-thumb {
-      background: #D6E6F2;
+      background: #D5E6FB;
       border-radius: 50px;
     }
 
@@ -296,15 +296,15 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           linear-gradient(
             145deg,
             rgba(255,255,255,.98),
-            rgba(242,247,251,.96)
+            rgba(234,243,254,.96)
           )
         `,
 
-        border: "1px solid rgba(214,230,242,.95)",
+        border: "1px solid rgba(213,230,251,.95)",
 
         boxShadow: `
-          0 35px 90px rgba(79,115,146,.22),
-          0 16px 36px rgba(141,180,214,.16),
+          0 35px 90px rgba(16,34,74,.22),
+          0 16px 36px rgba(115,175,241,.16),
           inset 0 1px 0 rgba(255,255,255,.95)
         `,
       }}
@@ -321,7 +321,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           borderRadius: "0 0 10px 10px",
 
           background:
-            "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
+            "linear-gradient(90deg, transparent, #73AFF1, transparent)",
 
           opacity: 0.85,
         }}
@@ -340,7 +340,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           borderRadius: "50%",
 
           background:
-            "rgba(214,230,242,.48)",
+            "rgba(213,230,251,.48)",
 
           filter: "blur(26px)",
 
@@ -385,7 +385,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               flexShrink: 0,
 
               background:
-                "linear-gradient(135deg, #8DB4D6 0%, #D6E6F2 100%)",
+                "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
 
               border:
                 "1px solid rgba(255,255,255,.95)",
@@ -399,7 +399,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               fontSize: 20,
 
               boxShadow: `
-                0 10px 24px rgba(141,180,214,.30),
+                0 10px 24px rgba(115,175,241,.30),
                 inset 0 1px 0 rgba(255,255,255,.95)
               `,
             }}
@@ -416,7 +416,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
                 fontWeight: 750,
 
-                color: "#4F7392",
+                color: "#10224A",
 
                 letterSpacing: "-.015em",
 
@@ -464,15 +464,15 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
               background: "#FFFFFF",
 
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
 
               boxShadow:
-                "0 6px 18px rgba(141,180,214,.10)",
+                "0 6px 18px rgba(115,175,241,.10)",
             }}
           >
             <span
               style={{
-                color: "#8DB4D6",
+                color: "#73AFF1",
 
                 fontSize: 14,
 
@@ -488,7 +488,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
                 fontWeight: 700,
 
-                color: "#6F8FA9",
+                color: "#5B6B85",
 
                 whiteSpace: "nowrap",
               }}
@@ -511,11 +511,11 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               flexShrink: 0,
 
               border:
-                "1px solid #D6E6F2",
+                "1px solid #D5E6FB",
 
               background: "#FFFFFF",
 
-              color: "#6F8FA9",
+              color: "#5B6B85",
 
               fontSize: 13,
 
@@ -526,7 +526,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               justifyContent: "center",
 
               boxShadow:
-                "0 6px 16px rgba(141,180,214,.10)",
+                "0 6px 16px rgba(115,175,241,.10)",
             }}
           >
             ✕
@@ -552,10 +552,10 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           borderRadius: 16,
 
           background:
-            "linear-gradient(90deg, #F2F7FB 0%, rgba(214,230,242,.42) 100%)",
+            "linear-gradient(90deg, #EAF3FE 0%, rgba(213,230,251,.42) 100%)",
 
           border:
-            "1px solid rgba(214,230,242,.95)",
+            "1px solid rgba(213,230,251,.95)",
         }}
        className="tr-app-components-embeddedonboardingmodal-div-6">
         <div
@@ -569,18 +569,18 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
             background: "#FFFFFF",
 
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
 
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
 
-            color: "#8DB4D6",
+            color: "#73AFF1",
 
             fontSize: 15,
 
             boxShadow:
-              "0 4px 12px rgba(141,180,214,.10)",
+              "0 4px 12px rgba(115,175,241,.10)",
           }}
          className="tr-app-components-embeddedonboardingmodal-div-7">
           ★
@@ -593,7 +593,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
               fontWeight: 700,
 
-              color: "#5F7F9A",
+              color: "#10224A",
 
               marginBottom: 2,
             }}
@@ -616,7 +616,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
         <div
           style={{
-            color: "#8DB4D6",
+            color: "#73AFF1",
 
             fontSize: 12,
 
@@ -637,7 +637,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           marginBottom: 26,
 
           background:
-            "linear-gradient(90deg, transparent, #D6E6F2 15%, #D6E6F2 85%, transparent)",
+            "linear-gradient(90deg, transparent, #D5E6FB 15%, #D5E6FB 85%, transparent)",
         }}
        className="tr-app-components-embeddedonboardingmodal-div-12"/>
 
@@ -649,14 +649,14 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           background: "#FFFFFF",
 
           border:
-            "1px solid rgba(214,230,242,.95)",
+            "1px solid rgba(213,230,251,.95)",
 
           borderRadius: 22,
 
           padding: "28px",
 
           boxShadow: `
-            0 18px 44px rgba(141,180,214,.10),
+            0 18px 44px rgba(115,175,241,.10),
             inset 0 1px 0 rgba(255,255,255,.95)
           `,
         }}
@@ -696,7 +696,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
        className="tr-app-components-embeddedonboardingmodal-div-14">
         <span
           style={{
-            color: "#8DB4D6",
+            color: "#73AFF1",
             fontWeight: 700,
           }}
          className="tr-app-components-embeddedonboardingmodal-span-15">

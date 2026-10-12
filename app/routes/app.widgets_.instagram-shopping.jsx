@@ -51,9 +51,9 @@ export default function InstagramShoppingStubPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(214,230,242,.48), transparent 30%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.48), transparent 30%), #EAF3FE",
     fontFamily: "var(--app-font-family)",
-    color: "#4F7392",
+    color: "#10224A",
     fontSize: 14,
   }}
   className="tr-app-routes-app-widgets-instagram-shopping-div-1 tr-instagram-page"
@@ -72,7 +72,7 @@ export default function InstagramShoppingStubPage() {
     }
 
     .tr-instagram-back:hover{
-      background:#EDF5FA !important;
+      background:#EDF5FF !important;
       border-color:#BDD5E5 !important;
       transform:translateX(-1px);
     }
@@ -86,7 +86,7 @@ export default function InstagramShoppingStubPage() {
 
     .tr-instagram-connect-card:hover{
       border-color:#C4D9E7 !important;
-      box-shadow:0 18px 42px rgba(79,115,146,.09) !important;
+      box-shadow:0 18px 42px rgba(16,34,74,.09) !important;
     }
 
     .tr-instagram-disabled-btn{
@@ -170,8 +170,8 @@ export default function InstagramShoppingStubPage() {
       gap: 11,
       padding: "11px 20px",
       background: "rgba(255,255,255,.96)",
-      borderBottom: "1px solid #D6E6F2",
-      boxShadow: "0 3px 14px rgba(79,115,146,.045)",
+      borderBottom: "1px solid #D5E6FB",
+      boxShadow: "0 3px 14px rgba(16,34,74,.045)",
       backdropFilter: "blur(12px)",
       position: "sticky",
       top: 0,
@@ -189,10 +189,10 @@ export default function InstagramShoppingStubPage() {
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 10,
-        color: "#4F7392",
+        color: "#10224A",
         textDecoration: "none",
-        background: "#F8FBFD",
-        border: "1px solid #D6E6F2",
+        background: "#FFFFFF",
+        border: "1px solid #D5E6FB",
         flexShrink: 0,
       }}
       className="tr-instagram-back"
@@ -230,9 +230,9 @@ export default function InstagramShoppingStubPage() {
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          background: "#EDF5FA",
-          border: "1px solid #D6E6F2",
-          color: "#4F7392",
+          background: "#EDF5FF",
+          border: "1px solid #D5E6FB",
+          color: "#10224A",
         }}
       >
         <svg
@@ -265,7 +265,7 @@ export default function InstagramShoppingStubPage() {
         style={{
           fontWeight: 800,
           fontSize: 15,
-          color: "#496B87",
+          color: "#10224A",
           letterSpacing: "-.01em",
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -292,11 +292,11 @@ export default function InstagramShoppingStubPage() {
       style={{
         width: "100%",
         background:
-          "linear-gradient(145deg,#FFFFFF 0%,#F8FBFD 100%)",
+          "linear-gradient(145deg,#FFFFFF 0%,#F7FAFF 100%)",
         borderRadius: 22,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "30px",
-        boxShadow: "0 14px 36px rgba(79,115,146,.07)",
+        boxShadow: "0 14px 36px rgba(16,34,74,.07)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -309,7 +309,7 @@ export default function InstagramShoppingStubPage() {
           width: 190,
           height: 190,
           borderRadius: "50%",
-          background: "rgba(214,230,242,.42)",
+          background: "rgba(213,230,251,.42)",
           top: -110,
           right: -65,
           pointerEvents: "none",
@@ -322,7 +322,7 @@ export default function InstagramShoppingStubPage() {
           width: 110,
           height: 110,
           borderRadius: "50%",
-          background: "rgba(141,180,214,.08)",
+          background: "rgba(115,175,241,.08)",
           bottom: -65,
           left: -35,
           pointerEvents: "none",
@@ -350,11 +350,11 @@ export default function InstagramShoppingStubPage() {
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            color: "#4F7392",
+            color: "#10224A",
             background:
-              "linear-gradient(145deg,#EDF5FA,#DCEAF4)",
+              "linear-gradient(145deg,#EDF5FF,#DCEBFC)",
             border: "1px solid #D0E1EC",
-            boxShadow: "0 8px 20px rgba(79,115,146,.09)",
+            boxShadow: "0 8px 20px rgba(16,34,74,.09)",
           }}
           className="tr-instagram-card-icon"
         >
@@ -405,7 +405,7 @@ export default function InstagramShoppingStubPage() {
               style={{
                 fontSize: "clamp(20px,2.6vw,24px)",
                 fontWeight: 800,
-                color: "#456984",
+                color: "#10224A",
                 margin: 0,
                 lineHeight: 1.2,
                 letterSpacing: "-.025em",
@@ -423,8 +423,8 @@ export default function InstagramShoppingStubPage() {
                 padding: "4px 8px",
                 borderRadius: 999,
                 background: "#F0F6FA",
-                border: "1px solid #D6E6F2",
-                color: "#6F8FA9",
+                border: "1px solid #D5E6FB",
+                color: "#5B6B85",
                 fontSize: 10,
                 fontWeight: 800,
                 textTransform: "uppercase",
@@ -436,7 +436,7 @@ export default function InstagramShoppingStubPage() {
                   width: 5,
                   height: 5,
                   borderRadius: "50%",
-                  background: "#8DB4D6",
+                  background: "#73AFF1",
                 }}
               />
               Coming soon
@@ -526,12 +526,12 @@ export default function InstagramShoppingStubPage() {
         style={{
           marginTop: 22,
           background:
-            "linear-gradient(135deg,#F3F8FB 0%,#FAFCFD 100%)",
-          border: "1px solid #D6E6F2",
+            "linear-gradient(135deg,#F2F7FF 0%,#F9FBFF 100%)",
+          border: "1px solid #D5E6FB",
           borderRadius: 14,
           padding: "15px 16px",
           fontSize: 13,
-          color: "#6F8FA9",
+          color: "#5B6B85",
           lineHeight: 1.65,
           display: "flex",
           alignItems: "flex-start",
@@ -551,8 +551,8 @@ export default function InstagramShoppingStubPage() {
             justifyContent: "center",
             flexShrink: 0,
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
-            color: "#5F7F9A",
+            border: "1px solid #D5E6FB",
+            color: "#10224A",
           }}
         >
           <svg

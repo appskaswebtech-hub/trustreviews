@@ -1,0 +1,28 @@
+/* Global styles — loaded on every page from app/root.jsx */
+
+:root {
+  --app-font-family: 'Inter var', Helvetica, Arial, sans-serif;
+
+  /* Brand colors (from the logo) — keep in sync with app/utils/brand.js */
+  --tr-navy: #10224A;
+  --tr-blue: #73AFF1;
+  --tr-blue-hover: #5E9FE8;
+  --tr-blue-light: #EAF3FE;
+  --tr-on-blue: #10224A;
+}
+
+:root, .p-theme-light, .p-theme-dark {
+  --p-font-family-sans: var(--app-font-family);
+}
+
+html, body {
+  font-family: var(--app-font-family);
+}
+
+h1, h2, h3, h4 {
+  color: var(--tr-navy);
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}

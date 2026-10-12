@@ -1,26 +1,60 @@
 import { useEffect, useState } from "react";
-import { Link, useLoaderData, useNavigate } from "react-router";
+import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
 import { WIDGETS, PURPOSES, editorTemplateFor, editorTargetFor } from "../utils/widgetCatalog";
 import { guideFor } from "../utils/widgetGuides";
+import { getThemeAppBlocks } from "../utils/themeInstalls.server";
 import InstallVideo from "./how-to-install-widgets/InstallVideo";
 import { WIDGETS as VIDEO_WIDGETS } from "./how-to-install-widgets/guideData";
+import { BRAND } from "../utils/brand";
 
 export async function loader({ request }) {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
 
-  const installs = await db.widgetInstall.findMany({
-    where: { shop: session.shop },
-    select: { widgetKey: true },
-  });
+  const [installs, themeBlocks] = await Promise.all([
+    db.widgetInstall.findMany({
+      where: { shop: session.shop },
+      select: { widgetKey: true },
+      orderBy: { installedAt: "desc" },
+    }),
+    getThemeAppBlocks(admin, WIDGETS.flatMap((w) => [w.blockHandle, w.embedHandle]).filter(Boolean)),
+  ]);
+  const clickedKeys = installs.map((i) => i.widgetKey);
 
   return {
     shop: session.shop,
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    installedKeys: installs.map((i) => i.widgetKey),
+    installedKeys: themeBlocks ? installedFromTheme(themeBlocks, clickedKeys) : clickedKeys,
   };
+}
+
+// Turns the live theme's app blocks into widget keys. Several widgets share the
+// "reviews-widget" block and are told apart by its "Show this widget" setting;
+// "auto" there means the widget most recently sent with "Add to store".
+// Widgets with no theme block (e.g. Customer accounts) keep their saved status.
+function installedFromTheme(themeBlocks, clickedKeys) {
+  const keys = new Set();
+  const latestShowcaseKey = clickedKeys.find((k) =>
+    WIDGETS.some((w) => w.key === k && w.blockHandle === "reviews-widget"));
+
+  for (const { handle, settings } of themeBlocks) {
+    if (handle === "reviews-widget") {
+      const key = settings.widget_key && settings.widget_key !== "auto" ? settings.widget_key : latestShowcaseKey;
+      if (key) keys.add(key);
+      continue;
+    }
+    WIDGETS
+      .filter((w) => w.blockHandle === handle || w.embedHandle === handle)
+      .forEach((w) => keys.add(w.key));
+  }
+
+  for (const k of clickedKeys) {
+    const w = WIDGETS.find((x) => x.key === k);
+    if (w && !w.blockHandle && !w.embedHandle) keys.add(k);
+  }
+  return [...keys];
 }
 
 export async function action({ request }) {
@@ -39,12 +73,36 @@ export async function action({ request }) {
   return { ok: true };
 }
 
-
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
 const C = {
-  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF", accentLt: "#eaf0ff",
-  green: "#1f7a4d", greenLt: "#e7f4ec", amber: "#4c6fff", amberLt: "#f7f0e2",
+  bg: "#F6F7F9", surface: "#ffffff", border: "#E4E7EC",
+  text: BRAND.navy, body: "#344054", muted: "#667085",
+  accent: BRAND.blue, accentDk: BRAND.navy, accentLt: BRAND.blueLight,
+  green: "#0B5448", greenLt: "#E6F4F1",
+  amber: "#8A5A00", amberLt: "#FEF3DC",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
+
+const btn = {
+  minHeight: 44, padding: "0 20px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+  fontFamily: "inherit", cursor: "pointer", display: "inline-flex", alignItems: "center",
+  justifyContent: "center", textDecoration: "none", whiteSpace: "nowrap", boxSizing: "border-box",
+};
+const btnPrimary   = { ...btn, border: "none", background: C.accent, color: C.onAccent };
+const btnSecondary = { ...btn, border: "1px solid #D0D5DD", background: "#fff", color: C.text };
+
+const PAGE_SIZE = 9;
+
+// The three widgets almost every store needs, pinned in a "Start here" row at
+// the top so new merchants know what to install first.
+const ESSENTIALS = [
+  { key: "inline_rating",      where: "Product page — stars under the title" },
+  { key: "write_review",       where: "Product page — reviews + Write a review button" },
+  { key: "collection_ratings", where: "Collection pages — stars on every product card" },
+];
+const ESSENTIAL_KEYS = new Set(ESSENTIALS.map((e) => e.key));
 
 // Picks a solid color from the widget's gradient (its first stop) so the
 // letter badge reads as "colored by this card" without needing its own
@@ -79,6 +137,11 @@ function installUrlFor(widget, shop, apiKey) {
     `&target=${editorTargetFor(widget.blockHandle)}`;
 }
 
+/* ─────────────────────────────────────────
+   WIDGET CARD — image, name, one line of text, ONE button.
+   (Clicking anywhere on the card still opens the widget's
+   settings page, exactly like before.)
+───────────────────────────────────────── */
 function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideClick }) {
   const navigate = useNavigate();
   const t = useAdminT();
@@ -88,79 +151,100 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideCl
   // Theme Editor, so the card opens the guide and "Customize" opens the editor.
   const isEmbed = Boolean(widget.embedHandle);
 
+  const openCard = () => (isEmbed ? onGuideClick(widget) : navigate(widget.href));
+
+  let action;
+  if (isEmbed) {
+    action = installed ? (
+      <a href={installUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={btnSecondary}>
+        Customize ↗
+      </a>
+    ) : (
+      <a
+        href={installUrl} target="_blank" rel="noreferrer" style={btnPrimary}
+        onClick={(e) => { e.stopPropagation(); onInstallClick(widget.key); }}
+      >
+        {t.install} ↗
+      </a>
+    );
+  } else if (canInstall && !installed) {
+    action = (
+      <a
+        href={installUrl} target="_blank" rel="noreferrer" style={btnPrimary}
+        onClick={(e) => { e.stopPropagation(); onInstallClick(widget.key); }}
+      >
+        {t.install} ↗
+      </a>
+    );
+  } else {
+    action = (
+      <Link to={widget.href} onClick={(e) => e.stopPropagation()} style={btnSecondary}>
+        {canInstall ? `${t.configure} →` : "Learn more →"}
+      </Link>
+    );
+  }
+
   return (
     <div
-      onClick={() => (isEmbed ? onGuideClick(widget) : navigate(widget.href))}
+      className="tr-widget-card"
+      role="group"
+      tabIndex={0}
+      aria-label={widget.title}
+      onClick={openCard}
+      onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) openCard(); }}
       style={{
-        background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`,
-        overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column",
-        boxShadow: "0 1px 4px rgba(0,0,0,.05)", transition: "transform .18s, box-shadow .18s",
-        position: "relative",
+        background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: "hidden",
+        cursor: "pointer", display: "flex", flexDirection: "column",
+        boxShadow: "0 1px 2px rgba(16,24,40,.05), 0 4px 14px rgba(16,24,40,.04)",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-3px)";
-        e.currentTarget.style.boxShadow = "0 10px 28px rgba(81,69,229,.12)";
-        e.currentTarget.style.borderColor = "#c7c3f7";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,.05)";
-        e.currentTarget.style.borderColor = C.border;
-      }}
-     className="tr-app-routes-app-widgets-div-1">
+    >
+      {/* Image (falls back to the widget colour + its first letter) */}
       <div style={{
-        height: 200, background: widget.bg, display: "flex",
-        alignItems: "center", justifyContent: "center", position: "relative",
-      }} className="tr-app-routes-app-widgets-div-2">
-        <img
-          src={widget.image || `/images/${encodeURIComponent(widget.title)}.png`}
-          alt={`${widget.title} preview`}
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-          style={{
-            position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", display: "block",
-          }}
-        />
+        height: 160, background: widget.bg, display: "flex", alignItems: "center",
+        justifyContent: "center", position: "relative", overflow: "hidden",
+      }}>
         <div style={{
-          position: "absolute", inset: 0,
-          // background: "linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.22))",
-        }} />
-        <div className="iconss" style={{
-          width: 44, height: 44, borderRadius: "50%",
-          background: darken(swatch(widget.bg), 0.4),
-          boxShadow: "0 2px 8px rgba(0,0,0,.12)",
+          width: 44, height: 44, borderRadius: "50%", background: darken(swatch(widget.bg), 0.4),
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 17, fontWeight: 600, color: "#fff",
         }}>
           {widget.title.charAt(0).toUpperCase()}
         </div>
-        {widget.badge && !installed && (
-          <span className=" bagesss" style={{
-            position: "absolute", top: 10, left: 10, fontSize: 9.5, fontWeight: 600,
-            background: C.amber, color: "#fff", borderRadius: 20, padding: "3px 10px",
-            letterSpacing: ".04em", textTransform: "uppercase",
-          }}>{widget.badge}</span>
-        )}
-        {installed && (
-          <span style={{
-            position: "absolute", top: 10, right: 10, fontSize: 10.5, fontWeight: 600,
-            background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px",
-          }} className="tr-app-routes-app-widgets-span-3">✓ {t.installed}</span>
+        {widget.image && (
+          <img
+            src={widget.image}
+            alt={`${widget.title} preview`}
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "top", display: "block",
+            }}
+          />
         )}
       </div>
-      <div className="headingss" style={{ padding: "15px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: C.text, letterSpacing: "-.01em" }} className="tr-app-routes-app-widgets-div-4">
-            {widget.title}
-          </div>
+
+      <div style={{ padding: 20, flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 700, color: C.text }}>{widget.title}</div>
+          {installed && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.accentDk, background: C.accentLt, borderRadius: 20, padding: "3px 10px", whiteSpace: "nowrap" }}>
+              ✓ {t.installed}
+            </span>
+          )}
+          {!installed && widget.badge && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.amber, background: C.amberLt, borderRadius: 20, padding: "3px 10px", whiteSpace: "nowrap" }}>
+              {widget.badge}
+            </span>
+          )}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onGuideClick(widget); }}
             title="What does this widget do?"
             aria-label={`How ${widget.title} works`}
             style={{
-              flexShrink: 0, width: 24, height: 24, borderRadius: "50%", cursor: "pointer",
-              border: `1px solid ${C.border}`, background: C.accentLt, color: C.accent,
+              flexShrink: 0, width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
+              border: `1px solid ${C.border}`, background: "#fff", color: C.muted,
               fontSize: 13, fontWeight: 700, fontFamily: "Georgia, serif", lineHeight: 1,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
@@ -168,55 +252,10 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideCl
             i
           </button>
         </div>
-        {PURPOSES[widget.purpose] && <PurposeTag purpose={widget.purpose} />}
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.55, flex: 1 }} className="tr-app-routes-app-widgets-div-5">
-          {widget.description}
-        </div>
-        <div style={{ display: "flex", gap: 7, marginTop: 6 }} className="tr-app-routes-app-widgets-div-6">
-          {canInstall && !installed && (
-            <a
-              href={installUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => { e.stopPropagation(); onInstallClick(widget.key); }}
-              style={{
-                fontSize: 14, fontWeight: 600, color: "#fff", background: C.accent,
-                borderRadius: 8, padding: "6px 13px", textDecoration: "none",
-              }}
-             className="tr-app-routes-app-widgets-a-7">
-              {t.install} ↗
-            </a>
-          )}
-          {isEmbed ? (
-            <a
-              href={installUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                fontSize: 14, fontWeight: 600, color: installed ? "#fff" : C.accent,
-                background: installed ? C.accent : C.accentLt,
-                borderRadius: 8, padding: "6px 13px", textDecoration: "none",
-              }}
-            >
-              Customize ↗
-            </a>
-          ) : (
-            <Link
-              to={widget.href}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                fontSize: 14, fontWeight: 600,
-                color: installed ? "#fff" : C.accent,
-                background: installed ? C.accent : C.accentLt,
-                border: "none",
-                borderRadius: 8, padding: "6px 13px", textDecoration: "none",
-              }}
-            >
-              {canInstall ? `${t.configure} →` : "Learn more →"}
-            </Link>
-          )}
-        </div>
+
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.55, flex: 1 }}>{widget.description}</div>
+
+        <div style={{ marginTop: 4, display: "flex", justifyContent: "flex-end" }}>{action}</div>
       </div>
     </div>
   );
@@ -224,12 +263,13 @@ function WidgetCard({ widget, installed, shop, apiKey, onInstallClick, onGuideCl
 
 // "Shows reviews + Write a review" / "Shows reviews only" / … — tells the
 // merchant at a glance which widget lets customers leave a review.
+// (Used inside the ⓘ guide; the cards stay clean and the filter chips do this job.)
 function PurposeTag({ purpose }) {
   const p = PURPOSES[purpose];
   return (
     <span style={{
       alignSelf: "flex-start", display: "inline-flex", alignItems: "center",
-      fontSize: 11.5, fontWeight: 650, color: p.color, background: p.bg,
+      fontSize: 12, fontWeight: 650, color: p.color, background: p.bg,
       borderRadius: 20, padding: "3px 10px",
     }}>
       {p.label}
@@ -241,6 +281,7 @@ function PurposeTag({ purpose }) {
 // same 20-second Theme Editor walkthrough as the public install guide.
 function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onClose }) {
   const navigate = useNavigate();
+  const t = useAdminT();
   const guide = guideFor(widget);
   const video = VIDEO_WIDGETS.find((w) => w.key === widget.key && w.hasVideo);
   const installUrl = installUrlFor(widget, shop, apiKey);
@@ -273,7 +314,7 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
             <h2 id="widget-guide-title" style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text }}>{widget.title}</h2>
-            {PURPOSES[widget.purpose] && <div style={{ marginTop: 8 }}><PurposeTag purpose={widget.purpose} /></div>}
+            {PURPOSES[widget.purpose] && <div style={{ marginTop: 8, display: "flex" }}><PurposeTag purpose={widget.purpose} /></div>}
           </div>
           <button
             type="button"
@@ -309,22 +350,13 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
           </>
         )}
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, marginTop: 18 }}>
           {widget.embedHandle ? (
-            <a
-              href={installUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, borderRadius: 8, padding: "8px 14px", textDecoration: "none" }}
-            >
+            <a href={installUrl} target="_blank" rel="noreferrer" style={btnSecondary}>
               Customize ↗
             </a>
           ) : (
-            <button
-              type="button"
-              onClick={() => navigate(widget.href)}
-              style={{ fontSize: 14, fontWeight: 600, color: C.accent, background: C.accentLt, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
-            >
+            <button type="button" onClick={() => navigate(widget.href)} style={btnSecondary}>
               {installUrl ? "Configure →" : "Learn more →"}
             </button>
           )}
@@ -334,9 +366,9 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
               target="_blank"
               rel="noreferrer"
               onClick={() => onInstallClick(widget.key)}
-              style={{ fontSize: 14, fontWeight: 600, color: "#fff", background: C.accent, borderRadius: 8, padding: "8px 14px", textDecoration: "none" }}
+              style={btnPrimary}
             >
-              Install ↗
+              {t.install} ↗
             </a>
           )}
         </div>
@@ -345,12 +377,31 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
   );
 }
 
+/* ─────────────────────────────────────────
+   PAGE
+───────────────────────────────────────── */
 export default function WidgetsGalleryPage() {
   const { shop, apiKey, installedKeys } = useLoaderData();
   const t = useAdminT();
   const [installed, setInstalled] = useState(new Set(installedKeys));
+  const revalidator = useRevalidator();
+
+  // The loader reads the live theme, so take its answer whenever it reloads…
+  useEffect(() => { setInstalled(new Set(installedKeys)); }, [installedKeys]);
+
+  // …and reload when the merchant comes back from the Theme Editor tab, so a
+  // block they added or removed there shows up here without a manual refresh.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && revalidator.state === "idle") revalidator.revalidate();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [revalidator]);
   const [search, setSearch] = useState("");
   const [purposeFilter, setPurposeFilter] = useState("all");
+  const [installedOnly, setInstalledOnly] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [guideWidget, setGuideWidget] = useState(null);
 
   const markInstalled = (key) => {
@@ -362,6 +413,7 @@ export default function WidgetsGalleryPage() {
 
   const filteredWidgets = WIDGETS
     .filter((w) => purposeFilter === "all" || w.purpose === purposeFilter)
+    .filter((w) => !installedOnly || installed.has(w.key))
     .filter((w) => !search.trim() ||
       w.title.toLowerCase().includes(search.toLowerCase()) ||
       w.description.toLowerCase().includes(search.toLowerCase())
@@ -369,69 +421,163 @@ export default function WidgetsGalleryPage() {
 
   const installedCount = WIDGETS.filter((w) => installed.has(w.key)).length;
 
-  return (
-<div
-  className="app_widgets"
-  style={{
-    minHeight: "100vh",
-    background: `
-      radial-gradient(circle at 0% 0%, rgba(141, 180, 214, 0.18), transparent 28%),
-      radial-gradient(circle at 100% 8%, rgba(214, 230, 242, 0.48), transparent 30%),
-      rgb(242, 247, 251)
-    `,
-    fontFamily: "var(--app-font-family)",
-  }}
->
-      {/* <div style={{
-        maxWidth: 1280, margin: "0 auto", padding: "28px 24px",
-      }}>
+  // Show the first 9 until the merchant searches, filters or taps "Show all".
+  const isFiltering = Boolean(search.trim()) || installedOnly || purposeFilter !== "all";
+  // Unfiltered, the essentials sit in "Start here", so leave them out of the grid below.
+  const gridWidgets = isFiltering ? filteredWidgets : filteredWidgets.filter((w) => !ESSENTIAL_KEYS.has(w.key));
+  const visibleWidgets = showAll || isFiltering ? gridWidgets : gridWidgets.slice(0, PAGE_SIZE);
+  const hasMore = !showAll && !isFiltering && gridWidgets.length > PAGE_SIZE;
+  const essentials = ESSENTIALS
+    .map((e) => ({ ...e, widget: WIDGETS.find((w) => w.key === e.key) }))
+    .filter((e) => e.widget);
 
-        <div style={{
-          display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-          marginBottom: 24, gap: 16, flexWrap: "wrap",
-        }}>
-          <div>
-            <h1 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: 0, letterSpacing: "-.02em" }}>
+  const FILTERS = [["all", { label: "All widgets" }], ...Object.entries(PURPOSES)];
+
+  return (
+    <div className="app_widgets" style={{ minHeight: "100vh", background: C.bg, fontFamily: "var(--app-font-family)" }}>
+      <style className="tr-widgets-style">{`
+        .tr-widget-card { transition: border-color .15s ease, box-shadow .15s ease; }
+        .tr-widget-card:hover { border-color: #B9D7F8 !important; box-shadow: 0 8px 24px rgba(16,24,40,.10) !important; }
+        .tr-widgets-container button:not(:disabled):hover,
+        .tr-widgets-container a:hover { filter: brightness(.96); }
+        .tr-widgets-container button:focus-visible,
+        .tr-widgets-container a:focus-visible,
+        .tr-widgets-container input:focus-visible,
+        .tr-widget-card:focus-visible { outline: 2px solid ${C.accent}; outline-offset: 2px; }
+        .tr-widgets-filters { overflow-x: auto; }
+        .tr-essential > .tr-widget-card { flex: 1; }
+        @media (max-width: 700px) {
+          .tr-widgets-container { padding: 20px 14px 40px !important; }
+          .tr-widgets-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      <div
+        className="tr-widgets-container"
+        style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 56px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 20 }}
+      >
+        {/* Header */}
+        <div className="tr-widgets-header" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div className="tr-widgets-heading">
+            <h1 className="tr-widgets-title" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em", color: C.text }}>
               {t.widgetsTitle}
             </h1>
-            <p style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>
+            <p className="tr-widgets-subtitle" style={{ margin: "4px 0 0", fontSize: 15, color: C.muted }}>
               {t.widgetsSubtitle}
-              {installedCount > 0 && (
-                <span style={{
-                  marginLeft: 10, fontSize: 11.5, fontWeight: 600,
-                  color: C.green, background: C.greenLt,
-                  padding: "2px 9px", borderRadius: 20,
-                }}>
-                  {installedCount} {t.installed}
-                </span>
-              )}
             </p>
           </div>
-          <input
-            type="search"
-            placeholder={t.searchWidgets}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              border: `1px solid ${C.border}`, borderRadius: 10,
-              padding: "8px 14px", fontSize: 13, background: C.surface,
-              color: C.text, outline: "none", width: 220,
-              boxShadow: "0 1px 3px rgba(0,0,0,.05)",
-            }}
-          />
+          <div className="tr-widgets-search-wrapper" style={{ position: "relative", flex: "1 1 260px", maxWidth: 340 }}>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" style={{ position: "absolute", left: 14, top: 13 }}>
+              <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+            </svg>
+            <input
+              className="tr-widgets-search-input"
+              type="search"
+              aria-label={t.searchWidgets}
+              placeholder={t.searchWidgets}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                boxSizing: "border-box", width: "100%", height: 44, padding: "0 14px 0 42px",
+                border: "1px solid #D0D5DD", borderRadius: 10, fontSize: 14, background: "#fff",
+                color: C.text, fontFamily: "inherit",
+              }}
+            />
+          </div>
         </div>
 
-        {filteredWidgets.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: C.muted }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>No widgets found for "{search}"</div>
+        {/* Start here — the must-have widgets */}
+        {!isFiltering && essentials.length > 0 && (
+          <section aria-labelledby="tr-start-here" style={{
+            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20,
+            display: "flex", flexDirection: "column", gap: 14,
+          }}>
+            <div>
+              <h2 id="tr-start-here" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.text }}>
+                Start here — install these 3 first
+              </h2>
+              <p style={{ margin: "4px 0 0", fontSize: 14, color: C.muted }}>
+                Stars on your products, a place for customers to write reviews, and stars on collection pages.
+              </p>
+            </div>
+            <div className="tr-widgets-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+              {essentials.map(({ widget, where }, i) => (
+                <div key={widget.key} className="tr-essential" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: C.accentDk }}>
+                    <span style={{
+                      width: 22, height: 22, borderRadius: "50%", background: C.accent, color: C.onAccent,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </span>
+                    {where}
+                  </div>
+                  <WidgetCard
+                    widget={widget}
+                    installed={installed.has(widget.key)}
+                    shop={shop}
+                    apiKey={apiKey}
+                    onInstallClick={markInstalled}
+                    onGuideClick={setGuideWidget}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {!isFiltering && (
+          <h2 style={{ margin: "8px 0 0", fontSize: 18, fontWeight: 700, color: C.text }}>More widgets</h2>
+        )}
+
+        {/* Filters */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div className="tr-widgets-filters" role="tablist" style={{ display: "flex", gap: 6 }}>
+            {FILTERS.map(([key, p]) => {
+              const active = purposeFilter === key;
+              const count = key === "all" ? WIDGETS.length : WIDGETS.filter((w) => w.purpose === key).length;
+              return (
+                <button
+                  key={key}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => { setPurposeFilter(key); setShowAll(false); }}
+                  style={{
+                    minHeight: 44, padding: "0 16px", border: "none", borderRadius: 10, whiteSpace: "nowrap",
+                    fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                    background: active ? C.accentLt : "transparent", color: active ? C.accentDk : "#475467",
+                  }}
+                >
+                  {p.label} <span style={{ fontWeight: 500, marginLeft: 2 }}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => { setInstalledOnly((v) => !v); setShowAll(false); }}
+            aria-pressed={installedOnly}
+            style={{
+              ...btnSecondary,
+              background: installedOnly ? C.accentLt : "#fff",
+              color: installedOnly ? C.accentDk : C.body,
+              borderColor: installedOnly ? C.accent : "#D0D5DD",
+            }}
+          >
+            {t.installed} only · {installedCount}
+          </button>
+        </div>
+
+        {/* Widgets */}
+        {visibleWidgets.length === 0 ? (
+          <div className="tr-widgets-empty-state" style={{
+            textAlign: "center", padding: "56px 24px", color: C.muted, fontSize: 15,
+            background: "#fff", border: `1px solid ${C.border}`, borderRadius: 16,
+          }}>
+            {search.trim() ? `No widgets found for "${search}"` : "No widgets match these filters."}
           </div>
         ) : (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(215px, 1fr))",
-            gap: 14,
-          }}>
-            {filteredWidgets.map((w) => (
+          <div className="tr-widgets-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            {visibleWidgets.map((w) => (
               <WidgetCard
                 key={w.key}
                 widget={w}
@@ -445,299 +591,18 @@ export default function WidgetsGalleryPage() {
           </div>
         )}
 
-        <p style={{ fontSize: 11.5, color: C.muted, marginTop: 24, lineHeight: 1.6 }}>
-          "Install" opens your Theme Editor with the block ready to add. After adding it, pick this widget's name from the block's "Saved widget" setting. Each widget's appearance is saved independently.
-        </p>
-      </div> */}
-      <div
-  className="tr-widgets-container"
-  style={{
-    maxWidth: 1440,
-    margin: "0 auto",
-    padding: "34px 30px 42px",
-    fontFamily: "var(--app-font-family)",
-  }}
->
-  <style className="tr-app-routes-app-widgets-style-8">{`
-    .tr-widgets-search-input {
-      transition:
-        border-color .16s ease,
-        box-shadow .16s ease,
-        background .16s ease;
-    }
-
-    .tr-widgets-search-input:focus {
-      border-color: #8DB4D6 !important;
-      background: #FFFFFF !important;
-      box-shadow: 0 0 0 3px rgba(141,180,214,.14) !important;
-    }
-
-    .tr-widgets-grid > * {
-      transition:
-        transform .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease;
-    }
-
-    .tr-widgets-grid > *:hover {
-      transform: translateY(-3px);
-      border-color: #8DB4D6 !important;
-      box-shadow: 0 16px 36px rgba(79,115,146,.12) !important;
-    }
-
-    @media (max-width: 768px) {
-      .tr-widgets-container {
-        padding: 22px 16px 34px !important;
-      }
-
-      .tr-widgets-header {
-        padding: 20px !important;
-      }
-
-      .tr-widgets-search-wrapper {
-        width: 100% !important;
-      }
-
-      .tr-widgets-search-input {
-        width: 100% !important;
-      }
-
-      .tr-widgets-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
-  `}</style>
-
-  {/* Header */}
-  <div
-    className="tr-widgets-header"
-    style={{
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      marginBottom: 26,
-      gap: 20,
-      flexWrap: "wrap",
-      padding: "24px 26px",
-      background:
-        "linear-gradient(135deg, #FFFFFF 0%, #F2F7FB 100%)",
-      border: "1px solid #D6E6F2",
-      borderRadius: 20,
-      boxShadow:
-        "0 14px 38px rgba(79,115,146,.08)",
-      position: "relative",
-      overflow: "hidden",
-    }}
-  >
-    {/* top accent */}
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 28,
-        right: 28,
-        height: 2,
-        background:
-          "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
-        opacity: 0.75,
-      }}
-     className="tr-app-routes-app-widgets-div-9"/>
-
-    <div className="tr-widgets-heading">
-      <h1
-        className="tr-widgets-title"
-        style={{
-          fontSize: 27,
-          fontWeight: 750,
-          color: "#4F7392",
-          margin: 0,
-          letterSpacing: "-.025em",
-          lineHeight: 1.2,
-        }}
-      >
-        {t.widgetsTitle}
-      </h1>
-
-      <p
-        className="tr-widgets-subtitle"
-        style={{
-          fontSize: 13,
-          color: "#829CAF",
-          margin: "7px 0 0",
-          lineHeight: 1.55,
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 8,
-        }}
-      >
-        {t.widgetsSubtitle}
-
-        {installedCount > 0 && (
-          <span
-            className="tr-widgets-installed-count"
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#4F7392",
-              background: "#D6E6F2",
-              padding: "4px 10px",
-              borderRadius: 20,
-              border:
-                "1px solid rgba(141,180,214,.45)",
-            }}
-          >
-            {installedCount} {t.installed}
-          </span>
+        {hasMore && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, paddingTop: 8 }}>
+            <span style={{ fontSize: 14, color: C.muted }}>Showing {PAGE_SIZE} of {gridWidgets.length} widgets</span>
+            <button onClick={() => setShowAll(true)} style={btnSecondary}>Show all widgets</button>
+          </div>
         )}
-      </p>
-    </div>
 
-    {/* Search */}
-    <div
-      className="tr-widgets-search-wrapper"
-      style={{
-        position: "relative",
-        minWidth: 250,
-      }}
-    >
-      <span
-        style={{
-          position: "absolute",
-          left: 14,
-          top: "50%",
-          transform: "translateY(-50%)",
-          color: "#8DB4D6",
-          fontSize: 15,
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
-       className="tr-app-routes-app-widgets-span-10">
-        ⌕
-      </span>
-
-      <input
-        className="tr-widgets-search-input"
-        type="search"
-        placeholder={t.searchWidgets}
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: 250,
-          height: 41,
-          border: "1px solid #D6E6F2",
-          borderRadius: 11,
-          padding: "0 14px 0 38px",
-          fontSize: 12.5,
-          background: "#FFFFFF",
-          color: "#4F7392",
-          outline: "none",
-          boxShadow:
-            "0 5px 14px rgba(141,180,214,.07)",
-          fontFamily: "inherit",
-          boxSizing: "border-box",
-        }}
-      />
-    </div>
-  </div>
-
-  {/* What does it do? filter */}
-  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-    {[["all", { label: "All widgets", color: "#4F7392", bg: "#FFFFFF" }], ...Object.entries(PURPOSES)].map(([key, p]) => {
-      const active = purposeFilter === key;
-      const count = key === "all" ? WIDGETS.length : WIDGETS.filter((w) => w.purpose === key).length;
-      return (
-        <button
-          key={key}
-          onClick={() => setPurposeFilter(key)}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
-            fontSize: 12.5, fontWeight: 650, fontFamily: "inherit",
-            color: p.color, background: active ? p.bg : "#FFFFFF",
-            border: active ? `1.5px solid ${p.color}` : "1px solid #D6E6F2",
-            borderRadius: 20, padding: "6px 13px",
-          }}
-        >
-          {p.label}
-          <span style={{ opacity: 0.65 }}>({count})</span>
-        </button>
-      );
-    })}
-  </div>
-
-  {/* Widgets */}
-  {filteredWidgets.length === 0 ? (
-    <div
-      className="tr-widgets-empty-state"
-      style={{
-        textAlign: "center",
-        padding: "72px 24px",
-        color: "#829CAF",
-        background:
-          "linear-gradient(145deg, #FFFFFF 0%, #F7FAFC 100%)",
-        border: "1px dashed #C9DDEA",
-        borderRadius: 18,
-        boxShadow:
-          "0 10px 30px rgba(79,115,146,.05)",
-      }}
-    >
-      <div
-        className="tr-widgets-empty-message"
-        style={{
-          fontSize: 14,
-          fontWeight: 650,
-          color: "#5F7F9A",
-        }}
-      >
-        No widgets found for "{search}"
+        <p className="tr-widgets-install-help" style={{ margin: "8px 0 0", fontSize: 13, color: C.muted, lineHeight: 1.6, maxWidth: 760 }}>
+          "Add to store" opens your Theme Editor with the block ready to add. After adding it, pick this widget&apos;s name
+          from the block&apos;s "Saved widget" setting. Each widget&apos;s appearance is saved independently.
+        </p>
       </div>
-    </div>
-  ) : (
-    <div
-      className="tr-widgets-grid"
-      style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: 18,
-      }}
-    >
-      {filteredWidgets.map((w) => (
-        <WidgetCard
-          key={w.key}
-          widget={w}
-          installed={installed.has(w.key)}
-          shop={shop}
-          apiKey={apiKey}
-          onInstallClick={markInstalled}
-          onGuideClick={setGuideWidget}
-        />
-      ))}
-    </div>
-  )}
-
-  {/* Help */}
-  <p
-    className="tr-widgets-install-help"
-    style={{
-      fontSize: 14,
-      color: "#829CAF",
-      margin: "26px 0 0",
-      lineHeight: 1.7,
-      padding: "14px 16px",
-      background:
-        "rgba(255,255,255,.78)",
-      border: "1px solid #D6E6F2",
-      borderRadius: 12,
-      boxShadow:
-        "0 5px 16px rgba(79,115,146,.04)",
-    }}
-  >
-    "Install" opens your Theme Editor with the block ready to add. After
-    adding it, pick this widget&apos;s name from the block&apos;s "Saved
-    widget" setting. Each widget&apos;s appearance is saved independently.
-  </p>
-</div>
 
       {guideWidget && (
         <WidgetGuideModal

@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
+import { BRAND } from "../utils/brand";
 
 // ── Loader ────────────────────────────────────────────────────────────────────
 export async function loader({ request }) {
@@ -94,8 +95,9 @@ const DS = {
 
 const C = {
   bg: "#f6f6f8", surface: "#fff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
+  text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
   green: "#1f7a4d", greenLt: "#e7f4ec",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 // ── Sample reviews for preview ────────────────────────────────────────────────
@@ -681,9 +683,9 @@ export default function HomepageReviewsSettings() {
     <div
   style={{
     minHeight: "100vh",
-    background: "#F2F7FB",
+    background: "#EAF3FE",
     fontFamily: "var(--app-font-family)",
-    color: "#4F7392",
+    color: "#10224A",
   }}
   className="tr-app-routes-app-widgets-homepage-reviews-div-97"
 >
@@ -714,20 +716,20 @@ export default function HomepageReviewsSettings() {
 
     .tr-homepage-review-control:focus,
     .tr-app-routes-app-widgets-homepage-reviews-select-123:focus{
-      border-color:#8DB4D6 !important;
-      box-shadow:0 0 0 3px rgba(141,180,214,.16) !important;
+      border-color:#73AFF1 !important;
+      box-shadow:0 0 0 3px rgba(115,175,241,.16) !important;
     }
 
     .tr-homepage-layout-button:hover,
     .tr-homepage-layout-preview-button:hover{
       transform:translateY(-1px);
       border-color:#B7D1E4 !important;
-      box-shadow:0 7px 18px rgba(79,115,146,.09) !important;
+      box-shadow:0 7px 18px rgba(16,34,74,.09) !important;
     }
 
     .tr-homepage-reviews-save:hover:not(:disabled){
       transform:translateY(-1px);
-      box-shadow:0 9px 22px rgba(79,115,146,.24) !important;
+      box-shadow:0 9px 22px rgba(16,34,74,.24) !important;
     }
 
     .tr-app-routes-app-widgets-homepage-reviews-div-106::-webkit-scrollbar,
@@ -780,7 +782,7 @@ export default function HomepageReviewsSettings() {
         top:auto !important;
         overflow:visible !important;
         border-right:none !important;
-        border-bottom:1px solid #D6E6F2 !important;
+        border-bottom:1px solid #D5E6FB !important;
         box-shadow:none !important;
       }
 
@@ -842,7 +844,7 @@ export default function HomepageReviewsSettings() {
     style={{
       minHeight: 68,
       background: "rgba(255,255,255,.97)",
-      borderBottom: "1px solid #D6E6F2",
+      borderBottom: "1px solid #D5E6FB",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
@@ -852,7 +854,7 @@ export default function HomepageReviewsSettings() {
       zIndex: 100,
       gap: 14,
       flexWrap: "wrap",
-      boxShadow: "0 4px 18px rgba(79,115,146,.055)",
+      boxShadow: "0 4px 18px rgba(16,34,74,.055)",
       backdropFilter: "blur(14px)",
       boxSizing: "border-box",
     }}
@@ -879,11 +881,11 @@ export default function HomepageReviewsSettings() {
           justifyContent: "center",
           flexShrink: 0,
           borderRadius: 11,
-          color: "#4F7392",
+          color: "#10224A",
           textDecoration: "none",
           background: "#F5F9FC",
-          border: "1px solid #D6E6F2",
-          boxShadow: "0 2px 7px rgba(79,115,146,.05)",
+          border: "1px solid #D5E6FB",
+          boxShadow: "0 2px 7px rgba(16,34,74,.05)",
         }}
       >
         <svg
@@ -1005,8 +1007,8 @@ export default function HomepageReviewsSettings() {
           background:
             fetcher.state !== "idle"
               ? "#B8CBD9"
-              : "linear-gradient(135deg,#8DB4D6 0%,#729AB9 100%)",
-          color: "#FFFFFF",
+              : "linear-gradient(135deg,#73AFF1 0%,#729AB9 100%)",
+          color: "#fff",
           border: "none",
           borderRadius: 10,
           padding: "9px 18px",
@@ -1019,7 +1021,7 @@ export default function HomepageReviewsSettings() {
           boxShadow:
             fetcher.state !== "idle"
               ? "none"
-              : "0 6px 16px rgba(79,115,146,.18)",
+              : "0 6px 16px rgba(16,34,74,.18)",
           transition: "all .18s ease",
           whiteSpace: "nowrap",
         }}
@@ -1071,9 +1073,9 @@ export default function HomepageReviewsSettings() {
         width: 330,
         minWidth: 330,
         background: "#FFFFFF",
-        borderRight: "1px solid #D6E6F2",
+        borderRight: "1px solid #D5E6FB",
         overflowY: "auto",
-        boxShadow: "5px 0 20px rgba(79,115,146,.035)",
+        boxShadow: "5px 0 20px rgba(16,34,74,.035)",
         boxSizing: "border-box",
       }}
       className="tr-app-routes-app-widgets-homepage-reviews-div-106"
@@ -1083,7 +1085,7 @@ export default function HomepageReviewsSettings() {
           padding: "15px 16px 11px",
           borderBottom: "1px solid #E5EFF5",
           background:
-            "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
+            "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
         }}
       >
         <div
@@ -1101,9 +1103,9 @@ export default function HomepageReviewsSettings() {
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "#EDF5FA",
-              border: "1px solid #D6E6F2",
-              color: "#4F7392",
+              background: "#EDF5FF",
+              border: "1px solid #D5E6FB",
+              color: "#10224A",
               flexShrink: 0,
             }}
           >
@@ -1141,7 +1143,7 @@ export default function HomepageReviewsSettings() {
               style={{
                 fontSize: 13.5,
                 fontWeight: 800,
-                color: "#496B87",
+                color: "#10224A",
                 lineHeight: 1.3,
               }}
             >
@@ -1183,7 +1185,7 @@ export default function HomepageReviewsSettings() {
                 padding: "10px",
                 border:
                   s.layout === l.key
-                    ? "1.5px solid #8DB4D6"
+                    ? "1.5px solid #73AFF1"
                     : "1px solid #DCE8F0",
                 borderRadius: 11,
                 background:
@@ -1194,7 +1196,7 @@ export default function HomepageReviewsSettings() {
                 textAlign: "left",
                 boxShadow:
                   s.layout === l.key
-                    ? "0 5px 15px rgba(79,115,146,.08)"
+                    ? "0 5px 15px rgba(16,34,74,.08)"
                     : "none",
                 transition: "all .16s ease",
                 boxSizing: "border-box",
@@ -1218,9 +1220,9 @@ export default function HomepageReviewsSettings() {
                     justifyContent: "center",
                     // background:
                     //   s.layout === l.key
-                    //     ? "#DCEAF4"
+                    //     ? "#DCEBFC"
                     //     : "#F5F9FC",
-                    // border: "1px solid #D6E6F2",
+                    // border: "1px solid #D5E6FB",
                     fontSize: 16,
                     flexShrink: 0,
                   }}
@@ -1272,8 +1274,8 @@ export default function HomepageReviewsSettings() {
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "#8DB4D6",
-                      color: "#FFFFFF",
+                      background: "#73AFF1",
+                      color: "#10224A",
                       flexShrink: 0,
                     }}
                   >
@@ -1341,10 +1343,10 @@ export default function HomepageReviewsSettings() {
               width: "100%",
               minHeight: 40,
               padding: "9px 11px",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               borderRadius: 9,
               fontSize: 13,
-              color: "#4F7392",
+              color: "#10224A",
               background: "#FFFFFF",
               boxSizing: "border-box",
               outline: "none",
@@ -1365,7 +1367,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-113"
           />
@@ -1391,15 +1393,15 @@ export default function HomepageReviewsSettings() {
                   fontWeight: 700,
                   border:
                     s.headingAlign === a
-                      ? "1.5px solid #8DB4D6"
-                      : "1px solid #D6E6F2",
+                      ? "1.5px solid #73AFF1"
+                      : "1px solid #D5E6FB",
                   background:
                     s.headingAlign === a
                       ? "#EFF6FA"
                       : "#FFFFFF",
                   color:
                     s.headingAlign === a
-                      ? "#4F7392"
+                      ? "#10224A"
                       : "#849CAC",
                   borderRadius: 8,
                   cursor: "pointer",
@@ -1481,7 +1483,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-116"
           />
@@ -1498,7 +1500,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-117"
           />
@@ -1515,7 +1517,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-118"
           />
@@ -1554,13 +1556,13 @@ export default function HomepageReviewsSettings() {
               border: "none",
               cursor: "pointer",
               background: s.showShadow
-                ? "#8DB4D6"
+                ? "#73AFF1"
                 : "#DCE6ED",
               position: "relative",
               transition: "background .2s",
               flexShrink: 0,
               boxShadow: s.showShadow
-                ? "0 3px 8px rgba(79,115,146,.14)"
+                ? "0 3px 8px rgba(16,34,74,.14)"
                 : "none",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-button-121"
@@ -1576,7 +1578,7 @@ export default function HomepageReviewsSettings() {
                 borderRadius: "50%",
                 transition: "left .2s",
                 boxShadow:
-                  "0 2px 5px rgba(79,115,146,.18)",
+                  "0 2px 5px rgba(16,34,74,.18)",
               }}
               className="tr-app-routes-app-widgets-homepage-reviews-span-122"
             />
@@ -1599,10 +1601,10 @@ export default function HomepageReviewsSettings() {
               width: "100%",
               minHeight: 40,
               padding: "9px 10px",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               borderRadius: 9,
               fontSize: 13,
-              color: "#4F7392",
+              color: "#10224A",
               background: "#FFFFFF",
               outline: "none",
               boxSizing: "border-box",
@@ -1632,7 +1634,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-125"
           />
@@ -1656,7 +1658,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-126"
           />
@@ -1673,7 +1675,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-127"
           />
@@ -1721,7 +1723,7 @@ export default function HomepageReviewsSettings() {
                 border: "none",
                 cursor: "pointer",
                 background: s[key]
-                  ? "#8DB4D6"
+                  ? "#73AFF1"
                   : "#DCE6ED",
                 position: "relative",
                 transition: "background .2s",
@@ -1740,7 +1742,7 @@ export default function HomepageReviewsSettings() {
                   borderRadius: "50%",
                   transition: "left .2s",
                   boxShadow:
-                    "0 2px 5px rgba(79,115,146,.18)",
+                    "0 2px 5px rgba(16,34,74,.18)",
                 }}
                 className="tr-app-routes-app-widgets-homepage-reviews-span-131"
               />
@@ -1766,7 +1768,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-132"
           />
@@ -1786,7 +1788,7 @@ export default function HomepageReviewsSettings() {
             }
             style={{
               width: "100%",
-              accentColor: "#8DB4D6",
+              accentColor: "#73AFF1",
             }}
             className="tr-app-routes-app-widgets-homepage-reviews-input-133"
           />
@@ -1798,10 +1800,10 @@ export default function HomepageReviewsSettings() {
         style={{
           padding: 14,
           background:
-            "linear-gradient(135deg,#F3F8FB,#EAF3F9)",
+            "linear-gradient(135deg,#F2F7FF,#EAF3FE)",
           margin: 12,
           borderRadius: 12,
-          border: "1px solid #D6E6F2",
+          border: "1px solid #D5E6FB",
         }}
         className="tr-app-routes-app-widgets-homepage-reviews-div-134"
       >
@@ -1812,7 +1814,7 @@ export default function HomepageReviewsSettings() {
             gap: 8,
             fontSize: 12.5,
             fontWeight: 800,
-            color: "#4F7392",
+            color: "#10224A",
             marginBottom: 9,
           }}
           className="tr-app-routes-app-widgets-homepage-reviews-div-135"
@@ -1826,7 +1828,7 @@ export default function HomepageReviewsSettings() {
               justifyContent: "center",
               borderRadius: 8,
               background: "#FFFFFF",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               flexShrink: 0,
             }}
           >
@@ -1842,12 +1844,12 @@ export default function HomepageReviewsSettings() {
                 width="16"
                 height="13"
                 rx="2"
-                stroke="#4F7392"
+                stroke="#10224A"
                 strokeWidth="1.7"
               />
               <path
                 d="M9 21H15M12 17V21"
-                stroke="#4F7392"
+                stroke="#10224A"
                 strokeWidth="1.7"
                 strokeLinecap="round"
               />
@@ -1862,7 +1864,7 @@ export default function HomepageReviewsSettings() {
             margin: 0,
             paddingLeft: 19,
             fontSize: 11.5,
-            color: "#6F8FA9",
+            color: "#5B6B85",
             lineHeight: 1.85,
           }}
           className="tr-app-routes-app-widgets-homepage-reviews-ol-136"
@@ -1893,7 +1895,7 @@ export default function HomepageReviewsSettings() {
         overflowY: "auto",
         padding: "30px clamp(18px,3vw,34px)",
         background:
-          "radial-gradient(circle at 50% 0%, rgba(214,230,242,.58), transparent 34%), #EEF5FA",
+          "radial-gradient(circle at 50% 0%, rgba(213,230,251,.58), transparent 34%), #EEF5FF",
         boxSizing: "border-box",
       }}
       className="tr-app-routes-app-widgets-homepage-reviews-div-141"
@@ -1935,7 +1937,7 @@ export default function HomepageReviewsSettings() {
               color: "#7792A6",
               fontWeight: 650,
               background: "rgba(255,255,255,.72)",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               borderRadius: 999,
               padding: "5px 9px",
             }}
@@ -1968,11 +1970,11 @@ export default function HomepageReviewsSettings() {
         <div
           style={{
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
             borderRadius: 18,
             padding: "clamp(10px,2vw,18px)",
             boxShadow:
-              "0 18px 42px rgba(79,115,146,.09)",
+              "0 18px 42px rgba(16,34,74,.09)",
             overflow: "hidden",
             boxSizing: "border-box",
           }}
@@ -1986,9 +1988,9 @@ export default function HomepageReviewsSettings() {
             padding: "clamp(14px,2.4vw,19px)",
             background: "#FFFFFF",
             borderRadius: 16,
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
             boxShadow:
-              "0 9px 24px rgba(79,115,146,.055)",
+              "0 9px 24px rgba(16,34,74,.055)",
           }}
           className="tr-app-routes-app-widgets-homepage-reviews-div-144"
         >
@@ -1999,7 +2001,7 @@ export default function HomepageReviewsSettings() {
               gap: 9,
               fontSize: 13.5,
               fontWeight: 800,
-              color: "#4F7392",
+              color: "#10224A",
               marginBottom: 13,
               letterSpacing: "-.01em",
             }}
@@ -2013,8 +2015,8 @@ export default function HomepageReviewsSettings() {
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: 9,
-                background: "#F2F7FB",
-                border: "1px solid #D6E6F2",
+                background: "#EAF3FE",
+                border: "1px solid #D5E6FB",
                 flexShrink: 0,
               }}
             >
@@ -2030,7 +2032,7 @@ export default function HomepageReviewsSettings() {
                   width="6"
                   height="6"
                   rx="1.2"
-                  stroke="#4F7392"
+                  stroke="#10224A"
                   strokeWidth="1.6"
                 />
                 <rect
@@ -2039,7 +2041,7 @@ export default function HomepageReviewsSettings() {
                   width="6"
                   height="6"
                   rx="1.2"
-                  stroke="#4F7392"
+                  stroke="#10224A"
                   strokeWidth="1.6"
                 />
                 <rect
@@ -2048,7 +2050,7 @@ export default function HomepageReviewsSettings() {
                   width="6"
                   height="6"
                   rx="1.2"
-                  stroke="#4F7392"
+                  stroke="#10224A"
                   strokeWidth="1.6"
                 />
                 <rect
@@ -2057,7 +2059,7 @@ export default function HomepageReviewsSettings() {
                   width="6"
                   height="6"
                   rx="1.2"
-                  stroke="#4F7392"
+                  stroke="#10224A"
                   strokeWidth="1.6"
                 />
               </svg>
@@ -2086,8 +2088,8 @@ export default function HomepageReviewsSettings() {
                   borderRadius: 11,
                   border:
                     s.layout === l.key
-                      ? "1.5px solid #8DB4D6"
-                      : "1px solid #D6E6F2",
+                      ? "1.5px solid #73AFF1"
+                      : "1px solid #D5E6FB",
                   background:
                     s.layout === l.key
                       ? "#EFF6FA"
@@ -2096,7 +2098,7 @@ export default function HomepageReviewsSettings() {
                   textAlign: "center",
                   boxShadow:
                     s.layout === l.key
-                      ? "0 7px 17px rgba(79,115,146,.09)"
+                      ? "0 7px 17px rgba(16,34,74,.09)"
                       : "none",
                   transition: "all .16s ease",
                 }}
@@ -2134,9 +2136,9 @@ export default function HomepageReviewsSettings() {
                     fontSize: 18,
                     background:
                       s.layout === l.key
-                        ? "#DCEAF4"
-                        : "#F3F8FB",
-                    border: "1px solid #D6E6F2",
+                        ? "#DCEBFC"
+                        : "#F2F7FF",
+                    border: "1px solid #D5E6FB",
                   }}
                   className="tr-app-routes-app-widgets-homepage-reviews-div-149"
                 >

@@ -349,19 +349,19 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
     background: `
       radial-gradient(
         720px circle at 6% 0%,
-        rgba(141,180,214,0.26),
+        rgba(115,175,241,0.26),
         transparent 58%
       ),
       radial-gradient(
         680px circle at 100% 20%,
-        rgba(214,230,242,0.60),
+        rgba(213,230,251,0.60),
         transparent 60%
       ),
       linear-gradient(
         180deg,
-        #F2F7FB 0%,
+        #EAF3FE 0%,
         #FFFFFF 52%,
-        #F2F7FB 100%
+        #EAF3FE 100%
       )
     `,
   }}
@@ -373,7 +373,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
       width: 360,
       height: 360,
       borderRadius: "50%",
-      background: "rgba(141,180,214,.13)",
+      background: "rgba(115,175,241,.13)",
       filter: "blur(30px)",
       top: -170,
       left: -150,
@@ -388,7 +388,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
       width: 320,
       height: 320,
       borderRadius: "50%",
-      background: "rgba(214,230,242,.42)",
+      background: "rgba(213,230,251,.42)",
       filter: "blur(35px)",
       right: -130,
       top: 120,
@@ -415,15 +415,15 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           linear-gradient(
             145deg,
             rgba(255,255,255,.98),
-            rgba(242,247,251,.94)
+            rgba(234,243,254,.94)
           )
         `,
 
-        border: "1px solid rgba(141,180,214,.28)",
+        border: "1px solid rgba(115,175,241,.28)",
 
         boxShadow: `
           0 34px 90px rgba(97,139,174,.15),
-          0 12px 36px rgba(141,180,214,.10),
+          0 12px 36px rgba(115,175,241,.10),
           inset 0 1px 0 rgba(255,255,255,.95)
         `,
 
@@ -440,7 +440,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           height: 3,
           borderRadius: "0 0 10px 10px",
           background:
-            "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
+            "linear-gradient(90deg, transparent, #73AFF1, transparent)",
           opacity: 0.8,
         }}
        className="tr-app-routes-onboarding-div-4"/>
@@ -455,11 +455,11 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           height: 88,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(214,230,242,.65), rgba(214,230,242,0))",
+            "radial-gradient(circle, rgba(213,230,251,.65), rgba(213,230,251,0))",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#8DB4D6",
+          color: "#73AFF1",
           fontSize: 24,
           pointerEvents: "none",
         }}
@@ -496,12 +496,12 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
               flexShrink: 0,
 
               background:
-                "linear-gradient(135deg, #8DB4D6 0%, #D6E6F2 100%)",
+                "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
 
               border: "1px solid rgba(255,255,255,.95)",
 
               boxShadow: `
-                0 10px 24px rgba(141,180,214,.30),
+                0 10px 24px rgba(115,175,241,.30),
                 inset 0 1px 0 rgba(255,255,255,.9)
               `,
 
@@ -523,7 +523,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
                 fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: ".12em",
-                color: "#8DB4D6",
+                color: "#73AFF1",
                 textTransform: "uppercase",
               }}
             >
@@ -551,15 +551,15 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
             padding: "9px 13px",
             borderRadius: 999,
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
-            boxShadow: "0 6px 18px rgba(141,180,214,.10)",
+            border: "1px solid #D5E6FB",
+            boxShadow: "0 6px 18px rgba(115,175,241,.10)",
           }}
          className="tr-app-routes-onboarding-div-9">
           <div
             style={{
               display: "flex",
               gap: 2,
-              color: "#8DB4D6",
+              color: "#73AFF1",
               fontSize: 12,
             }}
            className="tr-app-routes-onboarding-div-10">
@@ -570,7 +570,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: "#6F8FA9",
+              color: "#5B6B85",
               whiteSpace: "nowrap",
             }}
            className="tr-app-routes-onboarding-span-11">
@@ -596,7 +596,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
             fontWeight: 750,
 
             // darker tone of same blue palette
-            color: "#4F7392",
+            color: "#10224A",
 
             margin: "0 0 11px",
             letterSpacing: "-.03em",
@@ -631,9 +631,9 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           marginBottom: 28,
 
           background:
-            "linear-gradient(90deg, rgba(242,247,251,.95), rgba(214,230,242,.38))",
+            "linear-gradient(90deg, rgba(234,243,254,.95), rgba(213,230,251,.38))",
 
-          border: "1px solid rgba(214,230,242,.95)",
+          border: "1px solid rgba(213,230,251,.95)",
           borderRadius: 16,
         }}
        className="tr-app-routes-onboarding-div-13">
@@ -650,13 +650,13 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
               height: 34,
               borderRadius: 10,
               background: "#FFFFFF",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#8DB4D6",
+              color: "#73AFF1",
               fontSize: 16,
-              boxShadow: "0 4px 12px rgba(141,180,214,.10)",
+              boxShadow: "0 4px 12px rgba(115,175,241,.10)",
             }}
            className="tr-app-routes-onboarding-div-15">
             ★
@@ -667,7 +667,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
               style={{
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: "#5F7F9A",
+                color: "#10224A",
                 marginBottom: 2,
               }}
              className="tr-app-routes-onboarding-div-17">
@@ -691,7 +691,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
             alignItems: "center",
             gap: 4,
             fontSize: 13,
-            color: "#8DB4D6",
+            color: "#73AFF1",
             whiteSpace: "nowrap",
           }}
          className="tr-app-routes-onboarding-div-19">
@@ -706,7 +706,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
           height: 1,
           marginBottom: 28,
           background:
-            "linear-gradient(90deg, transparent, #D6E6F2 18%, #D6E6F2 82%, transparent)",
+            "linear-gradient(90deg, transparent, #D5E6FB 18%, #D5E6FB 82%, transparent)",
         }}
        className="tr-app-routes-onboarding-div-20"/>
 
@@ -715,13 +715,13 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
         style={{
           background: "#FFFFFF",
 
-          border: "1px solid rgba(214,230,242,.95)",
+          border: "1px solid rgba(213,230,251,.95)",
           borderRadius: 22,
 
           padding: "30px",
 
           boxShadow: `
-            0 18px 45px rgba(141,180,214,.10),
+            0 18px 45px rgba(115,175,241,.10),
             inset 0 1px 0 rgba(255,255,255,.9)
           `,
 
@@ -760,7 +760,7 @@ function OnboardingWizard({ token, initial, initialStep, isDevStore: devStore })
        className="tr-app-routes-onboarding-div-22">
         <span
           style={{
-            color: "#8DB4D6",
+            color: "#73AFF1",
             fontSize: 13,
           }}
          className="tr-app-routes-onboarding-span-23">

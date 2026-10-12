@@ -58,10 +58,10 @@ export default function AdvancedPaywall({
     padding: "34px 28px",
     maxWidth: 560,
     margin: "18px auto 0",
-    background: "linear-gradient(145deg,#FFFFFF 0%,#F2F7FB 100%)",
-    border: "1px solid #D6E6F2",
+    background: "linear-gradient(145deg,#FFFFFF 0%,#EAF3FE 100%)",
+    border: "1px solid #D5E6FB",
     borderRadius: 20,
-    boxShadow: "0 16px 42px rgba(79,115,146,.08)",
+    boxShadow: "0 16px 42px rgba(16,34,74,.08)",
   }}
 >
   <div
@@ -74,10 +74,10 @@ export default function AdvancedPaywall({
       fontWeight: 700,
       letterSpacing: ".07em",
       textTransform: "uppercase",
-      color: "#4F7392",
+      color: "#10224A",
       marginBottom: 12,
-      background: "#D6E6F2",
-      border: "1px solid rgba(141,180,214,.45)",
+      background: "#D5E6FB",
+      border: "1px solid rgba(115,175,241,.45)",
       padding: "5px 10px",
       borderRadius: 999,
     }}
@@ -90,7 +90,7 @@ export default function AdvancedPaywall({
     style={{
       fontSize: 24,
       fontWeight: 750,
-      color: "#4F7392",
+      color: "#10224A",
       marginBottom: 8,
       letterSpacing: "-.025em",
       lineHeight: 1.2,
@@ -104,7 +104,7 @@ export default function AdvancedPaywall({
       className="tr-app-components-advancedpaywall-div-4"
       style={{
         fontSize: 14,
-        color: "#829CAF",
+        color: "#5B6B85",
         lineHeight: 1.7,
         marginBottom: 22,
         maxWidth: 470,
@@ -136,9 +136,9 @@ export default function AdvancedPaywall({
             alignItems: "flex-start",
             gap: 8,
             fontSize: 14,
-            color: "#5F7F9A",
+            color: "#10224A",
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
             borderRadius: 10,
             padding: "9px 10px",
           }}
@@ -152,8 +152,8 @@ export default function AdvancedPaywall({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "#D6E6F2",
-              color: "#4F7392",
+              background: "#D5E6FB",
+              color: "#10224A",
               fontSize: 10,
               fontWeight: 800,
               flexShrink: 0,
@@ -179,10 +179,10 @@ export default function AdvancedPaywall({
       borderRadius: 10,
       fontSize: 16,
       fontWeight: 700,
-      background: `linear-gradient(135deg, ${accentColor} 0%, #6F96B6 100%)`,
-      color: "#FFFFFF",
+      background: `linear-gradient(135deg, ${accentColor} 0%, #5E9FE8 100%)`,
+      color: "#10224A",
       textDecoration: "none",
-      boxShadow: "0 8px 20px rgba(79,115,146,.18)",
+      boxShadow: "0 8px 20px rgba(16,34,74,.18)",
     }}
   >
     Upgrade to Advanced — $9.99/mo

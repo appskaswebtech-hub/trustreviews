@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { authenticate } from "../shopify.server";
+import { BRAND } from "../utils/brand";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -8,9 +9,10 @@ export const loader = async ({ request }) => {
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#4C6FFF",
+  text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
   yellow: "#F59E0B", yellowLt: "#fffbe6",
   green: "#1f7a4d", greenLt: "#e7f4ec",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 const CODE_BLOCK = `<div data-trust-product-id="{{ product.id }}"></div>`;
@@ -106,12 +108,12 @@ export default function InlineRatingInfoPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(214,230,242,.45), transparent 28%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.45), transparent 28%), #EAF3FE",
     minHeight: "100vh",
     padding: "clamp(18px, 3vw, 32px)",
     boxSizing: "border-box",
     fontSize: 14,
-    color: "#4F7392",
+    color: "#10224A",
   }}
   className="tr-app-routes-app-widgets-inline-rating-div-1 tr-inline-rating-page"
 >
@@ -130,17 +132,17 @@ export default function InlineRatingInfoPage() {
 
     .tr-inline-rating-main-card:hover{
       border-color:#C1D8E7 !important;
-      box-shadow:0 14px 34px rgba(79,115,146,.075) !important;
+      box-shadow:0 14px 34px rgba(16,34,74,.075) !important;
     }
 
     .tr-inline-rating-back:hover{
-      background:#EAF3F9 !important;
-      border-color:#BFD6E7 !important;
+      background:#EAF3FE !important;
+      border-color:#B9D7F8 !important;
     }
 
     .tr-inline-rating-copy:hover{
       transform:translateY(-1px);
-      box-shadow:0 7px 16px rgba(79,115,146,.22) !important;
+      box-shadow:0 7px 16px rgba(16,34,74,.22) !important;
     }
 
     .tr-inline-rating-copy:active{
@@ -252,12 +254,12 @@ export default function InlineRatingInfoPage() {
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#4F7392",
+          color: "#10224A",
           textDecoration: "none",
           flexShrink: 0,
           background: "#FFFFFF",
-          border: "1px solid #D6E6F2",
-          boxShadow: "0 4px 12px rgba(79,115,146,.05)",
+          border: "1px solid #D5E6FB",
+          boxShadow: "0 4px 12px rgba(16,34,74,.05)",
           transition: "all .16s ease",
         }}
         className="tr-inline-rating-back"
@@ -288,7 +290,7 @@ export default function InlineRatingInfoPage() {
           style={{
             fontSize: "clamp(24px, 3vw, 30px)",
             fontWeight: 700,
-            color: "#456984",
+            color: "#10224A",
             margin: 0,
             letterSpacing: "-.035em",
             lineHeight: 1.15,
@@ -301,7 +303,7 @@ export default function InlineRatingInfoPage() {
         <p
           style={{
             fontSize: 13.5,
-            color: "#829CAF",
+            color: "#5B6B85",
             margin: "6px 0 0",
             lineHeight: 1.6,
           }}
@@ -316,12 +318,12 @@ export default function InlineRatingInfoPage() {
     <div
       style={{
         background:
-          "linear-gradient(145deg,#FFFFFF 0%,#F8FBFD 100%)",
+          "linear-gradient(145deg,#FFFFFF 0%,#F7FAFF 100%)",
         borderRadius: 18,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "clamp(18px, 3vw, 24px)",
         marginBottom: 18,
-        boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+        boxShadow: "0 10px 28px rgba(16,34,74,.06)",
       }}
       className="tr-app-routes-app-widgets-inline-rating-div-6 tr-inline-rating-card tr-inline-rating-main-card"
     >
@@ -341,9 +343,9 @@ export default function InlineRatingInfoPage() {
             alignItems: "center",
             justifyContent: "center",
             borderRadius: 10,
-            color: "#4F7392",
-            background: "#EDF5FA",
-            border: "1px solid #D6E6F2",
+            color: "#10224A",
+            background: "#EDF5FF",
+            border: "1px solid #D5E6FB",
             flexShrink: 0,
           }}
         >
@@ -366,7 +368,7 @@ export default function InlineRatingInfoPage() {
           style={{
             fontSize: 12,
             fontWeight: 800,
-            color: "#6F8FA9",
+            color: "#5B6B85",
             textTransform: "uppercase",
             letterSpacing: ".07em",
             margin: 0,
@@ -440,10 +442,10 @@ export default function InlineRatingInfoPage() {
       style={{
         background: "#FFFFFF",
         borderRadius: 18,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "clamp(18px, 3vw, 24px)",
         marginBottom: 18,
-        boxShadow: "0 9px 26px rgba(79,115,146,.055)",
+        boxShadow: "0 9px 26px rgba(16,34,74,.055)",
       }}
       className="tr-app-routes-app-widgets-inline-rating-div-11 tr-inline-rating-card tr-inline-rating-main-card"
     >
@@ -462,15 +464,15 @@ export default function InlineRatingInfoPage() {
             height: 34,
             borderRadius: 10,
             background:
-              "linear-gradient(135deg,#8DB4D6,#7199B8)",
-            color: "#FFFFFF",
+              "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+            color: "#10224A",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontWeight: 800,
             fontSize: 13,
             flexShrink: 0,
-            boxShadow: "0 5px 13px rgba(79,115,146,.15)",
+            boxShadow: "0 5px 13px rgba(16,34,74,.15)",
           }}
           className="tr-app-routes-app-widgets-inline-rating-span-13"
         >
@@ -480,7 +482,7 @@ export default function InlineRatingInfoPage() {
         <strong
           style={{
             fontSize: 15.5,
-            color: "#496B87",
+            color: "#10224A",
             fontWeight: 800,
             lineHeight: 1.4,
           }}
@@ -493,7 +495,7 @@ export default function InlineRatingInfoPage() {
       <p
         style={{
           fontSize: 14,
-          color: "#829CAF",
+          color: "#5B6B85",
           margin: "0 0 14px 44px",
           lineHeight: 1.7,
         }}
@@ -503,7 +505,7 @@ export default function InlineRatingInfoPage() {
         <strong
           className="tr-app-routes-app-widgets-inline-rating-strong-16"
           style={{
-            color: "#4F7392",
+            color: "#10224A",
             fontWeight: 750,
           }}
         >
@@ -527,7 +529,7 @@ export default function InlineRatingInfoPage() {
           style={{
             fontSize: 12.5,
             fontWeight: 750,
-            color: "#6F8FA9",
+            color: "#5B6B85",
             margin: "0 0 8px",
           }}
           className="tr-app-routes-app-widgets-inline-rating-p-18"
@@ -563,10 +565,10 @@ export default function InlineRatingInfoPage() {
       style={{
         background: "#FFFFFF",
         borderRadius: 18,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "clamp(18px, 3vw, 24px)",
         marginBottom: 18,
-        boxShadow: "0 9px 26px rgba(79,115,146,.055)",
+        boxShadow: "0 9px 26px rgba(16,34,74,.055)",
       }}
       className="tr-app-routes-app-widgets-inline-rating-div-23 tr-inline-rating-card tr-inline-rating-main-card"
     >
@@ -585,15 +587,15 @@ export default function InlineRatingInfoPage() {
             height: 34,
             borderRadius: 10,
             background:
-              "linear-gradient(135deg,#8DB4D6,#7199B8)",
-            color: "#FFFFFF",
+              "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+            color: "#10224A",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontWeight: 800,
             fontSize: 13,
             flexShrink: 0,
-            boxShadow: "0 5px 13px rgba(79,115,146,.15)",
+            boxShadow: "0 5px 13px rgba(16,34,74,.15)",
           }}
           className="tr-app-routes-app-widgets-inline-rating-span-25"
         >
@@ -603,7 +605,7 @@ export default function InlineRatingInfoPage() {
         <strong
           style={{
             fontSize: 15.5,
-            color: "#496B87",
+            color: "#10224A",
             fontWeight: 800,
             lineHeight: 1.4,
           }}
@@ -616,7 +618,7 @@ export default function InlineRatingInfoPage() {
       <p
         style={{
           fontSize: 14,
-          color: "#829CAF",
+          color: "#5B6B85",
           margin: "0 0 14px 44px",
           lineHeight: 1.7,
         }}
@@ -669,8 +671,8 @@ export default function InlineRatingInfoPage() {
               borderRadius: 9,
               padding: "8px 14px",
               background:
-                "linear-gradient(135deg,#8DB4D6,#7199B8)",
-              color: "#FFFFFF",
+                "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+              color: "#10224A",
               fontSize: 12.5,
               fontWeight: 750,
               cursor: "pointer",
@@ -678,7 +680,7 @@ export default function InlineRatingInfoPage() {
               alignItems: "center",
               justifyContent: "center",
               gap: 6,
-              boxShadow: "0 5px 13px rgba(79,115,146,.18)",
+              boxShadow: "0 5px 13px rgba(16,34,74,.18)",
               transition: "all .16s ease",
             }}
             className="tr-app-routes-app-widgets-inline-rating-button-31 tr-inline-rating-copy"
@@ -713,7 +715,7 @@ export default function InlineRatingInfoPage() {
         <p
           style={{
             fontSize: 12.5,
-            color: "#829CAF",
+            color: "#5B6B85",
             margin: "10px 0 0",
             lineHeight: 1.6,
           }}
@@ -794,11 +796,11 @@ export default function InlineRatingInfoPage() {
         <code
           style={{
             fontFamily: "monospace",
-            background: "rgba(79,115,146,.08)",
-            color: "#496B87",
+            background: "rgba(16,34,74,.08)",
+            color: "#10224A",
             padding: "2px 6px",
             borderRadius: 5,
-            border: "1px solid rgba(79,115,146,.08)",
+            border: "1px solid rgba(16,34,74,.08)",
           }}
           className="tr-app-routes-app-widgets-inline-rating-code-35"
         >

@@ -5,14 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import { useAdminT } from "../utils/adminTranslations";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
+import { BRAND } from "../utils/brand";
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78",
-  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  text: BRAND.navy, muted: "#6b6b78",
+  accent: BRAND.blue, accentLt: BRAND.blueLight,
   green: "#1f7a4d", greenLt: "#e7f4ec",
   red: "#a5423b", redLt: "#f7eae8",
   amber: "#a3690f", amberLt: "#f7f0e2",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 export async function loader({ request }) {
@@ -190,7 +192,7 @@ function ProductPicker({ groupId, existingIds, onAdd }) {
                 style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 7, border: `1px solid ${C.border}`, flexShrink: 0 }}
                className="tr-app-routes-app-review-groups-img-9"/>
               <span style={{ fontSize: 13, fontWeight: 600, color: C.text, flex: 1 }} className="tr-app-routes-app-review-groups-span-10">{p.title}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: C.accent, background: C.accentLt, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }} className="tr-app-routes-app-review-groups-span-11">+ Add</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.accentText, background: C.accentLt, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }} className="tr-app-routes-app-review-groups-span-11">+ Add</span>
             </div>
           ))}
         </div>
@@ -211,7 +213,7 @@ function ProductChip({ product, onRemove }) {
       {product.isPrimary && (
         <span style={{
           position: "absolute", top: -7, left: 8, fontSize: 10, fontWeight: 600,
-          background: C.accent, color: "#fff", borderRadius: 20, padding: "1px 7px",
+          background: C.accent, color: C.onAccent, borderRadius: 20, padding: "1px 7px",
         }} className="tr-app-routes-app-review-groups-span-13">{t.primary}</span>
       )}
       <img
@@ -272,7 +274,7 @@ function GroupCard({ group, onAddProduct, onRemoveProduct, onDeleteGroup, onRena
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }} className="tr-app-routes-app-review-groups-div-25">
           <span style={{
-            fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent,
+            fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accentText,
             borderRadius: 20, padding: "3px 10px",
           }} className="tr-app-routes-app-review-groups-span-26">
             {group.products.length} {group.products.length === 1 ? "product" : "products"}
@@ -460,7 +462,7 @@ export default function ReviewGroupsPage() {
   className="tr-app-routes-app-review-groups-div-33"
   style={{
     fontFamily: "var(--app-font-family)",
-    background: "#F2F7FB",
+    background: "#EAF3FE",
     minHeight: "100vh",
     padding: 28,
   }}
@@ -474,10 +476,10 @@ export default function ReviewGroupsPage() {
       gap: 12,
       marginBottom: 18,
       padding: "18px 20px",
-      background: "linear-gradient(135deg,#FFFFFF 0%,#F2F7FB 100%)",
-      border: "1px solid #D6E6F2",
+      background: "linear-gradient(135deg,#FFFFFF 0%,#EAF3FE 100%)",
+      border: "1px solid #D5E6FB",
       borderRadius: 16,
-      boxShadow: "0 8px 24px rgba(79,115,146,.07)",
+      boxShadow: "0 8px 24px rgba(16,34,74,.07)",
     }}
   >
     <Link
@@ -489,14 +491,14 @@ export default function ReviewGroupsPage() {
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 9,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         background: "#FFFFFF",
-        color: "#4F7392",
+        color: "#10224A",
         textDecoration: "none",
         fontSize: 16,
         fontWeight: 700,
         flexShrink: 0,
-        boxShadow: "0 4px 10px rgba(79,115,146,.06)",
+        boxShadow: "0 4px 10px rgba(16,34,74,.06)",
       }}
     >
       ←
@@ -508,7 +510,7 @@ export default function ReviewGroupsPage() {
         style={{
           fontSize: 26,
           fontWeight: 750,
-          color: "#4F7392",
+          color: "#10224A",
           margin: 0,
           letterSpacing: "-.025em",
           lineHeight: 1.2,
@@ -521,7 +523,7 @@ export default function ReviewGroupsPage() {
         className="tr-app-routes-app-review-groups-p-37"
         style={{
           fontSize: 13.5,
-          color: "#829CAF",
+          color: "#5B6B85",
           margin: "6px 0 0",
           maxWidth: 650,
           lineHeight: 1.6,
@@ -551,28 +553,28 @@ export default function ReviewGroupsPage() {
       <div
         className="tr-app-routes-app-review-groups-div-38"
         style={{
-          background: "linear-gradient(135deg,#F2F7FB,#FFFFFF)",
-          border: "1px solid #D6E6F2",
+          background: "linear-gradient(135deg,#EAF3FE,#FFFFFF)",
+          border: "1px solid #D5E6FB",
           borderRadius: 12,
           padding: "13px 16px",
           marginBottom: 16,
           display: "flex",
           alignItems: "flex-start",
-          boxShadow: "0 5px 16px rgba(79,115,146,.05)",
+          boxShadow: "0 5px 16px rgba(16,34,74,.05)",
         }}
       >
         <div
           className="tr-app-routes-app-review-groups-div-39"
           style={{
             fontSize: 13,
-            color: "#6F8FA9",
+            color: "#5B6B85",
             lineHeight: 1.65,
           }}
         >
           <strong
             className="tr-app-routes-app-review-groups-strong-40"
             style={{
-              color: "#4F7392",
+              color: "#10224A",
               fontWeight: 750,
             }}
           >
@@ -582,14 +584,14 @@ export default function ReviewGroupsPage() {
           Reviews left on{" "}
           <em
             className="tr-app-routes-app-review-groups-em-41"
-            style={{ color: "#4F7392" }}
+            style={{ color: "#10224A" }}
           >
             any
           </em>{" "}
           product in the group will appear on{" "}
           <em
             className="tr-app-routes-app-review-groups-em-42"
-            style={{ color: "#4F7392" }}
+            style={{ color: "#10224A" }}
           >
             all
           </em>{" "}
@@ -597,7 +599,7 @@ export default function ReviewGroupsPage() {
           <strong
             className="tr-app-routes-app-review-groups-strong-43"
             style={{
-              color: "#4F7392",
+              color: "#10224A",
               fontWeight: 750,
             }}
           >
@@ -614,13 +616,13 @@ export default function ReviewGroupsPage() {
         style={{
           background: "#FFFFFF",
           borderRadius: 14,
-          border: "1px solid #D6E6F2",
+          border: "1px solid #D5E6FB",
           padding: "16px 18px",
           marginBottom: 18,
           display: "flex",
           alignItems: "center",
           gap: 10,
-          boxShadow: "0 8px 24px rgba(79,115,146,.06)",
+          boxShadow: "0 8px 24px rgba(16,34,74,.06)",
         }}
       >
         <div
@@ -632,7 +634,7 @@ export default function ReviewGroupsPage() {
             style={{
               fontSize: 11.5,
               fontWeight: 700,
-              color: "#6F8FA9",
+              color: "#5B6B85",
               display: "block",
               marginBottom: 6,
               textTransform: "uppercase",
@@ -649,14 +651,14 @@ export default function ReviewGroupsPage() {
             className="tr-app-routes-app-review-groups-input-47"
             style={{
               width: "100%",
-              border: "1px solid #D6E6F2",
+              border: "1px solid #D5E6FB",
               borderRadius: 9,
               padding: "10px 13px",
               fontSize: 13,
               outline: "none",
               boxSizing: "border-box",
-              background: "#F9FCFE",
-              color: "#4F7392",
+              background: "#F8FBFF",
+              color: "#10224A",
               fontFamily: "inherit",
             }}
           />
@@ -675,12 +677,12 @@ export default function ReviewGroupsPage() {
             fontWeight: 700,
             cursor: newGroupName.trim() ? "pointer" : "default",
             background: newGroupName.trim()
-              ? "linear-gradient(135deg,#8DB4D6,#6F96B6)"
-              : "#D6E6F2",
-            color: "#FFFFFF",
+              ? "linear-gradient(135deg,#73AFF1,#5E9FE8)"
+              : "#D5E6FB",
+            color: "#10224A",
             whiteSpace: "nowrap",
             boxShadow: newGroupName.trim()
-              ? "0 6px 16px rgba(79,115,146,.18)"
+              ? "0 6px 16px rgba(16,34,74,.18)"
               : "none",
           }}
         >
@@ -698,7 +700,7 @@ export default function ReviewGroupsPage() {
             border: "1px dashed #C9DDEA",
             padding: "46px 20px",
             textAlign: "center",
-            boxShadow: "0 8px 24px rgba(79,115,146,.04)",
+            boxShadow: "0 8px 24px rgba(16,34,74,.04)",
           }}
         >
           <div
@@ -706,7 +708,7 @@ export default function ReviewGroupsPage() {
             style={{
               fontWeight: 700,
               fontSize: 15,
-              color: "#4F7392",
+              color: "#10224A",
               marginBottom: 5,
             }}
           >
@@ -717,7 +719,7 @@ export default function ReviewGroupsPage() {
             className="tr-app-routes-app-review-groups-div-51"
             style={{
               fontSize: 13,
-              color: "#829CAF",
+              color: "#5B6B85",
             }}
           >
             {t.noGroups}

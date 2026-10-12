@@ -44,9 +44,9 @@ export default function CustomerAccountsStubPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(214,230,242,.5), transparent 32%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 32%), #EAF3FE",
     fontFamily: "var(--app-font-family)",
-    color: "#4F7392",
+    color: "#10224A",
     fontSize: 14,
   }}
   className="tr-app-routes-app-widgets-customer-accounts-div-1 tr-customer-accounts-page"
@@ -65,8 +65,8 @@ export default function CustomerAccountsStubPage() {
     }
 
     .tr-customer-accounts-back:hover{
-      background:#EDF5FA !important;
-      border-color:#BFD6E7 !important;
+      background:#EDF5FF !important;
+      border-color:#B9D7F8 !important;
       transform:translateX(-1px);
     }
 
@@ -79,7 +79,7 @@ export default function CustomerAccountsStubPage() {
 
     .tr-customer-accounts-card:hover{
       border-color:#C2D9E8 !important;
-      box-shadow:0 18px 42px rgba(79,115,146,.09) !important;
+      box-shadow:0 18px 42px rgba(16,34,74,.09) !important;
     }
 
     @media(max-width:768px){
@@ -154,8 +154,8 @@ export default function CustomerAccountsStubPage() {
       gap: 11,
       padding: "11px 20px",
       background: "rgba(255,255,255,.96)",
-      borderBottom: "1px solid #D6E6F2",
-      boxShadow: "0 3px 14px rgba(79,115,146,.045)",
+      borderBottom: "1px solid #D5E6FB",
+      boxShadow: "0 3px 14px rgba(16,34,74,.045)",
       backdropFilter: "blur(12px)",
       position: "sticky",
       top: 0,
@@ -173,10 +173,10 @@ export default function CustomerAccountsStubPage() {
         alignItems: "center",
         justifyContent: "center",
         borderRadius: 10,
-        color: "#4F7392",
+        color: "#10224A",
         textDecoration: "none",
-        background: "#F8FBFD",
-        border: "1px solid #D6E6F2",
+        background: "#FFFFFF",
+        border: "1px solid #D5E6FB",
         flexShrink: 0,
       }}
       className="tr-customer-accounts-back"
@@ -214,9 +214,9 @@ export default function CustomerAccountsStubPage() {
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          background: "#EDF5FA",
-          border: "1px solid #D6E6F2",
-          color: "#4F7392",
+          background: "#EDF5FF",
+          border: "1px solid #D5E6FB",
+          color: "#10224A",
         }}
       >
         <svg
@@ -245,7 +245,7 @@ export default function CustomerAccountsStubPage() {
         style={{
           fontWeight: 800,
           fontSize: 15,
-          color: "#496B87",
+          color: "#10224A",
           letterSpacing: "-.01em",
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -272,11 +272,11 @@ export default function CustomerAccountsStubPage() {
       style={{
         width: "100%",
         background:
-          "linear-gradient(145deg,#FFFFFF 0%,#F8FBFD 100%)",
+          "linear-gradient(145deg,#FFFFFF 0%,#F7FAFF 100%)",
         borderRadius: 22,
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         padding: "30px",
-        boxShadow: "0 14px 36px rgba(79,115,146,.07)",
+        boxShadow: "0 14px 36px rgba(16,34,74,.07)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -289,7 +289,7 @@ export default function CustomerAccountsStubPage() {
           width: 190,
           height: 190,
           borderRadius: "50%",
-          background: "rgba(214,230,242,.44)",
+          background: "rgba(213,230,251,.44)",
           top: -110,
           right: -70,
           pointerEvents: "none",
@@ -302,7 +302,7 @@ export default function CustomerAccountsStubPage() {
           width: 115,
           height: 115,
           borderRadius: "50%",
-          background: "rgba(141,180,214,.08)",
+          background: "rgba(115,175,241,.08)",
           bottom: -70,
           left: -35,
           pointerEvents: "none",
@@ -330,11 +330,11 @@ export default function CustomerAccountsStubPage() {
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            color: "#4F7392",
+            color: "#10224A",
             background:
-              "linear-gradient(145deg,#EDF5FA,#DCEAF4)",
+              "linear-gradient(145deg,#EDF5FF,#DCEBFC)",
             border: "1px solid #D0E1EC",
-            boxShadow: "0 8px 20px rgba(79,115,146,.09)",
+            boxShadow: "0 8px 20px rgba(16,34,74,.09)",
           }}
           className="tr-customer-accounts-icon"
         >
@@ -383,7 +383,7 @@ export default function CustomerAccountsStubPage() {
               style={{
                 fontSize: "clamp(21px,2.8vw,25px)",
                 fontWeight: 800,
-                color: "#456984",
+                color: "#10224A",
                 margin: 0,
                 lineHeight: 1.25,
                 letterSpacing: "-.025em",
@@ -400,9 +400,9 @@ export default function CustomerAccountsStubPage() {
                 gap: 5,
                 padding: "4px 8px",
                 borderRadius: 999,
-                background: "#EDF5FA",
-                border: "1px solid #D6E6F2",
-                color: "#6F8FA9",
+                background: "#EDF5FF",
+                border: "1px solid #D5E6FB",
+                color: "#5B6B85",
                 fontSize: 10,
                 fontWeight: 800,
                 textTransform: "uppercase",
@@ -443,7 +443,7 @@ export default function CustomerAccountsStubPage() {
         needs a separate Shopify extension type called a{" "}
         <strong
           style={{
-            color: "#4F7392",
+            color: "#10224A",
             fontWeight: 800,
           }}
           className="tr-app-routes-app-widgets-customer-accounts-strong-8"
@@ -456,9 +456,9 @@ export default function CustomerAccountsStubPage() {
             display: "inline-block",
             fontFamily: "monospace",
             fontSize: 12.5,
-            color: "#4F7392",
-            background: "#EDF5FA",
-            border: "1px solid #D6E6F2",
+            color: "#10224A",
+            background: "#EDF5FF",
+            border: "1px solid #D5E6FB",
             padding: "2px 6px",
             borderRadius: 5,
             margin: "0 2px",
@@ -474,12 +474,12 @@ export default function CustomerAccountsStubPage() {
       <div
         style={{
           background:
-            "linear-gradient(135deg,#F2F7FB 0%,#FAFCFD 100%)",
-          border: "1px solid #D6E6F2",
+            "linear-gradient(135deg,#EAF3FE 0%,#F9FBFF 100%)",
+          border: "1px solid #D5E6FB",
           borderRadius: 14,
           padding: "15px 16px",
           fontSize: 13,
-          color: "#6F8FA9",
+          color: "#5B6B85",
           lineHeight: 1.65,
           display: "flex",
           alignItems: "flex-start",
@@ -499,8 +499,8 @@ export default function CustomerAccountsStubPage() {
             justifyContent: "center",
             flexShrink: 0,
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
-            color: "#5F7F9A",
+            border: "1px solid #D5E6FB",
+            color: "#10224A",
           }}
         >
           <svg

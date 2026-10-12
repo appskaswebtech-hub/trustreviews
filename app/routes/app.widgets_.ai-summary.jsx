@@ -149,7 +149,7 @@ function ProductRow({ product, aiConfigured }) {
             style={{
               border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 11.5, fontWeight: 600,
               cursor: aiConfigured && !loading ? "pointer" : "default",
-              background: aiConfigured ? SHELL_C.accent : "#d1d5db", color: "#fff", whiteSpace: "nowrap",
+              background: aiConfigured ? SHELL_C.accent : "#d1d5db", color: SHELL_C.onAccent, whiteSpace: "nowrap",
             }}
            className="tr-app-routes-app-widgets-ai-summary-button-11">
             {loading ? "Generating…" : summary ? "Regenerate" : "Generate"}

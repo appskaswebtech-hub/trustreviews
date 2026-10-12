@@ -105,11 +105,11 @@ export default function FreePlanUpsellModal() {
     animation: "trwModalIn 320ms cubic-bezier(.2,.8,.3,1)",
     background: "#FFFFFF",
     borderRadius: 22,
-    border: "1px solid #D6E6F2",
+    border: "1px solid #D5E6FB",
     boxShadow:
-      "0 28px 70px rgba(37,61,79,.22), 0 8px 24px rgba(79,115,146,.10)",
+      "0 28px 70px rgba(37,61,79,.22), 0 8px 24px rgba(16,34,74,.10)",
     fontSize: 14,
-    color: "#4F7392",
+    color: "#10224A",
     boxSizing: "border-box",
   }}
   className="tr-app-components-freeplanupsellmodal-div-3 trw-upsell-modal"
@@ -221,7 +221,7 @@ export default function FreePlanUpsellModal() {
       padding: "19px 20px",
       marginBottom: 0,
       background:
-        "linear-gradient(135deg,#587D9B 0%,#739DBD 52%,#8DB4D6 100%)",
+        "linear-gradient(135deg,#587D9B 0%,#739DBD 52%,#73AFF1 100%)",
       position: "relative",
       overflow: "hidden",
     }}
@@ -372,7 +372,7 @@ export default function FreePlanUpsellModal() {
   <div
     style={{
       background:
-        "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
+        "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
       borderRadius: 0,
       border: "none",
       padding: "24px 22px 22px",
@@ -390,7 +390,7 @@ export default function FreePlanUpsellModal() {
         right: 22,
         height: 1,
         background:
-          "linear-gradient(90deg,transparent,#D6E6F2,transparent)",
+          "linear-gradient(90deg,transparent,#D5E6FB,transparent)",
       }}
       className="tr-app-components-freeplanupsellmodal-div-11"
     />

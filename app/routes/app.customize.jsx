@@ -4,6 +4,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
+import { BRAND } from "../utils/brand";
 
 // Feeds this shop's real reviews/rating stats into BlockMockup, wherever it's
 // rendered (top-level canvas, column children, the Preview modal) — set via
@@ -115,7 +116,7 @@ export async function action({ request }) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const C = { accent: "#6B1A2C", accentL: "#f5e6e9", bg: "#f6f6f8", surface: "#fff", border: "#e5e4ec", text: "#17171c", muted: "#6b6b78" };
+const C = { accent: BRAND.blue, accentL: BRAND.blueLight, bg: "#f6f6f8", surface: "#fff", border: "#e5e4ec", text: BRAND.navy, muted: "#6b6b78", onAccent: BRAND.onBlue, accentText: BRAND.blueText };
 let _uid = 0;
 function uid() { return "b" + (++_uid) + Math.random().toString(36).slice(2, 5); }
 
@@ -434,7 +435,7 @@ function Toggle({ value, onChange }) {
       <div onClick={() => onChange(!value)} style={{ width: 42, height: 22, borderRadius: 11, background: value ? C.accent : "#d1d5db", position: "relative", cursor: "pointer", transition: "background .2s", flexShrink: 0 }} className="tr-app-routes-app-customize-div-6">
         <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: value ? 23 : 3, transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }}  className="tr-app-routes-app-customize-div-7"/>
       </div>
-      <span style={{ fontSize: 12, color: value ? C.accent : C.muted, fontWeight: 600 }} className="tr-app-routes-app-customize-span-8">{value ? "On" : "Off"}</span>
+      <span style={{ fontSize: 12, color: value ? C.accentText : C.muted, fontWeight: 600 }} className="tr-app-routes-app-customize-span-8">{value ? "On" : "Off"}</span>
     </div>
   );
 }
@@ -520,7 +521,7 @@ function FourSide({ label, values, onChange }) {
           </div>
         ))}
         <button onClick={() => setLinked(!linked)} title={linked ? "Unlink" : "Link all"}
-          style={{ padding: "5px 8px", borderRadius: 6, border: `1.5px solid ${linked ? C.accent : "#e4e4e4"}`, background: linked ? C.accentL : "#fff", cursor: "pointer", fontSize: 12, color: linked ? C.accent : C.muted, flexShrink: 0 }} className="tr-app-routes-app-customize-button-27">
+          style={{ padding: "5px 8px", borderRadius: 6, border: `1.5px solid ${linked ? C.accent : "#e4e4e4"}`, background: linked ? C.accentL : "#fff", cursor: "pointer", fontSize: 12, color: linked ? C.accentText : C.muted, flexShrink: 0 }} className="tr-app-routes-app-customize-button-27">
           {linked ? "Linked" : "Link"}
         </button>
       </div>
@@ -532,7 +533,7 @@ function ShadowPicker({ value, onChange }) {
   return (
     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }} className="tr-app-routes-app-customize-div-28">
       {["none","soft","medium","strong","glow"].map(s => (
-        <button key={s} onClick={() => onChange(s)} style={{ padding: "5px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: `1.5px solid ${value === s ? C.accent : "#e4e4e4"}`, background: value === s ? C.accentL : "#fff", cursor: "pointer", color: value === s ? C.accent : C.muted, textTransform: "capitalize" }} className="tr-app-routes-app-customize-button-29">{s}</button>
+        <button key={s} onClick={() => onChange(s)} style={{ padding: "5px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: `1.5px solid ${value === s ? C.accent : "#e4e4e4"}`, background: value === s ? C.accentL : "#fff", cursor: "pointer", color: value === s ? C.accentText : C.muted, textTransform: "capitalize" }} className="tr-app-routes-app-customize-button-29">{s}</button>
       ))}
     </div>
   );
@@ -566,7 +567,7 @@ function FreeformHint({ value, onChange }) {
           : "Select this block, then drag any element directly on the first card in the canvas to switch it to free positioning."}
       </div>
       {isFreeform && (
-        <button onClick={() => onChange({})} style={{ marginTop: 6, fontSize: 10.5, color: C.accent, background: "none", border: "none", cursor: "pointer", fontWeight: 600, textDecoration: "underline", padding: 0 }} className="tr-app-routes-app-customize-button-32">Reset to automatic layout</button>
+        <button onClick={() => onChange({})} style={{ marginTop: 6, fontSize: 10.5, color: C.accentText, background: "none", border: "none", cursor: "pointer", fontWeight: 600, textDecoration: "underline", padding: 0 }} className="tr-app-routes-app-customize-button-32">Reset to automatic layout</button>
       )}
     </div>
   );
@@ -595,7 +596,7 @@ function PropertiesPanel({ block, onChange }) {
     <div className="tr-app-routes-app-customize-div-35">
       <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, background: "#fafafa", position: "sticky", top: 0, zIndex: 1 }} className="tr-app-routes-app-customize-div-36">
         {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 2px", fontSize: 10, fontWeight: 600, border: "none", cursor: "pointer", background: "none", borderBottom: `2.5px solid ${tab === t ? C.accent : "transparent"}`, color: tab === t ? C.accent : C.muted, textTransform: "uppercase", letterSpacing: 0.3 }} className="tr-app-routes-app-customize-button-37">
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 2px", fontSize: 10, fontWeight: 600, border: "none", cursor: "pointer", background: "none", borderBottom: `2.5px solid ${tab === t ? C.accent : "transparent"}`, color: tab === t ? C.accentText : C.muted, textTransform: "uppercase", letterSpacing: 0.3 }} className="tr-app-routes-app-customize-button-37">
             {TAB_LBL[t]}
           </button>
         ))}
@@ -683,7 +684,7 @@ function PropertiesPanel({ block, onChange }) {
               <div style={{ display: "flex", gap: 4 }} className="tr-app-routes-app-customize-div-67">
                 {[["left","⬅"],["center","↔"],["right","➡"],["justify","≡"]].map(([a, icon]) => (
                   <button key={a} onClick={() => update("textAlign", a)}
-                    style={{ flex: 1, padding: "7px 4px", fontSize: 14, border: `1.5px solid ${(st.textAlign||"left") === a ? C.accent : "#e4e4e4"}`, borderRadius: 6, background: (st.textAlign||"left") === a ? C.accentL : "#fff", cursor: "pointer", color: (st.textAlign||"left") === a ? C.accent : C.muted }} className="tr-app-routes-app-customize-button-68">
+                    style={{ flex: 1, padding: "7px 4px", fontSize: 14, border: `1.5px solid ${(st.textAlign||"left") === a ? C.accent : "#e4e4e4"}`, borderRadius: 6, background: (st.textAlign||"left") === a ? C.accentL : "#fff", cursor: "pointer", color: (st.textAlign||"left") === a ? C.accentText : C.muted }} className="tr-app-routes-app-customize-button-68">
                     {icon}
                   </button>
                 ))}
@@ -963,7 +964,7 @@ function ColumnSlot({ children = [], colIdx, parentId, selectedPath, onAddChild,
               <div className="block-drag-header" style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 8px", background:sel?C.accentL:"#f9fafb", borderBottom:`1px solid ${C.border}` }}>
                 <span style={{ fontSize:10, color:C.muted, userSelect:"none" }} className="tr-app-routes-app-customize-span-169">⠿</span>
                 <span style={{ fontSize:11 }} className="tr-app-routes-app-customize-span-170">{def?.icon}</span>
-                <span style={{ fontSize:10, fontWeight:600, color:sel?C.accent:C.muted, flex:1 }} className="tr-app-routes-app-customize-span-171">{def?.label}</span>
+                <span style={{ fontSize:10, fontWeight:600, color:sel?C.accentText:C.muted, flex:1 }} className="tr-app-routes-app-customize-span-171">{def?.label}</span>
                 <button onClick={e2 => { e2.stopPropagation(); onDeleteChild(colIdx, child.id); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:12, padding:"0 2px" }} className="tr-app-routes-app-customize-button-172">✕</button>
               </div>
               <div style={{ padding:"7px 10px" }} className="tr-app-routes-app-customize-div-173"><BlockMockup block={child} compact /></div>
@@ -1113,9 +1114,9 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
     minWidth: 0,
     fontSize: 14,
     lineHeight: 1.5,
-    color: "#4F7392",
+    color: "#10224A",
     background:
-      "radial-gradient(circle at 50% 0%, rgba(214,230,242,.58), transparent 28%), linear-gradient(180deg,#EEF5FA 0%,#F4F8FB 100%)",
+      "radial-gradient(circle at 50% 0%, rgba(213,230,251,.58), transparent 28%), linear-gradient(180deg,#EEF5FF 0%,#F4F8FB 100%)",
     boxSizing: "border-box",
   }}
   onDragOver={(e) => {
@@ -1173,12 +1174,12 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
     .tr-builder-block-card:hover{
       border-color:#B8D2E3 !important;
       box-shadow:
-        0 10px 28px rgba(79,115,146,.075),
-        0 2px 5px rgba(79,115,146,.035) !important;
+        0 10px 28px rgba(16,34,74,.075),
+        0 2px 5px rgba(16,34,74,.035) !important;
     }
 
     .tr-builder-block-card:hover .tr-builder-block-header{
-      background:#F7FBFD !important;
+      background:#F7FAFF !important;
     }
 
     .tr-builder-drag-handle{
@@ -1190,7 +1191,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
 
     .tr-builder-drag-handle:hover{
       background:#E8F2F8 !important;
-      color:#4F7392 !important;
+      color:#10224A !important;
       border-color:#C5DBE9 !important;
     }
 
@@ -1219,10 +1220,10 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
     }
 
     .tr-builder-bottom-drop:hover{
-      border-color:#8DB4D6 !important;
-      background:#F7FBFD !important;
-      color:#4F7392 !important;
-      box-shadow:0 8px 20px rgba(79,115,146,.07) !important;
+      border-color:#73AFF1 !important;
+      background:#F7FAFF !important;
+      color:#10224A !important;
+      box-shadow:0 8px 20px rgba(16,34,74,.07) !important;
       transform:translateY(-1px);
     }
 
@@ -1363,11 +1364,11 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
         borderRadius: 20,
         padding: "60px 24px",
         textAlign: "center",
-        color: "#829CAF",
+        color: "#5B6B85",
         background:
           "linear-gradient(145deg,rgba(255,255,255,.98) 0%,rgba(247,251,253,.98) 100%)",
         boxShadow:
-          "0 12px 32px rgba(79,115,146,.05), inset 0 1px 0 rgba(255,255,255,.8)",
+          "0 12px 32px rgba(16,34,74,.05), inset 0 1px 0 rgba(255,255,255,.8)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -1383,7 +1384,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
           width: 210,
           height: 210,
           borderRadius: "50%",
-          background: "rgba(214,230,242,.38)",
+          background: "rgba(213,230,251,.38)",
           top: -120,
           right: -75,
           pointerEvents: "none",
@@ -1396,7 +1397,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
           width: 150,
           height: 150,
           borderRadius: "50%",
-          background: "rgba(141,180,214,.08)",
+          background: "rgba(115,175,241,.08)",
           bottom: -90,
           left: -55,
           pointerEvents: "none",
@@ -1412,11 +1413,11 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 17,
-          color: "#4F7392",
+          color: "#10224A",
           background:
-            "linear-gradient(145deg,#F2F7FB 0%,#DDEBF4 100%)",
+            "linear-gradient(145deg,#EAF3FE 0%,#DDEBF4 100%)",
           border: "1px solid #CCDDEA",
-          boxShadow: "0 10px 24px rgba(79,115,146,.09)",
+          boxShadow: "0 10px 24px rgba(16,34,74,.09)",
           position: "relative",
           zIndex: 1,
         }}
@@ -1565,7 +1566,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                 background: "#FFFFFF",
 
                 border: selected
-                  ? "1.5px solid #8DB4D6"
+                  ? "1.5px solid #73AFF1"
                   : "1px solid #D5E4ED",
 
                 borderRadius: 16,
@@ -1575,8 +1576,8 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                 cursor: "pointer",
 
                 boxShadow: selected
-                  ? "0 0 0 3px rgba(141,180,214,.13), 0 12px 28px rgba(79,115,146,.085)"
-                  : "0 5px 16px rgba(79,115,146,.045)",
+                  ? "0 0 0 3px rgba(115,175,241,.13), 0 12px 28px rgba(16,34,74,.085)"
+                  : "0 5px 16px rgba(16,34,74,.045)",
 
                 transition:
                   "border-color .16s ease, box-shadow .16s ease",
@@ -1593,8 +1594,8 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                   gap: 8,
                   padding: "8px 10px",
                   background: selected
-                    ? "linear-gradient(135deg,#EEF6FA 0%,#F8FBFD 100%)"
-                    : "#FAFCFD",
+                    ? "linear-gradient(135deg,#EEF6FA 0%,#F7FAFF 100%)"
+                    : "#F9FBFF",
                   borderBottom: "1px solid #DFEBF2",
                   minHeight: 48,
                   transition: "background .15s ease",
@@ -1610,7 +1611,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                     flexShrink: 0,
                     borderRadius: 9,
                     color: "#7893A7",
-                    background: "#F3F8FB",
+                    background: "#F2F7FF",
                     border: "1px solid #DBE7EF",
                     cursor: "grab",
                     userSelect: "none",
@@ -1642,11 +1643,11 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                     flexShrink: 0,
                     borderRadius: 9,
                     background: selected
-                      ? "#DCEAF4"
+                      ? "#DCEBFC"
                       : "#F1F6FA",
-                    border: "1px solid #D6E6F2",
+                    border: "1px solid #D5E6FB",
                     fontSize: 16,
-                    color: "#4F7392",
+                    color: "#10224A",
                   }}
                   className="tr-app-routes-app-customize-span-185 tr-builder-block-icon-box"
                 >
@@ -1694,7 +1695,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                         width: 5,
                         height: 5,
                         borderRadius: "50%",
-                        background: "#8DB4D6",
+                        background: "#73AFF1",
                       }}
                     />
 
@@ -1898,8 +1899,8 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
             alignItems: "center",
             justifyContent: "center",
             borderRadius: 8,
-            background: "#EDF5FA",
-            border: "1px solid #D6E6F2",
+            background: "#EDF5FF",
+            border: "1px solid #D5E6FB",
             color: "#5E7E96",
             flexShrink: 0,
           }}
@@ -1992,9 +1993,9 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
     }
 
     .tr-builder-palette-item:hover{
-      border-color:#8DB4D6 !important;
-      background:#F7FBFD !important;
-      box-shadow:0 6px 16px rgba(79,115,146,.09) !important;
+      border-color:#73AFF1 !important;
+      background:#F7FAFF !important;
+      box-shadow:0 6px 16px rgba(16,34,74,.09) !important;
       transform:translateY(-1px);
     }
 
@@ -2008,7 +2009,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
     }
 
     .tr-builder-palette-close:hover{
-      background:rgba(79,115,146,.08) !important;
+      background:rgba(16,34,74,.08) !important;
     }
 
     @media(max-width:820px){
@@ -2060,8 +2061,8 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
     <div
       style={{
         background:
-          "linear-gradient(135deg,#EDF5FA 0%,#F8FBFD 100%)",
-        border: "1px solid #BFD6E7",
+          "linear-gradient(135deg,#EDF5FF 0%,#F7FAFF 100%)",
+        border: "1px solid #B9D7F8",
         borderRadius: 11,
         padding: "9px 9px 9px 10px",
         marginBottom: 14,
@@ -2069,7 +2070,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
         justifyContent: "space-between",
         alignItems: "center",
         gap: 8,
-        boxShadow: "0 5px 14px rgba(79,115,146,.06)",
+        boxShadow: "0 5px 14px rgba(16,34,74,.06)",
       }}
       className="tr-app-routes-app-customize-div-192"
     >
@@ -2090,9 +2091,9 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            color: "#4F7392",
+            color: "#10224A",
             background: "#FFFFFF",
-            border: "1px solid #D6E6F2",
+            border: "1px solid #D5E6FB",
           }}
         >
           <svg
@@ -2129,7 +2130,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
             style={{
               fontSize: 9.5,
               fontWeight: 750,
-              color: "#829CAF",
+              color: "#5B6B85",
               textTransform: "uppercase",
               letterSpacing: ".06em",
               lineHeight: 1.2,
@@ -2144,7 +2145,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
               display: "block",
               fontSize: 11.5,
               fontWeight: 750,
-              color: "#4F7392",
+              color: "#10224A",
               lineHeight: 1.3,
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -2171,7 +2172,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
           border: "none",
           borderRadius: 8,
           cursor: "pointer",
-          color: "#6F8FA9",
+          color: "#5B6B85",
           padding: 0,
           transition: "background .15s ease",
         }}
@@ -2232,7 +2233,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
             height: 1,
             flex: 1,
             background:
-              "linear-gradient(90deg,#D6E6F2,transparent)",
+              "linear-gradient(90deg,#D5E6FB,transparent)",
           }}
         />
       </div>
@@ -2276,21 +2277,21 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
                 userSelect: "none",
                 textAlign: "center",
                 boxShadow:
-                  "0 2px 6px rgba(79,115,146,.025)",
+                  "0 2px 6px rgba(16,34,74,.025)",
                 position: "relative",
                 overflow: "hidden",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor =
-                  "#8DB4D6";
+                  "#73AFF1";
                 e.currentTarget.style.boxShadow =
-                  "0 6px 16px rgba(79,115,146,.09)";
+                  "0 6px 16px rgba(16,34,74,.09)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor =
                   "#DCE8F0";
                 e.currentTarget.style.boxShadow =
-                  "0 2px 6px rgba(79,115,146,.025)";
+                  "0 2px 6px rgba(16,34,74,.025)";
               }}
               className="tr-app-routes-app-customize-div-198 tr-builder-palette-item"
             >
@@ -2303,9 +2304,9 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
-                  background: "#F2F7FB",
-                  border: "1px solid #D6E6F2",
-                  color: "#4F7392",
+                  background: "#EAF3FE",
+                  border: "1px solid #D5E6FB",
+                  color: "#10224A",
                   fontSize: 16,
                   lineHeight: 1,
                   transition:
@@ -2532,7 +2533,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
     zIndex: 200,
     display: "flex",
     flexDirection: "column",
-    background: "#F2F7FB",
+    background: "#EAF3FE",
     fontFamily: "inherit",
     overflow: "hidden",
   }}
@@ -2550,17 +2551,17 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
     .tr-builder-toolbar-button:hover{
       transform:translateY(-1px);
       border-color:#B9D2E3 !important;
-      box-shadow:0 5px 14px rgba(79,115,146,.09) !important;
+      box-shadow:0 5px 14px rgba(16,34,74,.09) !important;
     }
 
     .tr-builder-save-button:hover{
       transform:translateY(-1px);
-      box-shadow:0 8px 20px rgba(79,115,146,.22) !important;
+      box-shadow:0 8px 20px rgba(16,34,74,.22) !important;
     }
 
     .tr-builder-name-input:focus{
-      border-color:#8DB4D6 !important;
-      box-shadow:0 0 0 3px rgba(141,180,214,.14) !important;
+      border-color:#73AFF1 !important;
+      box-shadow:0 0 0 3px rgba(115,175,241,.14) !important;
     }
 
     .tr-builder-left-panel::-webkit-scrollbar,
@@ -2636,7 +2637,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
         height:auto !important;
         max-height:300px !important;
         border-right:none !important;
-        border-bottom:1px solid #D6E6F2 !important;
+        border-bottom:1px solid #D5E6FB !important;
         flex-shrink:0 !important;
       }
 
@@ -2647,7 +2648,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
         height:auto !important;
         max-height:none !important;
         border-left:none !important;
-        border-top:1px solid #D6E6F2 !important;
+        border-top:1px solid #D5E6FB !important;
         flex-shrink:0 !important;
       }
 
@@ -2744,13 +2745,13 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       minHeight: 66,
       height: 66,
       background: "rgba(255,255,255,.98)",
-      borderBottom: "1px solid #D6E6F2",
+      borderBottom: "1px solid #D5E6FB",
       display: "flex",
       alignItems: "center",
       padding: "9px 14px",
       gap: 10,
       flexShrink: 0,
-      boxShadow: "0 4px 18px rgba(79,115,146,.07)",
+      boxShadow: "0 4px 18px rgba(16,34,74,.07)",
       backdropFilter: "blur(14px)",
       zIndex: 20,
     }}
@@ -2774,15 +2775,15 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           justifyContent: "center",
           gap: 6,
           minHeight: 38,
-          background: "#F8FBFD",
-          border: "1px solid #D6E6F2",
+          background: "#FFFFFF",
+          border: "1px solid #D5E6FB",
           cursor: "pointer",
-          color: "#4F7392",
+          color: "#10224A",
           fontSize: 12.5,
           fontWeight: 750,
           padding: "7px 12px",
           borderRadius: 10,
-          boxShadow: "0 2px 7px rgba(79,115,146,.04)",
+          boxShadow: "0 2px 7px rgba(16,34,74,.04)",
         }}
         className="tr-app-routes-app-customize-button-203 tr-builder-toolbar-button tr-builder-back-button"
       >
@@ -2808,7 +2809,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
         style={{
           width: 1,
           height: 26,
-          background: "#D6E6F2",
+          background: "#D5E6FB",
           flexShrink: 0,
         }}
         className="tr-app-routes-app-customize-div-204 tr-builder-divider"
@@ -2823,10 +2824,10 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           gap: 8,
           padding: "0 10px",
           background: "#FFFFFF",
-          border: "1px solid #D6E6F2",
+          border: "1px solid #D5E6FB",
           borderRadius: 10,
           flex: "0 1 290px",
-          boxShadow: "inset 0 1px 2px rgba(79,115,146,.025)",
+          boxShadow: "inset 0 1px 2px rgba(16,34,74,.025)",
         }}
         className="tr-builder-name-wrap"
       >
@@ -2838,7 +2839,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            color: "#829CAF",
+            color: "#5B6B85",
           }}
         >
           <svg
@@ -2867,7 +2868,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
             fontSize: 13,
             fontWeight: 700,
             outline: "none",
-            color: "#4F7392",
+            color: "#10224A",
             background: "transparent",
           }}
           placeholder="Template name…"
@@ -2992,10 +2993,10 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           fontSize: 12.5,
           fontWeight: 750,
           background: "#FFFFFF",
-          color: "#4F7392",
-          border: "1px solid #D6E6F2",
+          color: "#10224A",
+          border: "1px solid #D5E6FB",
           cursor: "pointer",
-          boxShadow: "0 2px 7px rgba(79,115,146,.04)",
+          boxShadow: "0 2px 7px rgba(16,34,74,.04)",
         }}
         className="tr-app-routes-app-customize-button-209 tr-builder-toolbar-button tr-builder-preview-button"
       >
@@ -3037,11 +3038,11 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           fontSize: 12.5,
           fontWeight: 750,
           background:
-            "linear-gradient(135deg,#8DB4D6 0%,#7099B9 100%)",
-          color: "#FFFFFF",
+            "linear-gradient(135deg,#73AFF1 0%,#7099B9 100%)",
+          color: "#10224A",
           border: "none",
           cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(79,115,146,.18)",
+          boxShadow: "0 6px 16px rgba(16,34,74,.18)",
           transition: "all .18s ease",
           whiteSpace: "nowrap",
         }}
@@ -3083,7 +3084,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       display: "flex",
       overflow: "hidden",
       minHeight: 0,
-      background: "#EEF5FA",
+      background: "#EEF5FF",
     }}
     className="tr-app-routes-app-customize-div-211 tr-builder-panels tr-builder-workspace"
   >
@@ -3092,11 +3093,11 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       style={{
         width: 230,
         background:
-          "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
-        borderRight: "1px solid #D6E6F2",
+          "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
+        borderRight: "1px solid #D5E6FB",
         overflowY: "auto",
         flexShrink: 0,
-        boxShadow: "5px 0 18px rgba(79,115,146,.035)",
+        boxShadow: "5px 0 18px rgba(16,34,74,.035)",
       }}
       className="tr-app-routes-app-customize-div-212 tr-builder-left-panel"
     >
@@ -3125,9 +3126,9 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "#EDF5FA",
-              border: "1px solid #D6E6F2",
-              color: "#4F7392",
+              background: "#EDF5FF",
+              border: "1px solid #D5E6FB",
+              color: "#10224A",
               flexShrink: 0,
             }}
           >
@@ -3178,7 +3179,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
               style={{
                 fontSize: 12.5,
                 fontWeight: 800,
-                color: "#4F7392",
+                color: "#10224A",
                 lineHeight: 1.3,
               }}
             >
@@ -3233,11 +3234,11 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       style={{
         width: 300,
         background:
-          "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
-        borderLeft: "1px solid #D6E6F2",
+          "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
+        borderLeft: "1px solid #D5E6FB",
         overflowY: "auto",
         flexShrink: 0,
-        boxShadow: "-5px 0 18px rgba(79,115,146,.03)",
+        boxShadow: "-5px 0 18px rgba(16,34,74,.03)",
       }}
       className="tr-app-routes-app-customize-div-213 tr-builder-right-panel"
     >
@@ -3266,9 +3267,9 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "#EDF5FA",
-              border: "1px solid #D6E6F2",
-              color: "#4F7392",
+              background: "#EDF5FF",
+              border: "1px solid #D5E6FB",
+              color: "#10224A",
               flexShrink: 0,
             }}
           >
@@ -3306,7 +3307,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
               style={{
                 fontSize: 12.5,
                 fontWeight: 800,
-                color: "#4F7392",
+                color: "#10224A",
                 lineHeight: 1.3,
               }}
             >
@@ -3336,14 +3337,14 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
     width: 310,
     minWidth: 310,
     background:
-      "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
-    borderLeft: "1px solid #D6E6F2",
+      "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
+    borderLeft: "1px solid #D5E6FB",
     overflowY: "auto",
     overflowX: "hidden",
     flexShrink: 0,
-    boxShadow: "-8px 0 28px rgba(79,115,146,.045)",
+    boxShadow: "-8px 0 28px rgba(16,34,74,.045)",
     fontSize: 14,
-    color: "#4F7392",
+    color: "#10224A",
     position: "relative",
     boxSizing: "border-box",
   }}
@@ -3411,10 +3412,10 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
         overflow:visible !important;
 
         border-left:none !important;
-        border-top:1px solid #D6E6F2 !important;
+        border-top:1px solid #D5E6FB !important;
 
         box-shadow:
-          0 -6px 22px rgba(79,115,146,.04) !important;
+          0 -6px 22px rgba(16,34,74,.04) !important;
       }
 
       .tr-builder-properties-header{
@@ -3453,7 +3454,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       position: "sticky",
       top: 0,
       zIndex: 10,
-      boxShadow: "0 4px 14px rgba(79,115,146,.035)",
+      boxShadow: "0 4px 14px rgba(16,34,74,.035)",
     }}
     className="tr-builder-properties-header"
   >
@@ -3475,9 +3476,9 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           background:
             "linear-gradient(145deg,#EEF6FA 0%,#E2EEF6 100%)",
           border: "1px solid #D1E2ED",
-          color: "#4F7392",
+          color: "#10224A",
           flexShrink: 0,
-          boxShadow: "0 5px 12px rgba(79,115,146,.065)",
+          boxShadow: "0 5px 12px rgba(16,34,74,.065)",
         }}
         className="tr-builder-properties-icon"
       >
@@ -3572,7 +3573,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
             width: 5,
             height: 5,
             borderRadius: "50%",
-            background: "#8DB4D6",
+            background: "#73AFF1",
           }}
         />
 
@@ -3587,7 +3588,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
       width: "100%",
       minHeight: 120,
       background:
-        "linear-gradient(180deg,#FFFFFF 0%,#FAFCFD 100%)",
+        "linear-gradient(180deg,#FFFFFF 0%,#F9FBFF 100%)",
     }}
   >
     <PropertiesPanel
@@ -3658,7 +3659,7 @@ function PreviewModal({ blocks, onClose }) {
 function PaywallPage() {
   return (
     <div style={{ textAlign:"center", padding:"60px 24px", maxWidth:500, margin:"0 auto" }} className="tr-app-routes-app-customize-div-224">
-      <div style={{ fontSize:12, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase", color:C.accent, marginBottom:14 }} className="tr-app-routes-app-customize-div-225">Locked</div>
+      <div style={{ fontSize:12, fontWeight:600, letterSpacing:"0.06em", textTransform:"uppercase", color:C.accentText, marginBottom:14 }} className="tr-app-routes-app-customize-div-225">Locked</div>
       <div style={{ fontSize:22, fontWeight:600, color:C.text, marginBottom:8 }} className="tr-app-routes-app-customize-div-226">Page Builder — Advanced Plan</div>
       <div style={{ fontSize:13.5, color:C.muted, lineHeight:1.75, marginBottom:28 }} className="tr-app-routes-app-customize-div-227">Visual drag-and-drop builder with full design control — spacing, typography, colors, column layouts, and 20+ block types.</div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:32, textAlign:"left" }} className="tr-app-routes-app-customize-div-228">
@@ -3668,7 +3669,7 @@ function PaywallPage() {
           </div>
         ))}
       </div>
-      <Link to="/app/billing" style={{ display:"inline-flex", padding:"13px 32px", borderRadius:10, fontSize:14, fontWeight:600, background:C.accent, color:"#fff", textDecoration:"none", boxShadow:"0 3px 12px rgba(107,26,44,.3)" }}>Upgrade to Advanced — $9.99/mo</Link>
+      <Link to="/app/billing" style={{ display:"inline-flex", padding:"13px 32px", borderRadius:10, fontSize:14, fontWeight:600, background:C.accent, color:C.onAccent, textDecoration:"none", boxShadow:"0 3px 12px rgba(107,26,44,.3)" }}>Upgrade to Advanced — $9.99/mo</Link>
       <div style={{ fontSize:11.5, color:C.muted, marginTop:12 }} className="tr-app-routes-app-customize-div-231">10-day free trial · Cancel anytime</div>
     </div>
   );
@@ -3686,7 +3687,7 @@ function TemplateCard({ tpl, onEdit, onActivate, onDelete }) {
   }
   return (
     <div style={{ background:C.surface, borderRadius:16, border:`2px solid ${tpl.isDefault?C.accent:C.border}`, overflow:"hidden", position:"relative" }} className="tr-app-routes-app-customize-div-232">
-      {tpl.isDefault && <div style={{ position:"absolute", top:10, right:10, zIndex:2, background:C.accent, color:"#fff", fontSize:9, fontWeight:600, padding:"3px 9px", borderRadius:20, textTransform:"uppercase" }} className="tr-app-routes-app-customize-div-233">Active</div>}
+      {tpl.isDefault && <div style={{ position:"absolute", top:10, right:10, zIndex:2, background:C.accent, color:C.onAccent, fontSize:9, fontWeight:600, padding:"3px 9px", borderRadius:20, textTransform:"uppercase" }} className="tr-app-routes-app-customize-div-233">Active</div>}
       <div style={{ height:140, background:"#f9fafb", padding:14, display:"flex", flexDirection:"column", gap:5, overflow:"hidden" }} className="tr-app-routes-app-customize-div-234">
         {blocks.slice(0,5).map((b,i) => {
           const def = BLOCK_DEFS[b.type];
@@ -3706,7 +3707,7 @@ function TemplateCard({ tpl, onEdit, onActivate, onDelete }) {
         </button>
         <div style={{ display:"flex", gap:7 }} className="tr-app-routes-app-customize-div-243">
           <button onClick={onEdit} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:600, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", color:C.text }} className="tr-app-routes-app-customize-button-244">Edit</button>
-          {!tpl.isDefault && <button onClick={onActivate} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:600, border:`1.5px solid ${C.accent}`, background:C.accent, cursor:"pointer", color:"#fff" }} className="tr-app-routes-app-customize-button-245">Activate</button>}
+          {!tpl.isDefault && <button onClick={onActivate} style={{ flex:1, padding:7, borderRadius:8, fontSize:12, fontWeight:600, border:`1.5px solid ${C.accent}`, background:C.accent, cursor:"pointer", color:C.onAccent }} className="tr-app-routes-app-customize-button-245">Activate</button>}
           <button onClick={onDelete} style={{ padding:"7px 10px", borderRadius:8, fontSize:12, border:"1.5px solid #fecaca", background:"#fff0f0", cursor:"pointer", color:"#dc2626" }} className="tr-app-routes-app-customize-button-246">✕</button>
         </div>
       </div>
@@ -3821,7 +3822,7 @@ function CustomHtmlEditor({ initialHtml, initialCss, onSave, onClear, justSaved,
         <button onClick={() => { setHtml(DEFAULT_CARD_HTML); setCss(DEFAULT_CARD_CSS); }} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:600, border:"1.5px solid #e4e4e4", background:"#fff", cursor:"pointer", color:C.text }} className="tr-app-routes-app-customize-button-282">Load Default</button>
         {(initialHtml||initialCss) && <button onClick={onClear} style={{ padding:"8px 16px", borderRadius:8, fontSize:12.5, fontWeight:600, border:"1.5px solid #fecaca", background:"#fff0f0", cursor:"pointer", color:"#dc2626" }} className="tr-app-routes-app-customize-button-283">✕ Clear</button>}
         <div style={{ flex:1 }}  className="tr-app-routes-app-customize-div-284"/>
-        <button onClick={() => onSave(html, css)} disabled={!html.trim()} style={{ padding:"9px 26px", borderRadius:8, fontSize:13, fontWeight:600, border:"none", cursor:html.trim()?"pointer":"not-allowed", background:html.trim()?C.accent:"#d1d5db", color:"#fff" }} className="tr-app-routes-app-customize-button-285">{t.save}</button>
+        <button onClick={() => onSave(html, css)} disabled={!html.trim()} style={{ padding:"9px 26px", borderRadius:8, fontSize:13, fontWeight:600, border:"none", cursor:html.trim()?"pointer":"not-allowed", background:html.trim()?C.accent:"#d1d5db", color:C.onAccent }} className="tr-app-routes-app-customize-button-285">{t.save}</button>
       </div>
     </div>
   );
@@ -3933,7 +3934,7 @@ export default function CustomizePage() {
     margin: "0 auto",
     padding: "clamp(18px, 3vw, 34px) clamp(14px, 3vw, 28px)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(141,180,214,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(214,230,242,.5), transparent 28%), #F2F7FB",
+      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.5), transparent 28%), #EAF3FE",
     minHeight: "100vh",
     fontFamily: "inherit",
     boxSizing: "border-box",
@@ -3946,20 +3947,20 @@ export default function CustomizePage() {
     }
 
     .tr-customize-tab-btn:hover{
-      background:#F2F7FB !important;
-      color:#4F7392 !important;
+      background:#EAF3FE !important;
+      color:#10224A !important;
     }
 
     .tr-customize-primary-btn:hover{
       transform:translateY(-1px);
-      box-shadow:0 9px 22px rgba(79,115,146,.22) !important;
+      box-shadow:0 9px 22px rgba(16,34,74,.22) !important;
     }
 
     .tr-customize-new-card:hover{
-      border-color:#8DB4D6 !important;
-      background:#F5FAFD !important;
+      border-color:#73AFF1 !important;
+      background:#F5F9FF !important;
       transform:translateY(-2px);
-      box-shadow:0 12px 26px rgba(79,115,146,.08) !important;
+      box-shadow:0 12px 26px rgba(16,34,74,.08) !important;
     }
 
     @media(max-width:767px){
@@ -4056,9 +4057,9 @@ export default function CustomizePage() {
       width: "fit-content",
       maxWidth: "100%",
       background: "rgba(255,255,255,.92)",
-      border: "1px solid #D6E6F2",
+      border: "1px solid #D5E6FB",
       borderRadius: 13,
-      boxShadow: "0 7px 20px rgba(79,115,146,.06)",
+      boxShadow: "0 7px 20px rgba(16,34,74,.06)",
       overflowX: "auto",
       boxSizing: "border-box",
     }}
@@ -4163,16 +4164,16 @@ export default function CustomizePage() {
           fontWeight: 750,
           background:
             activeTab === key
-              ? "linear-gradient(135deg,#EDF5FA,#E4F0F7)"
+              ? "linear-gradient(135deg,#EDF5FF,#E4F0F7)"
               : "transparent",
           color:
             activeTab === key
-              ? "#4F7392"
-              : "#829CAF",
+              ? "#10224A"
+              : "#5B6B85",
           borderRadius: 9,
           boxShadow:
             activeTab === key
-              ? "0 4px 11px rgba(79,115,146,.08)"
+              ? "0 4px 11px rgba(16,34,74,.08)"
               : "none",
           transition: "all .18s ease",
           whiteSpace: "nowrap",
@@ -4285,7 +4286,7 @@ export default function CustomizePage() {
                   maxWidth: "100%",
                   padding: "7px 11px",
                   background: "#203343",
-                  color: "#EAF3F9",
+                  color: "#EAF3FE",
                   borderRadius: 7,
                   fontSize: 11.5,
                   fontFamily: "monospace",
@@ -4372,10 +4373,10 @@ export default function CustomizePage() {
             marginBottom: 22,
             padding: "clamp(18px,3vw,25px)",
             background:
-              "linear-gradient(135deg,#FFFFFF 0%,#F7FBFD 100%)",
-            border: "1px solid #D6E6F2",
+              "linear-gradient(135deg,#FFFFFF 0%,#F7FAFF 100%)",
+            border: "1px solid #D5E6FB",
             borderRadius: 18,
-            boxShadow: "0 10px 28px rgba(79,115,146,.065)",
+            boxShadow: "0 10px 28px rgba(16,34,74,.065)",
             position: "relative",
             overflow: "hidden",
             boxSizing: "border-box",
@@ -4388,7 +4389,7 @@ export default function CustomizePage() {
               width: 150,
               height: 150,
               borderRadius: "50%",
-              background: "rgba(214,230,242,.38)",
+              background: "rgba(213,230,251,.38)",
               right: -60,
               top: -85,
               pointerEvents: "none",
@@ -4420,9 +4421,9 @@ export default function CustomizePage() {
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "#EDF5FA",
-                  border: "1px solid #D6E6F2",
-                  color: "#4F7392",
+                  background: "#EDF5FF",
+                  border: "1px solid #D5E6FB",
+                  color: "#10224A",
                   flexShrink: 0,
                 }}
               >
@@ -4450,7 +4451,7 @@ export default function CustomizePage() {
                 style={{
                   fontSize: "clamp(22px,3vw,29px)",
                   fontWeight: 800,
-                  color: "#456984",
+                  color: "#10224A",
                   margin: 0,
                   letterSpacing: "-.035em",
                   lineHeight: 1.15,
@@ -4464,7 +4465,7 @@ export default function CustomizePage() {
             <p
               style={{
                 fontSize: "clamp(12.5px,1.6vw,13.5px)",
-                color: "#829CAF",
+                color: "#5B6B85",
                 margin: 0,
                 lineHeight: 1.65,
                 maxWidth: 660,
@@ -4484,15 +4485,15 @@ export default function CustomizePage() {
               fontSize: 13,
               fontWeight: 750,
               background:
-                "linear-gradient(135deg,#8DB4D6,#7199B8)",
-              color: "#FFFFFF",
+                "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+              color: "#fff",
               border: "none",
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 7,
-              boxShadow: "0 7px 18px rgba(79,115,146,.18)",
+              boxShadow: "0 7px 18px rgba(16,34,74,.18)",
               whiteSpace: "nowrap",
               transition: "all .18s ease",
               position: "relative",
@@ -4524,10 +4525,10 @@ export default function CustomizePage() {
               textAlign: "center",
               padding: "clamp(55px,8vw,84px) clamp(18px,4vw,30px)",
               background:
-                "linear-gradient(145deg,#FFFFFF 0%,#F8FBFD 100%)",
+                "linear-gradient(145deg,#FFFFFF 0%,#F7FAFF 100%)",
               borderRadius: 20,
-              border: "1.5px dashed #BFD6E7",
-              boxShadow: "0 10px 28px rgba(79,115,146,.045)",
+              border: "1.5px dashed #B9D7F8",
+              boxShadow: "0 10px 28px rgba(16,34,74,.045)",
               position: "relative",
               overflow: "hidden",
             }}
@@ -4542,11 +4543,11 @@ export default function CustomizePage() {
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: 18,
-                color: "#4F7392",
+                color: "#10224A",
                 background:
-                  "linear-gradient(135deg,#EDF5FA,#DCEAF4)",
-                border: "1px solid #D6E6F2",
-                boxShadow: "0 8px 20px rgba(79,115,146,.08)",
+                  "linear-gradient(135deg,#EDF5FF,#DCEBFC)",
+                border: "1px solid #D5E6FB",
+                boxShadow: "0 8px 20px rgba(16,34,74,.08)",
               }}
             >
               <svg
@@ -4577,7 +4578,7 @@ export default function CustomizePage() {
               style={{
                 fontSize: "clamp(18px,2.5vw,21px)",
                 fontWeight: 800,
-                color: "#456984",
+                color: "#10224A",
                 marginBottom: 7,
                 letterSpacing: "-.02em",
               }}
@@ -4589,7 +4590,7 @@ export default function CustomizePage() {
             <div
               style={{
                 fontSize: 13,
-                color: "#829CAF",
+                color: "#5B6B85",
                 margin: "0 auto 22px",
                 lineHeight: 1.6,
                 maxWidth: 380,
@@ -4608,15 +4609,15 @@ export default function CustomizePage() {
                 fontSize: 13,
                 fontWeight: 750,
                 background:
-                  "linear-gradient(135deg,#8DB4D6,#7199B8)",
-                color: "#FFFFFF",
+                  "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+                color: "#10224A",
                 border: "none",
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 7,
-                boxShadow: "0 7px 18px rgba(79,115,146,.18)",
+                boxShadow: "0 7px 18px rgba(16,34,74,.18)",
                 transition: "all .18s ease",
               }}
               className="tr-app-routes-app-customize-button-305 tr-customize-create-first tr-customize-primary-btn"
@@ -4666,7 +4667,7 @@ export default function CustomizePage() {
                 borderRadius: 17,
                 border: "1.5px dashed #B9D2E3",
                 background:
-                  "linear-gradient(145deg,#FFFFFF,#F5FAFD)",
+                  "linear-gradient(145deg,#FFFFFF,#F5F9FF)",
                 cursor: "pointer",
                 color: "#648198",
                 fontSize: 13,
@@ -4690,10 +4691,10 @@ export default function CustomizePage() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: 14,
-                  color: "#4F7392",
-                  background: "#EDF5FA",
-                  border: "1px solid #D6E6F2",
-                  boxShadow: "0 6px 15px rgba(79,115,146,.07)",
+                  color: "#10224A",
+                  background: "#EDF5FF",
+                  border: "1px solid #D5E6FB",
+                  boxShadow: "0 6px 15px rgba(16,34,74,.07)",
                 }}
                 className="tr-app-routes-app-customize-span-308"
               >

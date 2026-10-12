@@ -5,6 +5,7 @@ import db from "../db.server";
 import { useState, useRef, useEffect } from "react";
 import { notifyIntegrations } from "../utils/events.server";
 import InstallWidgetModal from "../components/InstallWidgetModal";
+import { BRAND } from "../utils/brand";
 //import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -95,9 +96,6 @@ async function ensureProduct(storeId, rawProductId) {
 }
 
 /* ─────────────────────────────────────────
-   LOADER
-───────────────────────────────────────── */
-/* ─────────────────────────────────────────
    LOCALE HELPER
 ───────────────────────────────────────── */
 const SUPPORTED_LANGS = ["en", "hi", "es", "fr", "de", "it", "pt", "nl", "ar", "zh", "ja", "ru", "tr", "pl", "ko"];
@@ -107,32 +105,16 @@ function mapLocale(shopifyLocale = "en") {
   return SUPPORTED_LANGS.includes(base) ? base : "en";
 }
 
+/* ─────────────────────────────────────────
+   LOADER
+───────────────────────────────────────── */
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
 
-  /*try {
-    const dev = await isDevStore(admin);
-    if (!dev) {
-      const activePlan = await syncSubscriptionStatus(admin, session.shop);
-      if (activePlan !== "advanced") {
-        const url = new URL(request.url);
-        const billingUrl = `/app/billing?${url.searchParams.toString()}`;
-        throw redirect(billingUrl);
-      }
-    }
-  } catch (err) {
-    if (err instanceof Response) throw err;
-    console.error("[billing gate] error, skipping:", err.message);
-  }*/
-
   const url = new URL(request.url);
 
-  // ── Admin language ───────────────────────────────────────────────────────────
   // Shopify passes the admin user's language as ?locale= when it opens the
-  // embedded app. (Shop.primaryLocale no longer exists in the Admin API — the
-  // query failed on every dashboard load — and its replacement, shopLocales,
-  // needs the read_locales scope, which would make every store re-approve.)
-  // The language saved in Settings still wins below.
+  // embedded app. The language saved in Settings still wins below.
   let shopLocale = mapLocale(url.searchParams.get("locale") || "en");
   const page = Math.max(1, Number(url.searchParams.get("page") || 1));
   const tab = url.searchParams.get("tab") || "all";
@@ -209,8 +191,7 @@ export const loader = async ({ request }) => {
 
   // Reviews imported without a product ID (or whose product was deleted)
   // have no `product` row at all — group those under "Unassigned" so they're
-  // visible and can be assigned a product from the dashboard instead of
-  // disappearing.
+  // visible and can be assigned a product from the dashboard.
   const enriched = reviews.map((r) => {
     const shopifyProductId = r.product?.shopifyProductId || null;
     return {
@@ -272,11 +253,6 @@ export const loader = async ({ request }) => {
     autoPublish: store.autoPublish,
     shop: session.shop, apiKey: process.env.SHOPIFY_API_KEY || "",
   };
-
-
-
-
-
 };
 
 /* ─────────────────────────────────────────
@@ -385,9 +361,7 @@ export const action = async ({ request }) => {
       create: { shop: session.shop, autoPublish },
     });
   }
-  // Assign or change which product a review belongs to — used both for
-  // reviews imported without a product ID, and to re-point any review to a
-  // different product later.
+  // Assign or change which product a review belongs to.
   if (actionType === "assignProduct" && store) {
     const shopifyProductId = normalizeProductId(formData.get("shopifyProductId"));
     if (shopifyProductId) {
@@ -401,9 +375,8 @@ export const action = async ({ request }) => {
     for (const row of rows) {
       // No product ID? Import anyway with productId left unassigned — it'll
       // show up under "Unassigned" in the dashboard for the merchant to pick
-      // a product for later, instead of silently dropping the review. Tag it
-      // "Home" so the Homepage Reviews widget (which filters on this tag)
-      // picks it up without touching how product-tied imports behave.
+      // a product for later. Tag it "Home" so the Homepage Reviews widget
+      // (which filters on this tag) picks it up.
       const productId = await ensureProduct(importStore.id, row.productid || row.productId);
       const createdAt = normalizeImportDate(row.date);
       await db.review.create({
@@ -1025,15 +998,17 @@ const TRANSLATIONS = {
 };
 
 /* ─────────────────────────────────────────
-   TOKENS
+   TOKENS (used by ImportModal / ReviewRow / ProductPicker)
+   Page-level design tokens live in `D` further down.
 ───────────────────────────────────────── */
 const C = {
-  bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78",
-  accent: "#4C6FFF", accentLt: "#eaf0ff",
+  bg: "#F6F7F9", surface: "#ffffff", border: "#E4E7EC",
+  text: BRAND.navy, muted: "#667085",
+  accent: BRAND.blue, accentLt: BRAND.blueLight,
   green: "#1f7a4d", greenLt: "#e7f4ec",
   amber: "#a3690f", amberLt: "#f7f0e2",
   red:   "#a5423b", redLt:   "#f7eae8",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 const statusStyle = (s) =>
@@ -1045,243 +1020,6 @@ const stars = (n) =>
   Array.from({ length: 5 }, (_, i) => (
     <span className="tr-dashboard-rating-star" key={i} style={{ color: i < n ? "#f59e0b" : "#d1d5db", fontSize: 14 }}>★</span>
   ));
-
-/* ─────────────────────────────────────────
-   RATING SUMMARY CARD
-───────────────────────────────────────── */
-function RatingSummaryCard({ avgRating, approvedCount, ratingBreakdown, newThisWeek }) {
-  const maxCount = Math.max(1, ...Object.values(ratingBreakdown));
-  return (
-    // <div className="tr-dashboard-rating-summary" style={{
-    //   background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`,
-    //   padding: "22px 26px", marginBottom: 22,
-    //   display: "flex", alignItems: "center", gap: 36, flexWrap: "wrap",
-    //   boxShadow: "0 1px 2px rgba(15,15,20,.03)",
-    // }}>
-    //   <div className="tr-dashboard-rating-summary-overview" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 140 }}>
-    //     <div className="tr-dashboard-rating-summary-average" style={{ fontSize: 40, fontWeight: 600, color: C.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
-    //       {avgRating.toFixed(2)}
-    //     </div>
-    //     <div className="tr-dashboard-rating-summary-stars" style={{ display: "flex", marginTop: 8 }}>{stars(Math.round(avgRating))}</div>
-    //     <div className="tr-dashboard-rating-summary-details" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-    //       <span className="tr-dashboard-rating-summary-count" style={{ fontSize: 12.5, color: C.muted }}>of {approvedCount} reviews</span>
-    //       {newThisWeek > 0 && (
-    //         <span className="tr-dashboard-rating-summary-new" style={{
-    //           fontSize: 11, fontWeight: 600, color: C.green, background: C.greenLt,
-    //           borderRadius: 20, padding: "2px 9px",
-    //         }}>+{newThisWeek} this week</span>
-    //       )}
-    //     </div>
-    //   </div>
-
-    //   <div className="tr-dashboard-rating-breakdown" style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: 7 }}>
-    //     {[5, 4, 3, 2, 1].map((star) => {
-    //       const count = ratingBreakdown[star] || 0;
-    //       const pct = Math.round((count / maxCount) * 100);
-    //       return (
-    //         <div className="tr-dashboard-rating-breakdown-row" key={star} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-    //           <span className="tr-dashboard-rating-breakdown-label" style={{ fontSize: 11.5, color: C.muted, width: 12, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{star}</span>
-    //           <div className="tr-dashboard-rating-breakdown-track" style={{ flex: 1, height: 6, borderRadius: 4, background: C.border, overflow: "hidden" }}>
-    //             <div className="tr-dashboard-rating-breakdown-fill" style={{ width: `${pct}%`, height: "100%", background: C.accent, borderRadius: 4 }} />
-    //           </div>
-    //           <span className="tr-dashboard-rating-breakdown-count" style={{ fontSize: 11.5, color: C.muted, width: 22, fontVariantNumeric: "tabular-nums" }}>{count}</span>
-    //         </div>
-    //       );
-    //     })}
-    //   </div>
-    // </div>
-    <div
-  className="tr-dashboard-rating-summary"
-  style={{
-    background: "linear-gradient(135deg, #FFFFFF 0%, #F7FBFD 100%)",
-    borderRadius: 20,
-    border: "1px solid #D6E6F2",
-    padding: "clamp(18px, 2.3vw, 26px)",
-    marginBottom: 22,
-    display: "flex",
-    alignItems: "stretch",
-    gap: "clamp(20px, 3vw, 36px)",
-    flexWrap: "wrap",
-    boxShadow: "0 12px 30px rgba(79,115,146,.08)",
-    boxSizing: "border-box",
-    width: "100%",
-    position: "relative",
-    overflow: "hidden",
-  }}
->
-  <div
-    className="tr-dashboard-rating-summary-overview"
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "flex-start",
-      justifyContent: "center",
-      flex: "1 1 165px",
-      minWidth: "min(100%, 165px)",
-      padding: "4px 8px",
-      boxSizing: "border-box",
-    }}
-  >
-    <div
-      className="tr-dashboard-rating-summary-average"
-      style={{
-        fontSize: "clamp(38px, 5vw, 48px)",
-        fontWeight: 800,
-        color: "#4F7392",
-        lineHeight: 1,
-        fontVariantNumeric: "tabular-nums",
-        letterSpacing: "-.04em",
-      }}
-    >
-      {avgRating.toFixed(2)}
-    </div>
-
-    <div
-      className="tr-dashboard-rating-summary-stars"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 3,
-        marginTop: 10,
-        color: "#F5B301",
-      }}
-    >
-      {stars(Math.round(avgRating))}
-    </div>
-
-    <div
-      className="tr-dashboard-rating-summary-details"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        marginTop: 10,
-        flexWrap: "wrap",
-      }}
-    >
-      <span
-        className="tr-dashboard-rating-summary-count"
-        style={{
-          fontSize: 12.5,
-          color: "#829CAF",
-          fontWeight: 500,
-          lineHeight: 1.4,
-        }}
-      >
-        of {approvedCount} reviews
-      </span>
-
-      {newThisWeek > 0 && (
-        <span
-          className="tr-dashboard-rating-summary-new"
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#4F7392",
-            background: "#D6E6F2",
-            border: "1px solid rgba(141,180,214,.45)",
-            borderRadius: 20,
-            padding: "3px 9px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          +{newThisWeek} this week
-        </span>
-      )}
-    </div>
-  </div>
-
-  <div
-    className="tr-dashboard-rating-breakdown"
-    style={{
-      flex: "3 1 320px",
-      minWidth: "min(100%, 280px)",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      gap: 9,
-      padding: "4px 0",
-      boxSizing: "border-box",
-    }}
-  >
-    {[5, 4, 3, 2, 1].map((star) => {
-      const count = ratingBreakdown[star] || 0;
-      const pct = Math.round((count / maxCount) * 100);
-
-      return (
-        <div
-          className="tr-dashboard-rating-breakdown-row"
-          key={star}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "clamp(7px, 1.3vw, 10px)",
-            width: "100%",
-            minHeight: 20,
-          }}
-        >
-          <span
-            className="tr-dashboard-rating-breakdown-label"
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#6F8FA9",
-              width: 18,
-              textAlign: "right",
-              fontVariantNumeric: "tabular-nums",
-              flexShrink: 0,
-            }}
-          >
-            {star}
-          </span>
-
-          <div
-            className="tr-dashboard-rating-breakdown-track"
-            style={{
-              flex: 1,
-              height: 8,
-              borderRadius: 20,
-              background: "#E7F0F6",
-              overflow: "hidden",
-              boxShadow: "inset 0 1px 2px rgba(79,115,146,.05)",
-              minWidth: 80,
-            }}
-          >
-            <div
-              className="tr-dashboard-rating-breakdown-fill"
-              style={{
-                width: `${pct}%`,
-                height: "100%",
-                background:
-                  "linear-gradient(90deg, #8DB4D6 0%, #6F96B6 100%)",
-                borderRadius: 20,
-                boxShadow: "0 2px 6px rgba(141,180,214,.18)",
-                transition: "width .25s ease",
-              }}
-            />
-          </div>
-
-          <span
-            className="tr-dashboard-rating-breakdown-count"
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#829CAF",
-              width: 30,
-              textAlign: "right",
-              fontVariantNumeric: "tabular-nums",
-              flexShrink: 0,
-            }}
-          >
-            {count}
-          </span>
-        </div>
-      );
-    })}
-  </div>
-</div>
-  );
-}
 
 /* ─────────────────────────────────────────
    IMPORT MODAL
@@ -1329,10 +1067,8 @@ function ImportModal({ onClose, onImport, t }) {
   };
 
   // Every review platform names its export columns differently — instead of
-  // hardcoding one column-mapping per platform (and rejecting anything that
-  // doesn't match exactly), we look for the same logical field under any of
-  // its common aliases. This makes import work with Judge.me, Loox, Yotpo,
-  // Stamped, Okendo, Ali Reviews, and our own native export alike.
+  // hardcoding one column-mapping per platform, we look for the same logical
+  // field under any of its common aliases.
   const FIELD_ALIASES = {
     customer:  ["customer", "reviewer_name", "author", "name", "user_display_name", "username", "full_name", "reviewer"],
     email:     ["email", "reviewer_email", "user_email", "customer_email"],
@@ -1355,8 +1091,7 @@ function ImportModal({ onClose, onImport, t }) {
   const TRUTHY_STATUS = new Set(["true", "1", "yes", "approved", "published", "verified"]);
 
   // Media columns often hold multiple URLs separated by commas/semicolons/pipes.
-  // We import the first one — good enough for a "does this review have media"
-  // signal without needing to model multiple attachments per review yet.
+  // We import the first one.
   const parseMedia = (raw) => {
     if (!raw) return null;
     const parts = raw.split(/[,;|]+/).map((s) => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
@@ -1373,8 +1108,7 @@ function ImportModal({ onClose, onImport, t }) {
     return { mediaUrl: url, mediaType, fileName: fileName || null };
   };
 
-  // Cosmetic only — picks which badge to show in the UI. Import itself never
-  // depends on this; normalizeRow() below works the same regardless of label.
+  // Cosmetic only — picks which badge to show in the UI.
   const detectFormat = (headers) => {
     const set = new Set(headers);
     if (set.has("curated") && (set.has("reviewer_name") || set.has("reviewer_email"))) return "judgeme";
@@ -1383,16 +1117,11 @@ function ImportModal({ onClose, onImport, t }) {
     if (set.has("author") && (set.has("photourls") || set.has("videourls"))) return "stamped";
     if (set.has("author") && (set.has("product_id") || set.has("productid"))) return "zeppo";
     if (set.has("customer") && (set.has("productid") || set.has("product_id"))) return "native";
-    // No stronger signal matched — still importable (checked separately via
-    // isImportable), just shown under a generic label instead of a named platform.
     return "generic";
   };
 
   // A CSV is importable as long as it has some kind of review text —
-  // a product column is no longer required: rows without one import as
-  // "Unassigned" and the merchant picks a product for them afterward from
-  // the dashboard. Everything else (name, email, rating, status, media)
-  // already has a sane fallback.
+  // rows without a product import as "Unassigned".
   const isImportable = (headers) => {
     const set = new Set(headers);
     return [...FIELD_ALIASES.comment, ...FIELD_ALIASES.title].some((a) => set.has(a));
@@ -1468,11 +1197,11 @@ function ImportModal({ onClose, onImport, t }) {
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
     }} onClick={onClose}>
       <div className="tr-dashboard-import-modal" style={{
-        background: C.surface, borderRadius: 20, padding: 32, width: 520,
-        maxHeight: "90vh", overflow: "auto",
+        background: C.surface, borderRadius: 20, padding: 32, width: 520, maxWidth: "calc(100vw - 32px)",
+        maxHeight: "90vh", overflow: "auto", boxSizing: "border-box",
         boxShadow: "0 24px 64px rgba(0,0,0,.22)", position: "relative",
       }} onClick={(e) => e.stopPropagation()}>
-        <button className="tr-dashboard-import-close" onClick={onClose} style={{
+        <button className="tr-dashboard-import-close" aria-label="Close" onClick={onClose} style={{
           position: "absolute", top: 14, right: 14, width: 30, height: 30,
           borderRadius: 8, border: "none", background: "#f3f4f6",
           cursor: "pointer", fontSize: 15, color: C.muted,
@@ -1492,14 +1221,14 @@ function ImportModal({ onClose, onImport, t }) {
 
         <label className="tr-dashboard-import-file-label" style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          border: `2px dashed ${detected ? "#a78bfa" : C.border}`,
+          border: `2px dashed ${detected ? C.accent : C.border}`,
           borderRadius: 12, padding: "28px 20px", cursor: "pointer",
-          background: detected ? "#faf8ff" : "#fafbff", marginBottom: 14, gap: 6,
+          background: detected ? C.accentLt : "#fafbff", marginBottom: 14, gap: 6,
         }}>
-          <span className="tr-dashboard-import-file-prompt" style={{ fontSize: 13, color: C.accent, fontWeight: 600 }}>
+          <span className="tr-dashboard-import-file-prompt" style={{ fontSize: 13, color: C.accentText, fontWeight: 600 }}>
             {detected ? t.changeFile : t.chooseFile}
           </span>
-          <span className="tr-dashboard-import-file-help" style={{ fontSize: 11, color: C.muted }}>Judge.me · Loox · Yotpo · Stamped · Okendo · Ali Reviews · any CSV with a product + review column</span>
+          <span className="tr-dashboard-import-file-help" style={{ fontSize: 11, color: C.muted, textAlign: "center" }}>Judge.me · Loox · Yotpo · Stamped · Okendo · Ali Reviews · any CSV with a product + review column</span>
           <input className="tr-dashboard-import-file-input" ref={fileRef} type="file" accept=".csv" style={{ display: "none" }} onChange={handleFile} />
         </label>
 
@@ -1539,7 +1268,7 @@ function ImportModal({ onClose, onImport, t }) {
                 <div className="tr-dashboard-import-preview-customer" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <span className="tr-dashboard-import-preview-avatar" style={{
                     width: 26, height: 26, borderRadius: "50%", background: C.accentLt,
-                    color: C.accent, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    color: C.accentText, display: "inline-flex", alignItems: "center", justifyContent: "center",
                     fontSize: 11, fontWeight: 600, flexShrink: 0,
                   }}>{(row.customer || "?")[0].toUpperCase()}</span>
                   <strong className="tr-dashboard-import-preview-name" style={{ fontSize: 13 }}>{row.customer}</strong>
@@ -1586,7 +1315,7 @@ function ImportModal({ onClose, onImport, t }) {
             border: "none", borderRadius: 10, padding: "9px 22px",
             fontSize: 13, fontWeight: 600,
             background: preview.length ? C.accent : "#d1d5db",
-            color: "#fff", cursor: preview.length ? "pointer" : "default",
+            color: C.onAccent, cursor: preview.length ? "pointer" : "default",
           }}>
             {preview.length ? `${t.import} ${totalRows} ${totalRows !== 1 ? t.reviews : t.review}` : t.import}
           </button>
@@ -1597,7 +1326,7 @@ function ImportModal({ onClose, onImport, t }) {
 }
 
 /* ─────────────────────────────────────────
-   REVIEW ROW
+   REVIEW ROW  (simple card layout — no table, no sideways scroll)
 ───────────────────────────────────────── */
 function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
   const ss = statusStyle(review.status);
@@ -1607,6 +1336,36 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [sentiment, setSentiment] = useState(review.sentiment || null);
   const [pickingProduct, setPickingProduct] = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [menuPos, setMenuPos]     = useState(null);
+  const moreRef = useRef(null);
+
+  // The "More" menu is drawn with position: fixed so the card's
+  // overflow: hidden can't clip it. Close it if the page scrolls.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = () => setMenuOpen(false);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [menuOpen]);
+
+  const toggleMenu = () => {
+    if (menuOpen) { setMenuOpen(false); return; }
+    const rect = moreRef.current?.getBoundingClientRect();
+    if (rect) {
+      const MENU_H = 260;
+      const openUp = rect.bottom + MENU_H > window.innerHeight && rect.top > MENU_H;
+      setMenuPos({
+        right: Math.max(8, window.innerWidth - rect.right),
+        ...(openUp ? { bottom: window.innerHeight - rect.top + 6 } : { top: rect.bottom + 6 }),
+      });
+    }
+    setMenuOpen(true);
+  };
   const tags = (review.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
 
   const saveReply = () => {
@@ -1625,10 +1384,8 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
     onAction("tag", review, { tags: tags.filter((x) => x !== tag).join(",") || null });
   };
 
-  // Quick toggle for the "Home" tag specifically — the Homepage Reviews
-  // widget shows only reviews carrying this tag, so a one-click way to add
-  // existing reviews to it (without typing into the free-text tag box) is
-  // the common case for that widget.
+  // Quick toggle for the "Home" tag — the Homepage Reviews widget shows only
+  // reviews carrying this tag.
   const isHomeTagged = tags.includes("Home");
   const toggleHomeTag = () => {
     const nextTags = isHomeTagged ? tags.filter((x) => x !== "Home") : [...tags, "Home"];
@@ -1653,204 +1410,235 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
     }
   };
 
+  const menuItem = {
+    display: "block", width: "100%", textAlign: "left", border: "none", background: "none",
+    padding: "10px 14px", fontSize: 13, fontWeight: 500, color: C.text, cursor: "pointer", fontFamily: "inherit",
+  };
+  const closeMenu = () => setMenuOpen(false);
+  const commentRows = Math.min(5, Math.max(2, Math.ceil((review.comment || "").length / 90)));
+
   return (
-    <>
-      <tr className="tr-dashboard-review-row"
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#f8f9fc")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-        style={{ transition: "background .12s" }}
-      >
-        <td className="tr-dashboard-review-selection-cell" style={{ ...TD, width: 30 }}>
-          <input className="tr-dashboard-review-selection-checkbox" type="checkbox" checked={selected} onChange={() => onToggleSelect(review.id)} />
-        </td>
-        <td className="tr-dashboard-review-customer-cell" style={TD}>
-          <div className="tr-dashboard-review-customer" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div
+      className="tr-dashboard-review-row"
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFBFC")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      style={{
+        display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 18px",
+        borderTop: `1px solid ${C.border}`, transition: "background .12s",
+      }}
+    >
+      <input
+        className="tr-dashboard-review-selection-checkbox"
+        type="checkbox"
+        checked={selected}
+        onChange={() => onToggleSelect(review.id)}
+        aria-label={`Select review by ${review.customer}`}
+        style={{ accentColor: C.accent, width: 16, height: 16, marginTop: 10, flexShrink: 0 }}
+      />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Top line: who + stars + date + status */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+          <div className="tr-dashboard-review-customer" style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <div className="tr-dashboard-review-avatar" style={{
-              width: 32, height: 32, borderRadius: "50%", background: C.accentLt,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 600, fontSize: 13, color: C.accent, flexShrink: 0,
+              width: 36, height: 36, borderRadius: "50%", background: C.accentLt, color: C.accentText,
+              display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 14, flexShrink: 0,
             }}>{(review.customer || "?")[0].toUpperCase()}</div>
-            <div className="tr-dashboard-review-customer-details">
-              <span className="tr-dashboard-review-customer-heading" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span className="tr-dashboard-review-customer-name" style={{ fontWeight: 600, fontSize: 13 }}>{review.customer}</span>
-                {review.source !== "imported" && (
-                  <span className="tr-dashboard-review-storefront-badge" title="Submitted via storefront" style={{
-                    width: 13, height: 13, borderRadius: "50%", background: C.accent,
-                    color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 8, flexShrink: 0,
-                  }}>✓</span>
-                )}
-              </span>
-              <span className="tr-dashboard-review-source" style={{ fontSize: 10.5, color: C.muted }}>
-                {review.source === "imported" ? "via Imported" : "via Storefront"}
-              </span>
+            <div style={{ minWidth: 0 }}>
+              <div className="tr-dashboard-review-customer-name" style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{review.customer}</div>
+              <div className="tr-dashboard-review-source" style={{ fontSize: 12, color: C.muted }}>
+                {review.source === "imported" ? "Imported" : "From your store"}
+                {" · "}
+                {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+              </div>
             </div>
+            {review.mediaUrl && (
+              <a className="tr-dashboard-review-media-link" href={review.mediaUrl} target="_blank" rel="noreferrer" title={review.fileName || "View attachment"}>
+                {review.mediaType?.startsWith("video/") ? (
+                  <video className="tr-dashboard-review-media-video" src={review.mediaUrl} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", display: "block" }} />
+                ) : (
+                  <img className="tr-dashboard-review-media-image" src={review.mediaUrl} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", display: "block" }} />
+                )}
+              </a>
+            )}
           </div>
-        </td>
-        <td className="tr-dashboard-review-rating-cell" style={TD}>
-          <div className="tr-dashboard-review-stars" style={{ display: "flex" }}>{stars(review.rating)}</div>
-          {sentiment ? (
-            <button className="tr-dashboard-review-reanalyze-button" onClick={analyzeSentiment} disabled={analyzing} title="Re-analyze sentiment" style={{
-              border: "none", background: "none", cursor: analyzing ? "default" : "pointer",
-              fontSize: 11, marginTop: 4, padding: 0, color: C.muted,
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="tr-dashboard-review-stars" style={{ display: "flex" }}>{stars(review.rating)}</div>
+            <span className="tr-dashboard-review-status-badge" style={{
+              background: ss.bg, color: ss.color, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600,
             }}>
-              <span className="tr-dashboard-review-sentiment-label" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: SENTIMENT_META[sentiment]?.color, marginRight: 5 }} />
-              {SENTIMENT_META[sentiment]?.label}
-            </button>
-          ) : (
-            <button className="tr-dashboard-review-analyze-button" onClick={analyzeSentiment} disabled={analyzing} style={{
-              border: `1px dashed ${C.border}`, background: "none", cursor: analyzing ? "default" : "pointer",
-              fontSize: 10.5, marginTop: 4, padding: "2px 6px", borderRadius: 6, color: C.muted,
-            }}>
-              {analyzing ? "Analyzing…" : "Analyze"}
-            </button>
-          )}
-        </td>
-        <td className="tr-dashboard-review-media-cell" style={TD}>
-          {review.mediaUrl ? (
-            <a className="tr-dashboard-review-media-link" href={review.mediaUrl} target="_blank" rel="noreferrer" title={review.fileName || "View attachment"}>
-              {review.mediaType?.startsWith("video/") ? (
-                <video className="tr-dashboard-review-media-video" src={review.mediaUrl} style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", display: "block" }} />
-              ) : (
-                <img className="tr-dashboard-review-media-image" src={review.mediaUrl} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", display: "block" }} />
-              )}
-            </a>
-          ) : (
-            <span className="tr-dashboard-review-media-empty" style={{ color: C.muted }}>—</span>
-          )}
-        </td>
-        <td className="tr-dashboard-review-comment-cell" style={TD}>
-          <input className="tr-dashboard-review-comment-input"
-            type="text"
-            defaultValue={review.comment}
-            style={{
-              border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 10px",
-              fontSize: 13, color: C.text, background: "#f9fafb",
-              fontFamily: "inherit", outline: "none", width: "100%", minWidth: 140,
-            }}
-            onFocus={(e) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentLt}`; }}
-            onBlur={(e)  => { e.target.style.borderColor = C.border;  e.target.style.boxShadow = "none"; onAction("edit", review, { comment: e.target.value }); }}
-          />
-          <div className="tr-dashboard-review-tags" style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6, alignItems: "center" }}>
-            {tags.filter((tag) => tag !== "Home").map((tag) => (
-              <span className="tr-dashboard-review-tag" key={tag} style={{
-                fontSize: 10.5, background: "#eef2ff", color: "#4338ca", borderRadius: 12, padding: "2px 8px",
-                display: "inline-flex", alignItems: "center", gap: 4,
-              }}>
-                {tag}
-                <span className="tr-dashboard-review-tag-remove" onClick={() => removeTag(tag)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>
-              </span>
-            ))}
-            <input className="tr-dashboard-review-tag-input"
-              value={tagDraft}
-              onChange={(e) => setTagDraft(e.target.value)}
-              onKeyDown={addTag}
-              placeholder="+ tag"
-              style={{
-                border: `1px dashed ${C.border}`, borderRadius: 12, padding: "2px 8px",
-                fontSize: 10.5, width: 60, outline: "none", background: "transparent",
-              }}
-            />
-            <button className="tr-dashboard-review-home-tag-button"
+              {t[review.status] || review.status}
+            </span>
+          </div>
+        </div>
+
+        {review.status === "rejected" && review.hideReason && (
+          <div className="tr-dashboard-review-hide-reason" style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>
+            Hidden: {HIDE_REASONS.find((r) => r.value === review.hideReason)?.label || review.hideReason}
+          </div>
+        )}
+
+        {/* Comment (click to edit, saves when you click away) */}
+        <textarea
+          className="tr-dashboard-review-comment-input"
+          defaultValue={review.comment}
+          rows={commentRows}
+          aria-label="Review comment"
+          style={{
+            display: "block", boxSizing: "border-box", marginTop: 12, resize: "none",
+            border: "1px solid transparent", borderRadius: 10, padding: "8px 10px", marginLeft: -10, width: "calc(100% + 20px)",
+            fontSize: 14, lineHeight: 1.55, color: C.text, background: "transparent", fontFamily: "inherit", outline: "none",
+          }}
+          onMouseEnter={(e) => { if (document.activeElement !== e.target) e.target.style.background = "#F9FAFB"; }}
+          onMouseLeave={(e) => { if (document.activeElement !== e.target) e.target.style.background = "transparent"; }}
+          onFocus={(e) => { e.target.style.borderColor = C.accent; e.target.style.background = "#fff"; e.target.style.boxShadow = `0 0 0 3px ${C.accentLt}`; }}
+          onBlur={(e)  => {
+            e.target.style.borderColor = "transparent"; e.target.style.background = "transparent"; e.target.style.boxShadow = "none";
+            if (e.target.value !== review.comment) onAction("edit", review, { comment: e.target.value });
+          }}
+        />
+
+        {review.reply && !replying && (
+          <div className="tr-dashboard-review-reply-preview" style={{ marginTop: 8, fontSize: 13, color: C.muted, background: "#F9FAFB", borderRadius: 8, padding: "8px 12px" }}>
+            <strong className="tr-dashboard-review-reply-label" style={{ color: C.text }}>Your reply:</strong> {review.reply}
+          </div>
+        )}
+
+        {/* Bottom line: tags on the left, actions on the right */}
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div className="tr-dashboard-review-tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            <button
+              className="tr-dashboard-review-home-tag-button"
               onClick={toggleHomeTag}
               title={isHomeTagged ? "Remove from Homepage Reviews widget" : "Show on Homepage Reviews widget"}
               style={{
-                border: isHomeTagged ? "none" : `1px dashed ${C.border}`,
-                borderRadius: 12, padding: "2px 8px", fontSize: 10.5, fontWeight: 600,
-                cursor: "pointer", background: isHomeTagged ? C.accent : "transparent",
-                color: isHomeTagged ? "#fff" : C.muted,
+                border: isHomeTagged ? "none" : `1px dashed #D0D5DD`, borderRadius: 14, padding: "4px 12px",
+                fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                background: isHomeTagged ? C.accent : "transparent", color: isHomeTagged ? C.onAccent : C.muted,
               }}
-            >
-              Home
-            </button>
+            >Home</button>
+            {tags.filter((tag) => tag !== "Home").map((tag) => (
+              <span className="tr-dashboard-review-tag" key={tag} style={{
+                fontSize: 12, background: C.accentLt, color: C.accentText, borderRadius: 14, padding: "4px 10px",
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}>
+                {tag}
+                <button className="tr-dashboard-review-tag-remove" aria-label={`Remove tag ${tag}`} onClick={() => removeTag(tag)}
+                  style={{ border: "none", background: "none", cursor: "pointer", fontWeight: 700, color: C.accentText, padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+              </span>
+            ))}
+            <input
+              className="tr-dashboard-review-tag-input"
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              onKeyDown={addTag}
+              placeholder="+ Add tag"
+              aria-label="Add tag"
+              style={{
+                border: "1px dashed #D0D5DD", borderRadius: 14, padding: "4px 10px",
+                fontSize: 12, width: 78, outline: "none", background: "transparent", fontFamily: "inherit",
+              }}
+            />
+            {sentiment && (
+              <span style={{ fontSize: 12, color: C.muted, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: SENTIMENT_META[sentiment]?.color }} />
+                {SENTIMENT_META[sentiment]?.label}
+              </span>
+            )}
           </div>
-          {review.reply && !replying && (
-            <div className="tr-dashboard-review-reply-preview" style={{ marginTop: 6, fontSize: 11.5, color: C.muted, background: "#f9fafb", borderRadius: 6, padding: "5px 8px" }}>
-              <strong className="tr-dashboard-review-reply-label">Your reply:</strong> {review.reply}
-            </div>
-          )}
-        </td>
-        <td className="tr-dashboard-review-status-cell" style={TD}>
-          <span className="tr-dashboard-review-status-badge" style={{
-            display: "inline-flex", alignItems: "center",
-            background: ss.dot, color: "#fff", borderRadius: 20, padding: "3px 12px",
-            fontSize: 11.5, fontWeight: 600,
-          }}>
-            {t[review.status] || review.status}
-          </span>
-          {review.status === "rejected" && review.hideReason && (
-            <div className="tr-dashboard-review-hide-reason" style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>
-              {HIDE_REASONS.find((r) => r.value === review.hideReason)?.label || review.hideReason}
-            </div>
-          )}
-        </td>
-        <td className="tr-dashboard-review-date-cell" style={{ ...TD, color: C.muted, fontSize: 12, whiteSpace: "nowrap" }}>
-          {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-        </td>
-        <td className="tr-dashboard-review-actions-cell" style={TD}>
-          <div className="tr-dashboard-review-actions" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+
+          <div className="tr-dashboard-review-actions" style={{ display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
             {review.status !== "approved" && (
-              <button className="tr-dashboard-review-approve-button" onClick={() => onAction("approve", review)} style={ABT("approve")}>✓ {t.approve}</button>
+              <button className="tr-dashboard-review-approve-button" onClick={() => onAction("approve", review)}
+                style={{ ...ABT("approve"), minHeight: 36, padding: "0 16px", fontSize: 13 }}>✓ {t.approve}</button>
             )}
             {review.status !== "rejected" && (
-              <button className="tr-dashboard-review-reject-button" onClick={() => onAction("reject", review)} style={ABT("reject")}>✕ {t.reject}</button>
+              <button className="tr-dashboard-review-reject-button" onClick={() => onAction("reject", review)}
+                style={{ ...ABT("reject"), minHeight: 36, padding: "0 16px", fontSize: 13 }}>✕ {t.reject}</button>
             )}
-            {review.status !== "rejected" && (
-              <select className="tr-dashboard-review-hide-reason-select"
-                defaultValue=""
-                onChange={(e) => {
-                  if (!e.target.value) return;
-                  onAction("reject", review, { hideReason: e.target.value });
-                }}
-                style={{ fontSize: 12, borderRadius: 7, border: `1px solid ${C.border}`, padding: "5px 8px", cursor: "pointer", color: C.muted, background: "#f3f4f6", fontWeight: 600 }}
-                title="Reject with specific reason"
-              >
-                <option className="tr-dashboard-review-hide-reason-placeholder" value="">Hide reason…</option>
-                {HIDE_REASONS.map((r) => (
-                  <option className="tr-dashboard-review-hide-reason-option" key={r.value} value={r.value}>{r.label}</option>
-                ))}
-              </select>
+            <button
+              className="tr-dashboard-review-more-button"
+              ref={moreRef}
+              onClick={toggleMenu}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              style={{ ...ABT("neutral"), minHeight: 36, padding: "0 14px", fontSize: 13, border: `1px solid ${C.border}`, background: "#fff", color: "#344054" }}
+            >More ▾</button>
+
+            {menuOpen && (
+              <>
+                <div onClick={closeMenu} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
+                <div role="menu" style={{
+                  position: "fixed", ...menuPos, zIndex: 1000, background: "#fff",
+                  border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: "0 16px 40px rgba(16,24,40,.14)",
+                  minWidth: 210, overflow: "hidden",
+                }}>
+                  <button className="tr-dashboard-review-reply-button" role="menuitem" style={menuItem}
+                    onClick={() => { closeMenu(); setReplying(true); }}>Reply to review</button>
+                  <button className="tr-dashboard-review-assign-product-button" role="menuitem" style={menuItem}
+                    onClick={() => { closeMenu(); setPickingProduct(true); }}>{review.productId ? "Change" : "Assign"} product</button>
+                  <button className="tr-dashboard-review-analyze-button" role="menuitem" style={menuItem} disabled={analyzing}
+                    onClick={() => { closeMenu(); analyzeSentiment(); }}>{analyzing ? "Analyzing…" : sentiment ? "Re-check sentiment" : "Check sentiment"}</button>
+                  {review.status !== "rejected" && (
+                    <div style={{ padding: "8px 14px", borderTop: `1px solid ${C.border}` }}>
+                      <select
+                        className="tr-dashboard-review-hide-reason-select"
+                        defaultValue=""
+                        aria-label="Hide with a reason"
+                        onChange={(e) => {
+                          if (!e.target.value) return;
+                          closeMenu();
+                          onAction("reject", review, { hideReason: e.target.value });
+                        }}
+                        style={{ width: "100%", fontSize: 13, borderRadius: 8, border: `1px solid ${C.border}`, padding: "7px 8px", color: C.text, background: "#fff" }}
+                      >
+                        <option value="">Hide with a reason…</option>
+                        {HIDE_REASONS.map((r) => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <button className="tr-dashboard-review-delete-button" role="menuitem"
+                    style={{ ...menuItem, color: "#b42318", borderTop: `1px solid ${C.border}` }}
+                    onClick={() => { closeMenu(); onAction("delete", review); }}>Delete review</button>
+                </div>
+              </>
             )}
-            <button className="tr-dashboard-review-reply-button" onClick={() => setReplying((v) => !v)} style={ABT("neutral")}>Reply</button>
-            <button className="tr-dashboard-review-assign-product-button" onClick={() => setPickingProduct((v) => !v)} style={ABT("neutral")}>
-              {review.productId ? "Change" : "Assign"} Product
-            </button>
-            <button className="tr-dashboard-review-delete-button" onClick={() => onAction("delete", review)} style={ABT("delete")} title="Delete">Delete</button>
           </div>
-        </td>
-      </tr>
-      {pickingProduct && (
-        <tr className="tr-dashboard-review-product-picker-row">
-          <td className="tr-dashboard-review-product-picker-cell" colSpan={8} style={{ padding: "0 16px 14px", borderTop: "none" }}>
+        </div>
+
+        {pickingProduct && (
+          <div className="tr-dashboard-review-product-picker-row" style={{ marginTop: 12 }}>
             <ProductPicker
               onSelect={(shopifyProductId) => onAction("assignProduct", review, { shopifyProductId })}
               onClose={() => setPickingProduct(false)}
             />
-          </td>
-        </tr>
-      )}
-      {replying && (
-        <tr className="tr-dashboard-review-reply-row">
-          <td className="tr-dashboard-review-reply-cell" colSpan={8} style={{ padding: "0 16px 14px", borderTop: "none" }}>
-            <div className="tr-dashboard-review-reply-editor" style={{ display: "flex", gap: 8, alignItems: "flex-start", background: "#f9fafb", borderRadius: 8, padding: 10 }}>
-              <textarea className="tr-dashboard-review-reply-input"
-                value={replyDraft}
-                onChange={(e) => setReplyDraft(e.target.value)}
-                placeholder="Write a public reply to this review…"
-                style={{
-                  flex: 1, minHeight: 60, border: `1px solid ${C.border}`, borderRadius: 8,
-                  padding: "8px 10px", fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical",
-                }}
-              />
-              <div className="tr-dashboard-review-reply-actions" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <button className="tr-dashboard-review-reply-save" onClick={saveReply} style={{ ...ABT("approve"), whiteSpace: "nowrap" }}>Save</button>
-                <button className="tr-dashboard-review-reply-cancel" onClick={() => setReplying(false)} style={{ ...ABT("neutral"), whiteSpace: "nowrap" }}>Cancel</button>
-              </div>
+          </div>
+        )}
+
+        {replying && (
+          <div className="tr-dashboard-review-reply-editor" style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap", background: "#F9FAFB", borderRadius: 10, padding: 12 }}>
+            <textarea
+              className="tr-dashboard-review-reply-input"
+              value={replyDraft}
+              onChange={(e) => setReplyDraft(e.target.value)}
+              placeholder="Write a public reply to this review…"
+              aria-label="Reply"
+              style={{
+                flex: "1 1 260px", minHeight: 64, border: `1px solid ${C.border}`, borderRadius: 8,
+                padding: "8px 10px", fontSize: 14, fontFamily: "inherit", outline: "none", resize: "vertical",
+              }}
+            />
+            <div className="tr-dashboard-review-reply-actions" style={{ display: "flex", gap: 8 }}>
+              <button className="tr-dashboard-review-reply-save" onClick={saveReply} style={{ ...ABT("approve"), minHeight: 36, padding: "0 16px", fontSize: 13 }}>Save reply</button>
+              <button className="tr-dashboard-review-reply-cancel" onClick={() => setReplying(false)} style={{ ...ABT("neutral"), minHeight: 36, padding: "0 16px", fontSize: 13 }}>Cancel</button>
             </div>
-          </td>
-        </tr>
-      )}
-    </>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1885,6 +1673,7 @@ function ProductPicker({ onSelect, onClose }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search products by name…"
+        aria-label="Search products"
         style={{
           width: "100%", border: `1px solid ${C.border}`, borderRadius: 8,
           padding: "7px 10px", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box",
@@ -1956,13 +1745,188 @@ function SelectAllCheckbox({ checked, indeterminate, onChange, accent }) {
   return (
     <input className="tr-dashboard-select-all-checkbox"
       ref={ref} type="checkbox" checked={checked} onChange={onChange}
+      aria-label="Select all"
       style={{ cursor: "pointer", width: 15, height: 15, accentColor: accent, flexShrink: 0 }}
     />
   );
 }
 
 /* ─────────────────────────────────────────
-   PRODUCT GROUP
+   DESIGN TOKENS  (change colours here only)
+───────────────────────────────────────── */
+const D = {
+  bg: "#F6F7F9",
+  card: "#FFFFFF",
+  border: "#E4E7EC",
+  text: BRAND.navy,
+  body: "#344054",
+  muted: "#667085",
+  accent: BRAND.blue,
+  accentDk: BRAND.navy,
+  accentLt: BRAND.blueLight,
+  amber: "#B77900",
+  amberLt: "#FEF3DC",
+  blue: "#2F55B8",
+  blueLt: "#EAF0FD",
+  grey: "#475467",
+  greyLt: "#F2F4F7",
+  track: "#EEF0F3",
+  onAccent: BRAND.onBlue,
+  accentText: BRAND.blueText,
+};
+
+const cardStyle = {
+  background: D.card,
+  border: `1px solid ${D.border}`,
+  borderRadius: 16,
+  boxShadow: "0 1px 2px rgba(16,24,40,.05), 0 4px 14px rgba(16,24,40,.04)",
+  boxSizing: "border-box",
+};
+
+const btnBase = {
+  minHeight: 44, padding: "0 18px", borderRadius: 10,
+  fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+};
+const btnSecondary = { ...btnBase, border: "1px solid #D0D5DD", background: "#fff", color: D.text };
+const btnPrimary   = { ...btnBase, border: "none", background: D.accent, color: D.onAccent };
+const linkBtn = {
+  border: "none", background: "none", padding: "10px 0", cursor: "pointer",
+  color: D.accentText, fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+};
+
+/* ─────────────────────────────────────────
+   SMALL HELPERS
+───────────────────────────────────────── */
+function IconChip({ bg, color, children }) {
+  return (
+    <span style={{
+      width: 36, height: 36, borderRadius: 10, background: bg, flexShrink: 0,
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {children}
+      </svg>
+    </span>
+  );
+}
+
+const STAR_PATH = "M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9 6.6 19.8l1.1-6.1L3.2 9.4l6.1-.8z";
+
+function StarRow({ value = 0, size = 16 }) {
+  return (
+    <div style={{ display: "flex", gap: 3 }} aria-label={`${value} out of 5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} aria-hidden="true" width={size} height={size} viewBox="0 0 24 24"
+          fill={i <= value ? "#F5A623" : "#D0D5DD"}>
+          <path d={STAR_PATH} />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+function StatCard({ icon, label, children, hint, onClick }) {
+  const Wrapper = onClick ? "button" : "div";
+  return (
+    <Wrapper
+      className="tr-dashboard-stat-card"
+      onClick={onClick}
+      style={{
+        ...cardStyle, padding: 20, textAlign: "left", fontFamily: "inherit",
+        cursor: onClick ? "pointer" : "default", display: "block", width: "100%",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {icon}
+        <span style={{ fontSize: 14, color: D.muted, fontWeight: 500 }}>{label}</span>
+      </div>
+      <div style={{ marginTop: 12 }}>{children}</div>
+      {hint && <div style={{ marginTop: 6, fontSize: 13, color: D.muted }}>{hint}</div>}
+    </Wrapper>
+  );
+}
+
+const bigNumber = {
+  fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em", color: D.text,
+  lineHeight: 1.1, fontVariantNumeric: "tabular-nums",
+};
+
+/* ─────────────────────────────────────────
+   GET STARTED (only shown while there are no reviews)
+───────────────────────────────────────── */
+function GetStartedCard({ onInstall, onImport, onAutoPublish }) {
+  const steps = [
+    { n: 1, title: "Add the review widget", text: "Show reviews on your product pages.", cta: "Add widget →", on: onInstall },
+    { n: 2, title: "Bring in existing reviews", text: "Import from a CSV file in one click.", cta: "Import CSV →", on: onImport },
+    { n: 3, title: "Choose how reviews go live", text: "Approve each one, or publish automatically.", cta: "Set up →", on: onAutoPublish },
+  ];
+  return (
+    <div className="tr-dashboard-get-started" style={{ ...cardStyle, padding: 24 }}>
+      <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: D.text }}>Get started in 3 steps</h2>
+      <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        {steps.map((s) => (
+          <div key={s.n} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              flexShrink: 0, width: 32, height: 32, borderRadius: "50%", background: D.accentLt,
+              color: D.accentText, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{s.n}</div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: D.text }}>{s.title}</div>
+              <div style={{ marginTop: 2, fontSize: 14, color: D.muted, lineHeight: 1.45 }}>{s.text}</div>
+              <button onClick={s.on} style={linkBtn}>{s.cta}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   RATINGS BREAKDOWN  (replaces RatingSummaryCard)
+   Same props as before, so the call site does not change.
+───────────────────────────────────────── */
+function RatingSummaryCard({ approvedCount, ratingBreakdown, newThisWeek }) {
+  const maxCount = Math.max(1, ...Object.values(ratingBreakdown));
+  return (
+    <div className="tr-dashboard-rating-summary" style={{ ...cardStyle, padding: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: D.text }}>Ratings breakdown</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 13, color: D.muted }}>Based on {approvedCount} approved</span>
+          {newThisWeek > 0 && (
+            <span style={{
+              fontSize: 12, fontWeight: 600, color: D.accentDk, background: D.accentLt,
+              borderRadius: 20, padding: "3px 10px",
+            }}>+{newThisWeek} this week</span>
+          )}
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {[5, 4, 3, 2, 1].map((star) => {
+          const count = ratingBreakdown[star] || 0;
+          const pct = Math.round((count / maxCount) * 100);
+          return (
+            <div key={star} className="tr-dashboard-rating-breakdown-row" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <span style={{ width: 52, fontSize: 14, fontWeight: 500, color: D.body }}>
+                {star} {star === 1 ? "star" : "stars"}
+              </span>
+              <div style={{ flex: 1, height: 10, borderRadius: 5, background: D.track, overflow: "hidden" }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: D.accent, borderRadius: 5, transition: "width .25s ease" }} />
+              </div>
+              <span style={{ width: 28, textAlign: "right", fontSize: 14, color: D.muted, fontVariantNumeric: "tabular-nums" }}>{count}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   PRODUCT GROUP  (header + a simple list of reviews)
 ───────────────────────────────────────── */
 function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggleGroupSelect }) {
   const [open, setOpen] = useState(true);
@@ -1971,355 +1935,65 @@ function ProductGroup({ group, onAction, t, selectedIds, onToggleSelect, onToggl
   const someSelected = groupIds.some((id) => selectedIds.includes(id));
 
   return (
-    // <div className="tr-dashboard-product-group" style={{
-    //   background: C.surface, borderRadius: 14, marginBottom: 12,
-    //   border: `1px solid ${C.border}`, overflow: "hidden",
-    //   boxShadow: "0 1px 4px rgba(0,0,0,.04)",
-    // }}>
-    //   <div className="tr-dashboard-product-group-header"
-    //     onClick={() => setOpen((v) => !v)}
-    //     style={{
-    //       display: "flex", alignItems: "center", gap: 14, padding: "14px 20px",
-    //       cursor: "pointer", userSelect: "none", background: open ? "#fafbff" : C.surface,
-    //       borderBottom: open ? `1px solid ${C.border}` : "none",
-    //     }}
-    //   >
-    //     <img className="tr-dashboard-product-group-image"
-    //       src={group.productImage || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png"}
-    //       alt={group.productTitle}
-    //       style={{ width: 46, height: 46, objectFit: "cover", borderRadius: 10, flexShrink: 0, border: `1px solid ${C.border}` }}
-    //     />
-    //     <span className="tr-dashboard-product-group-title" style={{ flex: 1, fontWeight: 600, fontSize: 14, color: C.text }}>{group.productTitle}</span>
-    //     <span className="tr-dashboard-product-group-count" style={{
-    //       fontSize: 11, fontWeight: 600, background: C.accentLt, color: C.accent,
-    //       borderRadius: 20, padding: "3px 10px",
-    //     }}>
-    //       {group.reviews.length} {group.reviews.length !== 1 ? t.reviews : t.review}
-    //     </span>
-    //     <span className="tr-dashboard-product-group-toggle-icon" style={{
-    //       fontSize: 11, color: C.muted,
-    //       transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .2s", display: "inline-block",
-    //     }}>▶</span>
-    //   </div>
-
-    //   {open && (
-    //     <table className="tr-dashboard-reviews-table" style={{ width: "100%", borderCollapse: "collapse" }}>
-    //       <thead className="tr-dashboard-reviews-table-head">
-    //         <tr className="tr-dashboard-reviews-table-header-row">
-    //           <th className="tr-dashboard-reviews-table-selection-heading" style={{
-    //             textAlign: "left", fontSize: 10, fontWeight: 600, color: C.muted,
-    //             letterSpacing: ".07em", padding: "9px 16px", background: "#f8f9fc", width: 30,
-    //           }}>
-    //             <SelectAllCheckbox
-    //               checked={allSelected}
-    //               indeterminate={someSelected && !allSelected}
-    //               onChange={(e) => { e.stopPropagation(); onToggleGroupSelect(groupIds, allSelected); }}
-    //               accent={C.accent}
-    //             />
-    //           </th>
-    //           {[t.customer, t.rating, "Media", t.comment, t.status, t.date, t.actions].map((h, i) => (
-    //             <th className="tr-dashboard-reviews-table-heading" key={i} style={{
-    //               textAlign: "left", fontSize: 10, fontWeight: 600, color: C.muted,
-    //               letterSpacing: ".07em", textTransform: "uppercase",
-    //               padding: "9px 16px", background: "#f8f9fc",
-    //             }}>{h}</th>
-    //           ))}
-    //         </tr>
-    //       </thead>
-    //       <tbody className="tr-dashboard-reviews-table-body">
-    //         {group.reviews.map((r) => (
-    //           <ReviewRow
-    //             key={r.id} review={r} onAction={onAction} t={t}
-    //             selected={selectedIds.includes(r.id)} onToggleSelect={onToggleSelect}
-    //           />
-    //         ))}
-    //       </tbody>
-    //     </table>
-    //   )}
-    // </div>
-<div
-  className="tr-dashboard-product-group"
-  style={{
-    width: "100%",
-    marginBottom: 16,
-    background: "#FFFFFF",
-    border: "1px solid #D6E6F2",
-    borderRadius: 18,
-    overflow: "hidden",
-    boxShadow: open
-      ? "0 14px 34px rgba(79,115,146,.10)"
-      : "0 7px 20px rgba(79,115,146,.06)",
-    transition: "box-shadow .2s ease, border-color .2s ease",
-    boxSizing: "border-box",
-  }}
->
-  <div
-    className="tr-dashboard-product-group-header"
-    onClick={() => setOpen((v) => !v)}
-    style={{
-      width: "100%",
-      display: "flex",
-      alignItems: "center",
-      gap: "clamp(12px, 2vw, 16px)",
-      padding: "clamp(14px, 2vw, 18px) clamp(15px, 2.5vw, 22px)",
-      cursor: "pointer",
-      userSelect: "none",
-      background: open
-        ? "linear-gradient(135deg,#F8FBFD 0%,#F2F7FB 100%)"
-        : "#FFFFFF",
-      borderBottom: open ? "1px solid #D6E6F2" : "none",
-      transition: "background .18s ease",
-      flexWrap: "wrap",
-      boxSizing: "border-box",
-    }}
-  >
-    <img
-      className="tr-dashboard-product-group-image"
-      src={
-        group.productImage ||
-        "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png"
-      }
-      alt={group.productTitle}
-      style={{
-        width: "clamp(50px, 6vw, 58px)",
-        height: "clamp(50px, 6vw, 58px)",
-        objectFit: "cover",
-        borderRadius: 13,
-        flexShrink: 0,
-        border: "1px solid #D6E6F2",
-        background: "#F2F7FB",
-        padding: 3,
-        boxSizing: "border-box",
-        boxShadow: "0 5px 14px rgba(79,115,146,.08)",
-      }}
-    />
-
-    <div
-      style={{
-        flex: "1 1 220px",
-        minWidth: 0,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
-    >
-      <span
-        className="tr-dashboard-product-group-title"
-        style={{
-          display: "block",
-          fontWeight: 750,
-          fontSize: "clamp(15px, 1.8vw, 17px)",
-          color: "#4F7392",
-          lineHeight: 1.35,
-          letterSpacing: "-.015em",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {group.productTitle}
-      </span>
-
-      <span
-        style={{
-          marginTop: 4,
-          fontSize: "clamp(11.5px, 1.5vw, 12.5px)",
-          color: "#8BA2B4",
-          lineHeight: 1.4,
-        }}
-      >
-        Customer reviews for this product
-      </span>
-    </div>
-
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        marginLeft: "auto",
-        flexShrink: 0,
-      }}
-    >
-      <span
-        className="tr-dashboard-product-group-count"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "clamp(11.5px, 1.4vw, 12.5px)",
-          fontWeight: 700,
-          background: "#F2F7FB",
-          color: "#4F7392",
-          border: "1px solid #D6E6F2",
-          borderRadius: 999,
-          padding: "6px 11px",
-          whiteSpace: "nowrap",
-          lineHeight: 1,
-        }}
-      >
-        {group.reviews.length}{" "}
-        {group.reviews.length !== 1 ? t.reviews : t.review}
-      </span>
-
-      <span
-        className="tr-dashboard-product-group-toggle-icon"
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 10,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: open ? "#EAF3F9" : "#F8FBFD",
-          border: "1px solid #D6E6F2",
-          color: "#4F7392",
-          flexShrink: 0,
-          transition:
-            "background .18s ease, border-color .18s ease, transform .18s ease",
-          boxShadow: open
-            ? "0 4px 10px rgba(79,115,146,.07)"
-            : "none",
-        }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 20 20"
-          fill="none"
+    <div className="tr-dashboard-product-group" style={{
+      border: `1px solid ${D.border}`, borderRadius: 14, overflow: "hidden", background: "#fff",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "0 18px", background: "#F9FAFB" }}>
+        <SelectAllCheckbox
+          checked={allSelected}
+          indeterminate={someSelected && !allSelected}
+          onChange={() => onToggleGroupSelect(groupIds, allSelected)}
+          accent={D.accent}
+        />
+        <button
+          className="tr-dashboard-product-group-header"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
           style={{
-            display: "block",
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform .22s ease",
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 14, padding: "14px 0",
+            border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", textAlign: "left",
           }}
         >
-          <path
-            d="M5.5 7.5L10 12L14.5 7.5"
-            stroke="#4F7392"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <img
+            className="tr-dashboard-product-group-image"
+            src={group.productImage || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png"}
+            alt=""
+            style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10, border: `1px solid ${D.border}`, flexShrink: 0, background: "#fff" }}
           />
-        </svg>
-      </span>
-    </div>
-  </div>
+          <span className="tr-dashboard-product-group-title" style={{
+            flex: 1, minWidth: 0, fontWeight: 600, fontSize: 15, color: D.text,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{group.productTitle}</span>
+          <span className="tr-dashboard-product-group-count" style={{
+            fontSize: 13, fontWeight: 600, background: D.accentLt, color: D.accentDk,
+            borderRadius: 20, padding: "4px 12px", whiteSpace: "nowrap",
+          }}>
+            {group.reviews.length} {group.reviews.length !== 1 ? t.reviews : t.review}
+          </span>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 20 20" fill="none" style={{
+            transform: open ? "rotate(180deg)" : "none", transition: "transform .2s", flexShrink: 0,
+          }}>
+            <path d="M5.5 7.5L10 12l4.5-4.5" stroke={D.muted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
 
-  {open && (
-    <div
-      className="tr-dashboard-reviews-table-scroll"
-      style={{
-        width: "100%",
-        overflowX: "auto",
-        overflowY: "hidden",
-        WebkitOverflowScrolling: "touch",
-        background: "#FFFFFF",
-        boxSizing: "border-box",
-        scrollbarWidth: "thin",
-      }}
-    >
-      <table
-        className="tr-dashboard-reviews-table"
-        style={{
-          width: "100%",
-          minWidth: 1450,
-          borderCollapse: "separate",
-          borderSpacing: 0,
-          tableLayout: "auto",
-          background: "#FFFFFF",
-        }}
-      >
-        <thead className="tr-dashboard-reviews-table-head">
-          <tr
-            className="tr-dashboard-reviews-table-header-row"
-            style={{
-              background: "#F7FAFC",
-            }}
-          >
-            <th
-              className="tr-dashboard-reviews-table-selection-heading"
-              style={{
-                textAlign: "left",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#6F8FA9",
-                letterSpacing: ".06em",
-                padding: "12px 15px",
-                background: "#F7FAFC",
-                width: 36,
-                borderBottom: "1px solid #D6E6F2",
-                boxSizing: "border-box",
-              }}
-            >
-              <SelectAllCheckbox
-                checked={allSelected}
-                indeterminate={someSelected && !allSelected}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onToggleGroupSelect(groupIds, allSelected);
-                }}
-                accent={C.accent}
-              />
-            </th>
-
-            {[
-              t.customer,
-              t.rating,
-              "Media",
-              t.comment,
-              t.status,
-              t.date,
-              t.actions,
-            ].map((h, i) => (
-              <th
-                className="tr-dashboard-reviews-table-heading"
-                key={i}
-                style={{
-                  textAlign: "left",
-                  fontSize: 11,
-                  fontWeight: 750,
-                  color: "#6F8FA9",
-                  letterSpacing: ".055em",
-                  textTransform: "uppercase",
-                  padding: "12px 15px",
-                  background: "#F7FAFC",
-                  borderBottom: "1px solid #D6E6F2",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1.3,
-                }}
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody
-          className="tr-dashboard-reviews-table-body"
-          style={{
-            background: "#FFFFFF",
-          }}
-        >
+      {open && (
+        <div className="tr-dashboard-reviews-list">
           {group.reviews.map((r) => (
             <ReviewRow
-              key={r.id}
-              review={r}
-              onAction={onAction}
-              t={t}
-              selected={selectedIds.includes(r.id)}
-              onToggleSelect={onToggleSelect}
+              key={r.id} review={r} onAction={onAction} t={t}
+              selected={selectedIds.includes(r.id)} onToggleSelect={onToggleSelect}
             />
           ))}
-        </tbody>
-      </table>
+        </div>
+      )}
     </div>
-  )}
-</div>
   );
 }
 
 /* ─────────────────────────────────────────
-   PAGE
+   PAGE  (replaces ReviewsPage — logic unchanged)
 ───────────────────────────────────────── */
 export default function ReviewsPage() {
   const {
@@ -2338,14 +2012,10 @@ export default function ReviewsPage() {
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const lang = shopLocale || "en"; // ← persisted store language, switcher lives in Settings
-
-  const [installing, setInstalling]     = useState(false);
-  const [installMsg, setInstallMsg]     = useState("");
-  const [installOk,  setInstallOk]      = useState(null);
   const [showInstallDocs, setShowInstallDocs] = useState(false);
 
-  const t = TRANSLATIONS[lang] || TRANSLATIONS.en; // current language strings
+  const lang = shopLocale || "en";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
   const totalPages = Math.ceil(total / limit);
 
   const handleAction = (actionType, review, extra = {}) => {
@@ -2365,29 +2035,19 @@ export default function ReviewsPage() {
 
   const toggleGroupSelect = (groupIds, allSelected) => {
     setSelectAllPages(false);
-    if (allSelected) {
-      setSelectedIds((prev) => prev.filter((id) => !groupIds.includes(id)));
-    } else {
-      setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
-    }
+    if (allSelected) setSelectedIds((prev) => prev.filter((id) => !groupIds.includes(id)));
+    else setSelectedIds((prev) => [...new Set([...prev, ...groupIds])]);
   };
 
   const allVisibleIds = grouped.flatMap((g) => g.reviews.map((r) => r.id));
-  const allPageSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
+  const allPageSelected  = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
   const somePageSelected = allVisibleIds.some((id) => selectedIds.includes(id));
   const toggleSelectAll = () => {
     setSelectAllPages(false);
     setSelectedIds((prev) => prev.length === allVisibleIds.length ? [] : allVisibleIds);
   };
-  const handleSelectAllPages = () => {
-    setSelectAllPages(true);
-    setSelectedIds(allVisibleIds);
-  };
-  const clearSelection = () => {
-    setSelectedIds([]);
-    setSelectAllPages(false);
-    setBulkAssigning(false);
-  };
+  const handleSelectAllPages = () => { setSelectAllPages(true); setSelectedIds(allVisibleIds); };
+  const clearSelection = () => { setSelectedIds([]); setSelectAllPages(false); setBulkAssigning(false); };
 
   const handleBulkAction = (bulkAction) => {
     if (selectAllPages) {
@@ -2433,8 +2093,6 @@ export default function ReviewsPage() {
     submit(fd, { method: "post" });
   };
 
-  // Opens the install walkthrough popup; "Continue" turns on the app embed
-  // in the Theme Editor (that is what loads the review widgets' engine).
   const handleInstallScript = () => setShowInstallDocs(true);
 
   const exportCSV = () => {
@@ -2455,9 +2113,6 @@ export default function ReviewsPage() {
     }).click();
   };
 
-  // "selected" and "all" both need the full review data (comment, product
-  // title, etc.), not just what's loaded for the current page — so both
-  // are fetched fresh from the server instead of built from `grouped`.
   const exportServer = async (scope, filename) => {
     const params = new URLSearchParams({ scope });
     if (scope === "selected") {
@@ -2488,11 +2143,7 @@ export default function ReviewsPage() {
   const go = (params) => setSearchParams(params);
   const changeTab  = (tk) => go({ tab: tk, search: searchVal, page: 1 });
   const changePage = (p)  => go({ tab, search: searchVal, page: p });
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    go({ tab, search: searchVal, page: 1 });
-  };
+  const handleSearch = (e) => { e.preventDefault(); go({ tab, search: searchVal, page: 1 }); };
 
   const TABS = [
     { key: "all",      label: t.allReviews, count: allCount      },
@@ -2501,1593 +2152,366 @@ export default function ReviewsPage() {
     { key: "rejected", label: t.rejected,   count: rejectedCount },
   ];
 
-  const DASHBOARD_THEME = {
-    primary: "#8DB4D6",
-    primarySoft: "#D6E6F2",
-    bg: "#F2F7FB",
-    white: "#FFFFFF",
-    text: "#4F7392",
-    muted: "#8EA5B8",
-    border: "#D6E6F2",
-    shadow: "0 18px 45px rgba(141,180,214,.10)",
-    gradient: "linear-gradient(135deg, #8DB4D6 0%, #A8C9E2 100%)",
-    gradientSoft: "linear-gradient(145deg, #FFFFFF 0%, #F2F7FB 100%)",
-  };
+  const isFirstTime = allCount === 0;
 
   return (
-    // <div className="tr-dashboard-page" style={{ fontFamily: "var(--app-font-family)", background: C.bg, minHeight: "100vh", padding: "28px" }}>
-    //   {showImport     && <ImportModal     onClose={() => setShowImport(false)}     onImport={handleImport} t={t} />}
-    //   {showInstallDocs && <InstallDocsModal onClose={() => setShowInstallDocs(false)} t={t} />}
-
-    //   {/* ── Top Bar ── */}
-    //   <div className="tr-dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-    //     <div className="tr-dashboard-heading">
-    //       <h1 className="tr-dashboard-title" style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0, letterSpacing: "-0.4px" }}>
-    //         {t.pageTitle}
-    //       </h1>
-    //       <p className="tr-dashboard-subtitle" style={{ fontSize: 13, color: C.muted, margin: "4px 0 0" }}>{t.pageSubtitle}</p>
-    //     </div>
-
-    //     <div className="tr-dashboard-header-actions" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-    //       <button className="tr-dashboard-install-widget-button"
-    //         onClick={handleInstallScript}
-    //         disabled={installing}
-    //         style={{
-    //           border: `1px solid ${C.accent}`, borderRadius: 10, padding: "9px 18px",
-    //           fontSize: 13, fontWeight: 600,
-    //           background: installing ? "#f3f4f6" : C.accentLt,
-    //           color: installing ? C.muted : C.accent,
-    //           cursor: installing ? "default" : "pointer",
-    //           display: "flex", alignItems: "center", gap: 7,
-    //         }}
-    //       >
-    //         {installing ? t.installing : t.installWidget}
-    //       </button>
-
-    //       {installMsg && (
-    //         <span className="tr-dashboard-install-message" style={{
-    //           fontSize: 12, fontWeight: 600,
-    //           color: installOk ? C.green : C.red,
-    //           background: installOk ? C.greenLt : C.redLt,
-    //           padding: "6px 12px", borderRadius: 8,
-    //           display: "flex", alignItems: "center", gap: 5,
-    //         }}>
-    //           <span className="tr-dashboard-install-message-indicator" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: installOk ? C.green : C.red }} />
-    //           {installMsg}
-    //         </span>
-    //       )}
-
-    //       <button className="tr-dashboard-auto-publish-button"
-    //         onClick={handleToggleAutoPublish}
-    //         title="When on, new reviews skip moderation and go live immediately"
-    //         style={{
-    //           border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 14px",
-    //           fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
-    //           color: C.text, display: "flex", alignItems: "center", gap: 8,
-    //         }}
-    //       >
-    //         <span className="tr-dashboard-auto-publish-switch" style={{
-    //           width: 30, height: 17, borderRadius: 20, position: "relative",
-    //           background: autoPublish ? C.accent : "#d1d5db", transition: "background .15s", flexShrink: 0,
-    //         }}>
-    //           <span className="tr-dashboard-auto-publish-thumb" style={{
-    //             position: "absolute", top: 2, left: autoPublish ? 15 : 2, width: 13, height: 13,
-    //             borderRadius: "50%", background: "#fff", transition: "left .15s",
-    //           }} />
-    //         </span>
-    //         Auto-publish: {autoPublish ? "On" : "Off"}
-    //       </button>
-
-    //       <button className="tr-dashboard-import-button" onClick={() => setShowImport(true)} style={{
-    //         border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
-    //         fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
-    //         color: C.text, display: "flex", alignItems: "center", gap: 7,
-    //       }}>{t.import}</button>
-
-    //       <Link className="tr-dashboard-review-groups-link" to="/app/review-groups" style={{
-    //         border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 18px",
-    //         fontSize: 13, fontWeight: 600, background: C.surface, cursor: "pointer",
-    //         color: C.text, display: "flex", alignItems: "center", gap: 7, textDecoration: "none",
-    //       }}>Review groups</Link>
-
-    //       <div className="tr-dashboard-export" style={{ position: "relative" }}>
-    //         <button className="tr-dashboard-export-button"
-    //           onClick={() => setShowExportMenu((v) => !v)}
-    //           disabled={exporting}
-    //           style={{
-    //             border: "none", borderRadius: 10, padding: "9px 18px",
-    //             fontSize: 13, fontWeight: 600, background: C.accent, color: "#fff",
-    //             cursor: exporting ? "default" : "pointer", opacity: exporting ? .7 : 1,
-    //             display: "flex", alignItems: "center", gap: 7,
-    //           }}
-    //         >↓ {exporting ? "Exporting…" : t.exportCSV} ▾</button>
-    //         {showExportMenu && (
-    //           <>
-    //             <div className="tr-dashboard-export-backdrop" onClick={() => setShowExportMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 29 }} />
-    //             <div className="tr-dashboard-export-menu" style={{
-    //               position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 30,
-    //               background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10,
-    //               boxShadow: "0 8px 24px rgba(0,0,0,.12)", minWidth: 230, overflow: "hidden",
-    //             }}>
-    //               <button className="tr-dashboard-export-page-button" onClick={() => { setShowExportMenu(false); exportCSV(); }} style={EXPORT_ITEM}>
-    //                 Export this page ({allVisibleIds.length})
-    //               </button>
-    //               <button className="tr-dashboard-export-selected-button"
-    //                 onClick={() => { if (!selectedIds.length) return; setShowExportMenu(false); handleExportSelected(); }}
-    //                 disabled={!selectedIds.length}
-    //                 style={{ ...EXPORT_ITEM, borderTop: `1px solid ${C.border}`, opacity: selectedIds.length ? 1 : .45, cursor: selectedIds.length ? "pointer" : "default" }}
-    //               >
-    //                 Export selected ({selectAllPages ? total : selectedIds.length})
-    //               </button>
-    //               <button className="tr-dashboard-export-all-button"
-    //                 onClick={() => { setShowExportMenu(false); exportServer("all", "reviews-all.csv"); }}
-    //                 style={{ ...EXPORT_ITEM, borderTop: `1px solid ${C.border}` }}
-    //               >
-    //                 Export all reviews ({total})
-    //               </button>
-    //             </div>
-    //           </>
-    //         )}
-    //       </div>
-    //     </div>
-    //   </div>
-
-    //   {/* ── Rating Summary ── */}
-    //   <RatingSummaryCard
-    //     avgRating={avgRating}
-    //     approvedCount={approvedCount}
-    //     ratingBreakdown={ratingBreakdown}
-    //     newThisWeek={newThisWeek}
-    //   />
-
-    //   {/* ── Filter Bar ── */}
-    //   <div className="tr-dashboard-filter-bar" style={{
-    //     background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`,
-    //     padding: "12px 18px", marginBottom: 18,
-    //     display: "flex", alignItems: "center", justifyContent: "space-between",
-    //     flexWrap: "wrap", gap: 10,
-    //     boxShadow: "0 1px 3px rgba(0,0,0,.04)",
-    //   }}>
-    //     <div className="tr-dashboard-filter-tabs" style={{ display: "flex", gap: 4 }}>
-    //       {TABS.map(({ key, label, count }) => (
-    //         <button className="tr-dashboard-filter-tab"
-    //           key={key}
-    //           onClick={() => changeTab(key)}
-    //           style={{
-    //             border: "none", borderRadius: 8, padding: "6px 14px",
-    //             fontSize: 13, fontWeight: 600, cursor: "pointer",
-    //             background: tab === key ? C.accent : "transparent",
-    //             color: tab === key ? "#fff" : C.muted,
-    //             display: "flex", alignItems: "center", gap: 6,
-    //           }}
-    //         >
-    //           {label}
-    //           <span className="tr-dashboard-filter-tab-count" style={{
-    //             fontSize: 10, fontWeight: 600, borderRadius: 20, padding: "1px 7px",
-    //             background: tab === key ? "rgba(255,255,255,.25)" : C.border,
-    //             color: tab === key ? "#fff" : C.muted,
-    //           }}>{count}</span>
-    //         </button>
-    //       ))}
-    //     </div>
-
-    //     <form className="tr-dashboard-search-form" onSubmit={handleSearch} style={{ display: "flex", gap: 8 }}>
-    //       <input className="tr-dashboard-search-input"
-    //         value={searchVal}
-    //         onChange={(e) => setSearchVal(e.target.value)}
-    //         placeholder={t.searchPlaceholder}
-    //         style={{
-    //           border: `1px solid ${C.border}`, borderRadius: 9, padding: "7px 14px",
-    //           fontSize: 13, color: C.text, background: "#f9fafb",
-    //           outline: "none", fontFamily: "inherit", width: 220,
-    //         }}
-    //       />
-    //       <button className="tr-dashboard-search-button" type="submit" style={{
-    //         border: "none", borderRadius: 9, padding: "7px 16px",
-    //         background: "#111827", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-    //       }}>{t.search}</button>
-    //       {searchVal && (
-    //         <button className="tr-dashboard-search-clear-button" type="button" onClick={() => { setSearchVal(""); go({ tab, search: "", page: 1 }); }} style={{
-    //           border: `1px solid ${C.border}`, borderRadius: 9, padding: "7px 12px",
-    //           background: "#fff", color: C.muted, fontSize: 13, cursor: "pointer",
-    //         }}>✕</button>
-    //       )}
-    //     </form>
-    //   </div>
-
-    //   {/* ── Bulk Selection Bar ── */}
-    //   {grouped.length > 0 && (
-    //     <div className="tr-dashboard-bulk-selection" style={{ marginBottom: 10 }}>
-    //       <div className="tr-dashboard-bulk-toolbar" style={{
-    //         display: "flex", alignItems: "center", gap: 12, fontSize: 12.5, color: C.muted,
-    //         background: selectedIds.length > 0 ? "#f0f4ff" : "transparent",
-    //         border: selectedIds.length > 0 ? `1px solid #c7d7fd` : "1px solid transparent",
-    //         borderRadius: 10, padding: selectedIds.length > 0 ? "8px 14px" : "4px 0",
-    //         transition: "all .15s",
-    //       }}>
-    //         {/* Global select-all checkbox */}
-    //         <label className="tr-dashboard-bulk-select-label" style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", userSelect: "none" }}>
-    //           <SelectAllCheckbox
-    //             checked={allPageSelected || selectAllPages}
-    //             indeterminate={somePageSelected && !allPageSelected && !selectAllPages}
-    //             onChange={toggleSelectAll}
-    //             accent={C.accent}
-    //           />
-    //           <span className="tr-dashboard-bulk-selection-count" style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>
-    //             {selectAllPages
-    //               ? `All ${total} reviews selected`
-    //               : allPageSelected
-    //                 ? `All ${allVisibleIds.length} on this page selected`
-    //                 : somePageSelected
-    //                   ? `${selectedIds.length} of ${allVisibleIds.length} selected`
-    //                   : `Select all (${allVisibleIds.length})`}
-    //           </span>
-    //         </label>
-
-    //         {selectedIds.length > 0 && (
-    //           <>
-    //             <span className="tr-dashboard-bulk-actions-divider" style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
-    //             <button className="tr-dashboard-bulk-approve-button" onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve</button>
-    //             <button className="tr-dashboard-bulk-reject-button" onClick={() => handleBulkAction("reject")}  style={ABT("reject")}>✕ Reject</button>
-    //             {!selectAllPages && <button className="tr-dashboard-bulk-assign-button" onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>Assign Product</button>}
-    //             <button className="tr-dashboard-bulk-delete-button"
-    //               onClick={() => {
-    //                 const count = selectAllPages ? total : selectedIds.length;
-    //                 if (window.confirm(`Delete ${count} review${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
-    //                   handleBulkAction("delete");
-    //                 }
-    //               }}
-    //               style={{ ...ABT("reject"), background: "#fee2e2", color: "#b91c1c" }}
-    //             >
-    //               Delete
-    //             </button>
-    //             <button className="tr-dashboard-bulk-clear-button" onClick={clearSelection} style={{ border: "none", background: "none", color: C.muted, cursor: "pointer", fontSize: 12, textDecoration: "underline", marginLeft: "auto" }}>
-    //               Clear
-    //             </button>
-    //           </>
-    //         )}
-    //       </div>
-
-    //       {/* "Select all X reviews across all pages" banner */}
-    //       {allPageSelected && !selectAllPages && total > allVisibleIds.length && (
-    //         <div className="tr-dashboard-page-selection-banner" style={{
-    //           marginTop: 8, padding: "10px 14px", background: "#eff6ff",
-    //           border: "1px solid #bfdbfe", borderRadius: 9,
-    //           display: "flex", alignItems: "center", gap: 12, fontSize: 13,
-    //         }}>
-    //           <span className="tr-dashboard-page-selection-message" style={{ color: "#1e40af" }}>
-    //             All <strong className="tr-dashboard-page-selection-count">{allVisibleIds.length}</strong> reviews on this page are selected.
-    //           </span>
-    //           <button className="tr-dashboard-select-all-pages-button"
-    //             onClick={handleSelectAllPages}
-    //             style={{
-    //               border: "none", background: "none", color: "#1d4ed8",
-    //               fontWeight: 600, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
-    //             }}
-    //           >
-    //             Select all {total} reviews
-    //           </button>
-    //         </div>
-    //       )}
-    //       {selectAllPages && (
-    //         <div className="tr-dashboard-all-selection-banner" style={{
-    //           marginTop: 8, padding: "10px 14px", background: "#eff6ff",
-    //           border: "1px solid #bfdbfe", borderRadius: 9,
-    //           display: "flex", alignItems: "center", gap: 12, fontSize: 13,
-    //         }}>
-    //           <span className="tr-dashboard-all-selection-message" style={{ color: "#1e40af" }}>
-    //             All <strong className="tr-dashboard-all-selection-count">{total}</strong> reviews are selected.
-    //           </span>
-    //           <button className="tr-dashboard-all-selection-clear-button"
-    //             onClick={clearSelection}
-    //             style={{
-    //               border: "none", background: "none", color: "#1d4ed8",
-    //               fontWeight: 600, fontSize: 13, cursor: "pointer", textDecoration: "underline", padding: 0,
-    //             }}
-    //           >
-    //             Clear selection
-    //           </button>
-    //         </div>
-    //       )}
-
-    //       {bulkAssigning && selectedIds.length > 0 && !selectAllPages && (
-    //         <div className="tr-dashboard-bulk-product-picker" style={{ marginTop: 10 }}>
-    //           <ProductPicker onSelect={handleBulkAssignProduct} onClose={() => setBulkAssigning(false)} />
-    //         </div>
-    //       )}
-    //     </div>
-    //   )}
-
-    //   {/* ── Groups ── */}
-    //   {grouped.length === 0 ? (
-    //     <div className="tr-dashboard-empty-state" style={{
-    //       background: C.surface, borderRadius: 14, border: `1px dashed ${C.border}`,
-    //       padding: 60, textAlign: "center", color: C.muted, fontSize: 14,
-    //     }}>
-    //       {t.noReviews}
-    //     </div>
-    //   ) : (
-    //     grouped.map((g) => (
-    //       <ProductGroup
-    //         key={g.productId} group={g} onAction={handleAction} t={t}
-    //         selectedIds={selectedIds} onToggleSelect={toggleSelect}
-    //         onToggleGroupSelect={toggleGroupSelect}
-    //       />
-    //     ))
-    //   )}
-
-    //   {/* ── Pagination ── */}
-    //   {totalPages > 1 && (
-    //     <div className="tr-dashboard-pagination" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 28 }}>
-    //       <button className="tr-dashboard-pagination-prev" disabled={page === 1} onClick={() => changePage(page - 1)} style={{
-    //         border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 20px",
-    //         fontSize: 13, fontWeight: 600,
-    //         cursor: page === 1 ? "default" : "pointer",
-    //         background: page === 1 ? "#f3f4f6" : C.surface,
-    //         color: page === 1 ? "#d1d5db" : C.text,
-    //       }}>{t.prev}</button>
-    //       <span className="tr-dashboard-pagination-label" style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>
-    //         {t.page} {page} {t.of} {totalPages}
-    //       </span>
-    //       <button className="tr-dashboard-pagination-next" disabled={page === totalPages} onClick={() => changePage(page + 1)} style={{
-    //         border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 20px",
-    //         fontSize: 13, fontWeight: 600,
-    //         cursor: page === totalPages ? "default" : "pointer",
-    //         background: page === totalPages ? "#f3f4f6" : C.surface,
-    //         color: page === totalPages ? "#d1d5db" : C.text,
-    //       }}>{t.next}</button>
-    //     </div>
-    //   )}
-    // </div>
-
-<div
-  className="tr-dashboard-page-main"
-  style={{
-    minHeight: "100vh",
-    background: `
-      radial-gradient(circle at 0% 0%, rgba(141,180,214,.18), transparent 28%),
-      radial-gradient(circle at 100% 8%, rgba(214,230,242,.48), transparent 30%),
-      #F2F7FB
-    `,
-  }}
->
-  <div
-    className="tr-dashboard-page"
-    style={{
-      fontFamily: "var(--app-font-family)",
-      minHeight: "100vh",
-      padding: "34px 34px 46px",
-      maxWidth: 1600,
-      margin: "0 auto",
-    }}
-  >
-    <style className="tr-app-routes-app-index-style-1">{`
-      .tr-dashboard-header-actions button,
-      .tr-dashboard-review-groups-link,
-      .tr-dashboard-filter-tab,
-      .tr-dashboard-search-button,
-      .tr-dashboard-pagination button {
-        transition:
-          transform .16s ease,
-          border-color .16s ease,
-          box-shadow .16s ease,
-          background .16s ease,
-          color .16s ease;
-      }
-
-      .tr-dashboard-header-actions button:not(:disabled):hover,
-      .tr-dashboard-review-groups-link:hover {
-        transform: translateY(-1px);
-        border-color: #8DB4D6 !important;
-        box-shadow: 0 7px 18px rgba(141,180,214,.16) !important;
-      }
-
-      .tr-dashboard-export-button:not(:disabled):hover,
-      .tr-dashboard-search-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 9px 22px rgba(79,115,146,.22) !important;
-      }
-
-      .tr-dashboard-filter-tab:hover {
-        background: #F2F7FB !important;
-        color: #4F7392 !important;
-      }
-
-      .tr-dashboard-filter-tab[style*="#8DB4D6"]:hover {
-        color: #fff !important;
-      }
-
-      .tr-dashboard-search-input {
-        transition:
-          border-color .16s ease,
-          box-shadow .16s ease,
-          background .16s ease;
-      }
-
-      .tr-dashboard-search-input:focus {
-        border-color: #8DB4D6 !important;
-        background: #FFFFFF !important;
-        box-shadow: 0 0 0 3px rgba(141,180,214,.14);
-      }
-
-      .tr-dashboard-export-menu button {
-        transition: background .14s ease;
-      }
-
-      .tr-dashboard-export-menu button:hover:not(:disabled) {
-        background: #F2F7FB !important;
-      }
-
-      @media (max-width: 900px) {
-        .tr-dashboard-page {
-          padding: 22px 18px 36px !important;
+    <div className="tr-dashboard-page-main" style={{ minHeight: "100vh", background: D.bg }}>
+      <style className="tr-dashboard-layout-style">{`
+        .tr-dashboard-page button:not(:disabled):hover,
+        .tr-dashboard-page a.tr-dashboard-review-groups-link:hover { filter: brightness(.96); }
+        .tr-dashboard-page button:focus-visible,
+        .tr-dashboard-page input:focus-visible,
+        .tr-dashboard-page a:focus-visible { outline: 2px solid ${D.accent}; outline-offset: 2px; }
+        .tr-dashboard-search-input:focus { border-color: ${D.accent} !important; }
+        .tr-dashboard-filter-tabs { overflow-x: auto; }
+        @media (max-width: 700px) {
+          .tr-dashboard-page { padding: 20px 14px 40px !important; }
+          .tr-dashboard-search-form { width: 100%; }
+          .tr-dashboard-search-form .tr-dashboard-search-input { flex: 1; width: auto !important; }
         }
-
-        .tr-dashboard-header {
-          padding: 20px !important;
-        }
-
-        .tr-dashboard-filter-bar {
-          align-items: stretch !important;
-        }
-
-        .tr-dashboard-filter-tabs {
-          overflow-x: auto;
-          padding-bottom: 3px;
-        }
-
-        .tr-dashboard-search-form {
-          width: 100%;
-        }
-
-        .tr-dashboard-search-input {
-          flex: 1;
-          width: auto !important;
-        }
-      }
-    `}</style>
-
-    {showImport && (
-      <ImportModal
-        onClose={() => setShowImport(false)}
-        onImport={handleImport}
-        t={t}
-      />
-    )}
-
-    {showInstallDocs && (
-      <InstallWidgetModal
-        shop={shop}
-        apiKey={apiKey}
-        onClose={() => setShowInstallDocs(false)}
-      />
-    )}
-
-    {/* ── Top Bar ── */}
-    <div
-      className="tr-dashboard-header"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        flexWrap: "wrap",
-        gap: 20,
-
-        marginBottom: 22,
-
-        padding: "24px 26px",
-
-        background:
-          "linear-gradient(135deg, rgba(255,255,255,.98), rgba(242,247,251,.94))",
-
-        border: "1px solid #D6E6F2",
-
-        borderRadius: 20,
-
-        boxShadow:
-          "0 14px 38px rgba(79,115,146,.08)",
-
-        position: "relative",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 26,
-          right: 26,
-          height: 2,
-          background:
-            "linear-gradient(90deg, transparent, #8DB4D6, transparent)",
-          opacity: 0.65,
-        }}
-       className="tr-app-routes-app-index-div-2"/>
-
-      <div className="tr-dashboard-heading">
-        <h1
-          className="tr-dashboard-title"
-          style={{
-            fontSize: 28,
-            fontWeight: 750,
-            color: "#4F7392",
-            margin: 0,
-            letterSpacing: "-0.7px",
-            lineHeight: 1.18,
-          }}
-        >
-          {t.pageTitle}
-        </h1>
-
-        <p
-          className="tr-dashboard-subtitle"
-          style={{
-            fontSize: 13,
-            color: "#829CAF",
-            margin: "7px 0 0",
-            lineHeight: 1.55,
-          }}
-        >
-          {t.pageSubtitle}
-        </p>
-      </div>
-
-      <div
-        className="tr-dashboard-header-actions"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 9,
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          className="tr-dashboard-install-widget-button"
-          onClick={handleInstallScript}
-          disabled={installing}
-          style={{
-            height: 38,
-            border: "1px solid #8DB4D6",
-            borderRadius: 10,
-            padding: "0 16px",
-            fontSize: 14,
-            fontWeight: 650,
-            background: installing
-              ? "#F2F7FB"
-              : "linear-gradient(135deg,#F2F7FB,#D6E6F2)",
-
-            color: installing
-              ? "#9EB0BE"
-              : "#4F7392",
-
-            cursor: installing
-              ? "default"
-              : "pointer",
-
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-
-            boxShadow:
-              "0 4px 12px rgba(141,180,214,.09)",
-          }}
-        >
-          {installing ? t.installing : t.installWidget}
-        </button>
-
-        {installMsg && (
-          <span
-            className="tr-dashboard-install-message"
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-
-              color: installOk ? C.green : C.red,
-              background: installOk ? C.greenLt : C.redLt,
-
-              padding: "7px 12px",
-              borderRadius: 9,
-
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <span
-              className="tr-dashboard-install-message-indicator"
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: installOk
-                  ? C.green
-                  : C.red,
-              }}
-            />
-
-            {installMsg}
-          </span>
-        )}
-
-        <button
-          className="tr-dashboard-auto-publish-button"
-          onClick={handleToggleAutoPublish}
-          title="When on, new reviews skip moderation and go live immediately"
-          style={{
-            height: 38,
-            border: "1px solid #D6E6F2",
-            borderRadius: 10,
-            padding: "0 14px",
-            fontSize: 14,
-            fontWeight: 600,
-            background: "#FFFFFF",
-            cursor: "pointer",
-            color: "#5F7F9A",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-
-            boxShadow:
-              "0 4px 12px rgba(141,180,214,.06)",
-          }}
-        >
-          <span
-            className="tr-dashboard-auto-publish-switch"
-            style={{
-              width: 31,
-              height: 18,
-              borderRadius: 20,
-
-              position: "relative",
-
-              background: autoPublish
-                ? "#8DB4D6"
-                : "#D6E6F2",
-
-              transition: "background .15s",
-
-              flexShrink: 0,
-            }}
-          >
-            <span
-              className="tr-dashboard-auto-publish-thumb"
-              style={{
-                position: "absolute",
-                top: 2,
-                left: autoPublish ? 15 : 2,
-                width: 14,
-                height: 14,
-                borderRadius: "50%",
-                background: "#FFFFFF",
-
-                transition: "left .15s",
-
-                boxShadow:
-                  "0 2px 5px rgba(79,115,146,.2)",
-              }}
-            />
-          </span>
-
-          Auto-publish: {autoPublish ? "On" : "Off"}
-        </button>
-
-        <button
-          className="tr-dashboard-import-button"
-          onClick={() => setShowImport(true)}
-          style={{
-            height: 38,
-            border: "1px solid #D6E6F2",
-            borderRadius: 10,
-            padding: "0 16px",
-            fontSize: 14,
-            fontWeight: 600,
-            background: "#FFFFFF",
-            cursor: "pointer",
-            color: "#5F7F9A",
-            boxShadow:
-              "0 4px 12px rgba(141,180,214,.06)",
-          }}
-        >
-          {t.import}
-        </button>
-
-        <Link
-          className="tr-dashboard-review-groups-link"
-          to="/app/review-groups"
-          style={{
-            height: 38,
-            border: "1px solid #D6E6F2",
-            borderRadius: 10,
-            padding: "0 16px",
-            fontSize: 14,
-            fontWeight: 600,
-            background: "#FFFFFF",
-            cursor: "pointer",
-            color: "#5F7F9A",
-            display: "flex",
-            alignItems: "center",
-            textDecoration: "none",
-            boxShadow:
-              "0 4px 12px rgba(141,180,214,.06)",
-          }}
-        >
-          Review groups
-        </Link>
-
-        <div
-          className="tr-dashboard-export"
-          style={{ position: "relative" }}
-        >
-          <button
-            className="tr-dashboard-export-button"
-            onClick={() =>
-              setShowExportMenu((v) => !v)
-            }
-            disabled={exporting}
-            style={{
-              height: 38,
-              border: "none",
-              borderRadius: 10,
-              padding: "0 17px",
-              fontSize: 14,
-              fontWeight: 650,
-              background:
-                "linear-gradient(135deg,#8DB4D6 0%,#6F96B6 100%)",
-              color: "#FFFFFF",
-              cursor: exporting
-                ? "default"
-                : "pointer",
-
-              opacity: exporting ? 0.7 : 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-              boxShadow:
-                "0 7px 18px rgba(79,115,146,.20)",
-            }}
-          >
-            ↓ {exporting ? "Exporting…" : t.exportCSV} ▾
-          </button>
-
-          {showExportMenu && (
-            <>
-              <div
-                className="tr-dashboard-export-backdrop"
-                onClick={() =>
-                  setShowExportMenu(false)
-                }
-                style={{
-                  position: "fixed",
-                  inset: 0,
-                  zIndex: 29,
-                }}
-              />
-
-              <div
-                className="tr-dashboard-export-menu"
-                style={{
-                  position: "absolute",
-
-                  top: "calc(100% + 8px)",
-                  right: 0,
-
-                  zIndex: 30,
-
-                  background: "#FFFFFF",
-
-                  border: "1px solid #D6E6F2",
-
-                  borderRadius: 12,
-
-                  boxShadow:
-                    "0 18px 46px rgba(79,115,146,.16)",
-
-                  minWidth: 230,
-
-                  overflow: "hidden",
-                }}
-              >
-                <button
-                  className="tr-dashboard-export-page-button"
-                  onClick={() => {
-                    setShowExportMenu(false);
-                    exportCSV();
-                  }}
-                  style={EXPORT_ITEM}
-                >
-                  Export this page ({allVisibleIds.length})
-                </button>
-
-                <button
-                  className="tr-dashboard-export-selected-button"
-                  onClick={() => {
-                    if (!selectedIds.length) return;
-
-                    setShowExportMenu(false);
-
-                    handleExportSelected();
-                  }}
-                  disabled={!selectedIds.length}
-                  style={{
-                    ...EXPORT_ITEM,
-
-                    borderTop:
-                      "1px solid #D6E6F2",
-
-                    opacity:
-                      selectedIds.length
-                        ? 1
-                        : 0.45,
-
-                    cursor:
-                      selectedIds.length
-                        ? "pointer"
-                        : "default",
-                  }}
-                >
-                  Export selected (
-                  {selectAllPages
-                    ? total
-                    : selectedIds.length}
-                  )
-                </button>
-
-                <button
-                  className="tr-dashboard-export-all-button"
-                  onClick={() => {
-                    setShowExportMenu(false);
-
-                    exportServer(
-                      "all",
-                      "reviews-all.csv"
-                    );
-                  }}
-                  style={{
-                    ...EXPORT_ITEM,
-
-                    borderTop:
-                      "1px solid #D6E6F2",
-                  }}
-                >
-                  Export all reviews ({total})
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-
-    {/* ── Rating Summary ── */}
-    <RatingSummaryCard
-      avgRating={avgRating}
-      approvedCount={approvedCount}
-      ratingBreakdown={ratingBreakdown}
-      newThisWeek={newThisWeek}
-    />
-
-    {/* ── Filter Bar ── */}
-    <div
-      className="tr-dashboard-filter-bar"
-      style={{
-        background:
-          "rgba(255,255,255,.95)",
-
-        borderRadius: 16,
-
-        border: "1px solid #D6E6F2",
-
-        padding: "11px 12px",
-
-        marginBottom: 18,
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-
-        flexWrap: "wrap",
-
-        gap: 12,
-
-        boxShadow:
-          "0 8px 24px rgba(79,115,146,.07)",
-      }}
-    >
-      <div
-        className="tr-dashboard-filter-tabs"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          padding: 4,
-          borderRadius: 11,
-          background: "#F2F7FB",
-          border: "1px solid rgba(214,230,242,.75)",
-        }}
-      >
-        {TABS.map(({ key, label, count }) => (
-          <button
-            className="tr-dashboard-filter-tab"
-            key={key}
-            onClick={() => changeTab(key)}
-            style={{
-              border:
-                tab === key
-                  ? "1px solid #8DB4D6"
-                  : "1px solid transparent",
-
-              borderRadius: 8,
-              padding: "7px 13px",
-              fontSize: 14,
-              fontWeight: 650,
-              cursor: "pointer",
-              background:
-                tab === key
-                  ? "#FFFFFF"
-                  : "transparent",
-
-              color:
-                tab === key
-                  ? "#4F7392"
-                  : "#829CAF",
-
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-
-              boxShadow:
-                tab === key
-                  ? "0 3px 10px rgba(79,115,146,.10)"
-                  : "none",
-            }}
-          >
-            {label}
-
-            <span
-              className="tr-dashboard-filter-tab-count"
-              style={{
-                minWidth: 19,
-
-                fontSize: 10,
-
-                fontWeight: 700,
-
-                textAlign: "center",
-
-                borderRadius: 20,
-
-                padding: "2px 6px",
-
-                background:
-                  tab === key
-                    ? "#D6E6F2"
-                    : "#FFFFFF",
-
-                color:
-                  tab === key
-                    ? "#4F7392"
-                    : "#9CB0C0",
-              }}
-            >
-              {count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <form
-        className="tr-dashboard-search-form"
-        onSubmit={handleSearch}
-        style={{
-          display: "flex",
-          gap: 7,
-        }}
-      >
-        <input
-          className="tr-dashboard-search-input"
-          value={searchVal}
-          onChange={(e) =>
-            setSearchVal(e.target.value)
-          }
-          placeholder={t.searchPlaceholder}
-          style={{
-            height: 37,
-
-            border: "1px solid #D6E6F2",
-
-            borderRadius: 9,
-
-            padding: "0 13px",
-
-            fontSize: 12.5,
-
-            color: "#4F7392",
-
-            background: "#F7FAFC",
-
-            outline: "none",
-
-            fontFamily: "inherit",
-
-            width: 245,
-          }}
-        />
-
-        <button
-          className="tr-dashboard-search-button"
-          type="submit"
-          style={{
-            height: 37,
-            border: "none",
-            borderRadius: 9,
-            padding: "0 18px",
-            background:
-              "linear-gradient(135deg,#4F7392,#6F96B6)",
-            color: "#FFFFFF",
-            fontSize: 14,
-            fontWeight: 650,
-            cursor: "pointer",
-            boxShadow:
-              "0 5px 14px rgba(79,115,146,.17)",
-          }}
-        >
-          {t.search}
-        </button>
-
-        {searchVal && (
-          <button
-            className="tr-dashboard-search-clear-button"
-            type="button"
-            onClick={() => {
-              setSearchVal("");
-
-              go({
-                tab,
-                search: "",
-                page: 1,
-              });
-            }}
-            style={{
-              height: 37,
-
-              border:
-                "1px solid #D6E6F2",
-
-              borderRadius: 9,
-
-              padding: "0 12px",
-
-              background: "#FFFFFF",
-
-              color: "#829BAF",
-
-              fontSize: 13,
-
-              cursor: "pointer",
-            }}
-          >
-            ✕
-          </button>
-        )}
-      </form>
-    </div>
-
-    {/* ── Bulk Selection Bar ── */}
-    {grouped.length > 0 && (
-      <div
-        className="tr-dashboard-bulk-selection"
-        style={{
-          marginBottom: 14,
-        }}
-      >
-        <div
-          className="tr-dashboard-bulk-toolbar"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-
-            fontSize: 12.5,
-
-            color: "#829BAF",
-
-            background:
-              selectedIds.length > 0
-                ? "#FFFFFF"
-                : "transparent",
-
-            border:
-              selectedIds.length > 0
-                ? "1px solid #D6E6F2"
-                : "1px solid transparent",
-
-            borderRadius: 12,
-
-            padding:
-              selectedIds.length > 0
-                ? "10px 14px"
-                : "4px 0",
-
-            transition: "all .15s",
-
-            boxShadow:
-              selectedIds.length > 0
-                ? "0 8px 22px rgba(79,115,146,.07)"
-                : "none",
-          }}
-        >
-          <label
-            className="tr-dashboard-bulk-select-label"
-            style={{
-              display: "flex",
-              alignItems: "center",
-
-              gap: 7,
-
-              cursor: "pointer",
-
-              userSelect: "none",
-            }}
-          >
-            <SelectAllCheckbox
-              checked={
-                allPageSelected ||
-                selectAllPages
-              }
-              indeterminate={
-                somePageSelected &&
-                !allPageSelected &&
-                !selectAllPages
-              }
-              onChange={toggleSelectAll}
-              accent="#8DB4D6"
-            />
-
-            <span
-              className="tr-dashboard-bulk-selection-count"
-              style={{
-                fontSize: 12.5,
-
-                fontWeight: 650,
-
-                color: "#4F7392",
-              }}
-            >
-              {selectAllPages
-                ? `All ${total} reviews selected`
-                : allPageSelected
-                ? `All ${allVisibleIds.length} on this page selected`
-                : somePageSelected
-                ? `${selectedIds.length} of ${allVisibleIds.length} selected`
-                : `Select all (${allVisibleIds.length})`}
-            </span>
-          </label>
-
-          {selectedIds.length > 0 && (
-            <>
-              <span
-                className="tr-dashboard-bulk-actions-divider"
-                style={{
-                  width: 1,
-                  height: 18,
-                  background: "#D6E6F2",
-                  flexShrink: 0,
-                }}
-              />
-
+      `}</style>
+
+      <div className="tr-dashboard-page" style={{
+        fontFamily: "var(--app-font-family)", maxWidth: 1100, margin: "0 auto",
+        padding: "32px 24px 56px", display: "flex", flexDirection: "column", gap: 20, boxSizing: "border-box",
+      }}>
+        {showImport && <ImportModal onClose={() => setShowImport(false)} onImport={handleImport} t={t} />}
+        {showInstallDocs && <InstallWidgetModal shop={shop} apiKey={apiKey} onClose={() => setShowInstallDocs(false)} />}
+
+        {/* ── Header ── */}
+        <div className="tr-dashboard-header" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div className="tr-dashboard-heading">
+            <h1 className="tr-dashboard-title" style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em", color: D.text }}>
+              {t.pageTitle}
+            </h1>
+            <p className="tr-dashboard-subtitle" style={{ margin: "4px 0 0", fontSize: 15, color: D.muted }}>{t.pageSubtitle}</p>
+          </div>
+
+          <div className="tr-dashboard-header-actions" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <Link className="tr-dashboard-review-groups-link" to="/app/review-groups" style={{ ...btnSecondary, textDecoration: "none" }}>
+              Review groups
+            </Link>
+            <button className="tr-dashboard-import-button" onClick={() => setShowImport(true)} style={btnSecondary}>
+              {t.import}
+            </button>
+
+            <div className="tr-dashboard-export" style={{ position: "relative" }}>
               <button
-                className="tr-dashboard-bulk-approve-button"
-                onClick={() =>
-                  handleBulkAction("approve")
-                }
-                style={ABT("approve")}
+                className="tr-dashboard-export-button"
+                onClick={() => setShowExportMenu((v) => !v)}
+                disabled={exporting}
+                aria-haspopup="menu"
+                aria-expanded={showExportMenu}
+                style={{ ...btnSecondary, opacity: exporting ? 0.7 : 1 }}
               >
-                ✓ Approve
+                {exporting ? "Exporting…" : t.exportCSV}
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 20 20" fill="none">
+                  <path d="M5.5 7.5L10 12l4.5-4.5" stroke={D.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
-
-              <button
-                className="tr-dashboard-bulk-reject-button"
-                onClick={() =>
-                  handleBulkAction("reject")
-                }
-                style={ABT("reject")}
-              >
-                ✕ Reject
-              </button>
-
-              {!selectAllPages && (
-                <button
-                  className="tr-dashboard-bulk-assign-button"
-                  onClick={() =>
-                    setBulkAssigning(
-                      (v) => !v
-                    )
-                  }
-                  style={ABT("neutral")}
-                >
-                  Assign Product
-                </button>
+              {showExportMenu && (
+                <>
+                  <div className="tr-dashboard-export-backdrop" onClick={() => setShowExportMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 29 }} />
+                  <div className="tr-dashboard-export-menu" style={{
+                    position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 30, background: "#fff",
+                    border: `1px solid ${D.border}`, borderRadius: 12, boxShadow: "0 16px 40px rgba(16,24,40,.14)",
+                    minWidth: 240, overflow: "hidden",
+                  }}>
+                    <button className="tr-dashboard-export-page-button" onClick={() => { setShowExportMenu(false); exportCSV(); }} style={EXPORT_ITEM}>
+                      Export this page ({allVisibleIds.length})
+                    </button>
+                    <button
+                      className="tr-dashboard-export-selected-button"
+                      onClick={() => { if (!selectedIds.length) return; setShowExportMenu(false); handleExportSelected(); }}
+                      disabled={!selectedIds.length}
+                      style={{ ...EXPORT_ITEM, borderTop: `1px solid ${D.border}`, opacity: selectedIds.length ? 1 : 0.45, cursor: selectedIds.length ? "pointer" : "default" }}
+                    >
+                      Export selected ({selectAllPages ? total : selectedIds.length})
+                    </button>
+                    <button
+                      className="tr-dashboard-export-all-button"
+                      onClick={() => { setShowExportMenu(false); exportServer("all", "reviews-all.csv"); }}
+                      style={{ ...EXPORT_ITEM, borderTop: `1px solid ${D.border}` }}
+                    >
+                      Export all reviews ({total})
+                    </button>
+                  </div>
+                </>
               )}
-
-              <button
-                className="tr-dashboard-bulk-delete-button"
-                onClick={() => {
-                  const count =
-                    selectAllPages
-                      ? total
-                      : selectedIds.length;
-
-                  if (
-                    window.confirm(
-                      `Delete ${count} review${
-                        count !== 1
-                          ? "s"
-                          : ""
-                      }? This cannot be undone.`
-                    )
-                  ) {
-                    handleBulkAction(
-                      "delete"
-                    );
-                  }
-                }}
-                style={{
-                  ...ABT("reject"),
-                  background: "#fee2e2",
-                  color: "#b91c1c",
-                }}
-              >
-                Delete
-              </button>
-
-              <button
-                className="tr-dashboard-bulk-clear-button"
-                onClick={clearSelection}
-                style={{
-                  border: "none",
-
-                  background: "none",
-
-                  color: "#829BAF",
-
-                  cursor: "pointer",
-
-                  fontSize: 12,
-
-                  textDecoration: "underline",
-
-                  marginLeft: "auto",
-                }}
-              >
-                Clear
-              </button>
-            </>
-          )}
-        </div>
-
-        {allPageSelected &&
-          !selectAllPages &&
-          total > allVisibleIds.length && (
-            <div
-              className="tr-dashboard-page-selection-banner"
-              style={{
-                marginTop: 8,
-
-                padding: "10px 14px",
-
-                background: "#FFFFFF",
-
-                border:
-                  "1px solid #D6E6F2",
-
-                borderRadius: 10,
-
-                display: "flex",
-                alignItems: "center",
-
-                gap: 12,
-
-                fontSize: 13,
-
-                boxShadow:
-                  "0 5px 16px rgba(79,115,146,.05)",
-              }}
-            >
-              <span
-                className="tr-dashboard-page-selection-message"
-                style={{
-                  color: "#4F7392",
-                }}
-              >
-                All{" "}
-                <strong className="tr-dashboard-page-selection-count">
-                  {allVisibleIds.length}
-                </strong>{" "}
-                reviews on this page are selected.
-              </span>
-
-              <button
-                className="tr-dashboard-select-all-pages-button"
-                onClick={
-                  handleSelectAllPages
-                }
-                style={{
-                  border: "none",
-
-                  background: "none",
-
-                  color: "#6F96B6",
-
-                  fontWeight: 650,
-
-                  fontSize: 13,
-
-                  cursor: "pointer",
-
-                  textDecoration:
-                    "underline",
-
-                  padding: 0,
-                }}
-              >
-                Select all {total} reviews
-              </button>
             </div>
-          )}
 
-        {selectAllPages && (
-          <div
-            className="tr-dashboard-all-selection-banner"
-            style={{
-              marginTop: 8,
-
-              padding: "10px 14px",
-
-              background: "#FFFFFF",
-
-              border:
-                "1px solid #D6E6F2",
-
-              borderRadius: 10,
-
-              display: "flex",
-              alignItems: "center",
-
-              gap: 12,
-
-              fontSize: 13,
-
-              boxShadow:
-                "0 5px 16px rgba(79,115,146,.05)",
-            }}
-          >
-            <span
-              className="tr-dashboard-all-selection-message"
-              style={{
-                color: "#4F7392",
-              }}
-            >
-              All{" "}
-              <strong className="tr-dashboard-all-selection-count">
-                {total}
-              </strong>{" "}
-              reviews are selected.
-            </span>
-
-            <button
-              className="tr-dashboard-all-selection-clear-button"
-              onClick={clearSelection}
-              style={{
-                border: "none",
-
-                background: "none",
-
-                color: "#6F96B6",
-
-                fontWeight: 650,
-
-                fontSize: 13,
-
-                cursor: "pointer",
-
-                textDecoration:
-                  "underline",
-
-                padding: 0,
-              }}
-            >
-              Clear selection
+            <button className="tr-dashboard-install-widget-button" onClick={handleInstallScript} style={btnPrimary}>
+              {t.installWidget}
             </button>
           </div>
+        </div>
+
+        {/* ── Get started (first-time only) ── */}
+        {isFirstTime && (
+          <GetStartedCard
+            onInstall={handleInstallScript}
+            onImport={() => setShowImport(true)}
+            onAutoPublish={handleToggleAutoPublish}
+          />
         )}
 
-        {bulkAssigning &&
-          selectedIds.length > 0 &&
-          !selectAllPages && (
-            <div
-              className="tr-dashboard-bulk-product-picker"
-              style={{
-                marginTop: 10,
-              }}
-            >
-              <ProductPicker
-                onSelect={
-                  handleBulkAssignProduct
-                }
-                onClose={() =>
-                  setBulkAssigning(false)
-                }
-              />
+        {/* ── Stat cards ── */}
+        <div className="tr-dashboard-stats" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+          <StatCard
+            label="Average rating"
+            icon={<IconChip bg={D.amberLt} color={D.amber}><path d={STAR_PATH} /></IconChip>}
+          >
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={bigNumber}>{avgRating.toFixed(1)}</span>
+              <span style={{ fontSize: 14, color: D.muted }}>out of 5</span>
             </div>
-          )}
-      </div>
-    )}
+            <div style={{ marginTop: 8 }}><StarRow value={Math.round(avgRating)} /></div>
+          </StatCard>
 
-    {/* ── Groups ── */}
-    {grouped.length === 0 ? (
-      <div
-        className="tr-dashboard-empty-state"
-        style={{
-          background:
-            "linear-gradient(145deg,#FFFFFF 0%,#F7FAFC 100%)",
-          borderRadius: 18,
-          border:
-            "1px dashed #C9DDEA",
-          padding: "72px 40px",
-          textAlign: "center",
-          color: "#829BAF",
-          fontSize: 14,
-          lineHeight: 1.6,
-          boxShadow:
-            "0 10px 30px rgba(79,115,146,.055)",
-        }}
-      >
-        {t.noReviews}
-      </div>
-    ) : (
-      grouped.map((g) => (
-        <ProductGroup
-          key={g.productId}
-          group={g}
-          onAction={handleAction}
-          t={t}
-          selectedIds={selectedIds}
-          onToggleSelect={toggleSelect}
-          onToggleGroupSelect={
-            toggleGroupSelect
-          }
+          <StatCard
+            label="Total reviews"
+            icon={<IconChip bg={D.accentLt} color={D.accentText}><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /></IconChip>}
+            onClick={() => changeTab("all")}
+          >
+            <span style={bigNumber}>{allCount}</span>
+          </StatCard>
+
+          <StatCard
+            label="Waiting for approval"
+            icon={<IconChip bg={D.blueLt} color={D.blue}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></IconChip>}
+            onClick={() => changeTab("pending")}
+          >
+            <span style={bigNumber}>{pendingCount}</span>
+          </StatCard>
+
+          <StatCard
+            label="Auto-publish"
+            icon={<IconChip bg={D.greyLt} color={D.grey}><path d="M13 3L5 14h6l-1 7 8-11h-6z" /></IconChip>}
+            hint={autoPublish ? "New reviews go live right away." : "New reviews wait for your OK."}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <button
+                className="tr-dashboard-auto-publish-button"
+                onClick={handleToggleAutoPublish}
+                role="switch"
+                aria-checked={autoPublish}
+                aria-label="Auto-publish new reviews"
+                style={{
+                  width: 48, height: 28, padding: 3, border: "none", borderRadius: 14, cursor: "pointer",
+                  background: autoPublish ? D.accent : "#98A2B3", display: "flex", alignItems: "center",
+                  justifyContent: autoPublish ? "flex-end" : "flex-start", transition: "background .15s",
+                }}
+              >
+                <span style={{ display: "block", width: 22, height: 22, borderRadius: "50%", background: "#fff" }} />
+              </button>
+              <span style={{ fontSize: 15, fontWeight: 600, color: D.text }}>{autoPublish ? "On" : "Off"}</span>
+            </div>
+          </StatCard>
+        </div>
+
+        {/* ── Ratings breakdown ── */}
+        <RatingSummaryCard
+          approvedCount={approvedCount}
+          ratingBreakdown={ratingBreakdown}
+          newThisWeek={newThisWeek}
         />
-      ))
-    )}
 
-    {/* ── Pagination ── */}
-    {totalPages > 1 && (
-      <div
-        className="tr-dashboard-pagination"
-        style={{
-          display: "flex",
+        {/* ── Reviews card: tabs + search + list ── */}
+        <div className="tr-dashboard-reviews-card" style={{ ...cardStyle, overflow: "hidden" }}>
+          <div className="tr-dashboard-filter-bar" style={{
+            padding: "16px 20px", display: "flex", flexWrap: "wrap", alignItems: "center",
+            justifyContent: "space-between", gap: 12, borderBottom: `1px solid ${D.border}`,
+          }}>
+            <div className="tr-dashboard-filter-tabs" role="tablist" style={{ display: "flex", gap: 6 }}>
+              {TABS.map(({ key, label, count }) => (
+                <button
+                  className="tr-dashboard-filter-tab"
+                  key={key}
+                  role="tab"
+                  aria-selected={tab === key}
+                  onClick={() => changeTab(key)}
+                  style={{
+                    minHeight: 44, padding: "0 16px", border: "none", borderRadius: 10, whiteSpace: "nowrap",
+                    fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                    background: tab === key ? D.accentLt : "transparent",
+                    color: tab === key ? D.accentDk : D.grey,
+                  }}
+                >
+                  {label} <span style={{ marginLeft: 4, fontWeight: 500 }}>{count}</span>
+                </button>
+              ))}
+            </div>
 
-          justifyContent: "center",
-          alignItems: "center",
+            <form className="tr-dashboard-search-form" onSubmit={handleSearch} style={{ display: "flex", gap: 8, flex: "1 1 260px", maxWidth: 420 }}>
+              <div style={{ position: "relative", flex: 1 }}>
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={D.muted}
+                  strokeWidth="2" strokeLinecap="round" style={{ position: "absolute", left: 14, top: 13 }}>
+                  <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+                </svg>
+                <input
+                  className="tr-dashboard-search-input"
+                  aria-label={t.search}
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  style={{
+                    boxSizing: "border-box", width: "100%", height: 44, padding: "0 14px 0 42px",
+                    border: "1px solid #D0D5DD", borderRadius: 10, fontSize: 14, color: D.text,
+                    background: "#fff", fontFamily: "inherit", outline: "none",
+                  }}
+                />
+              </div>
+              {searchVal && (
+                <button
+                  className="tr-dashboard-search-clear-button"
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => { setSearchVal(""); go({ tab, search: "", page: 1 }); }}
+                  style={{ ...btnSecondary, padding: "0 14px" }}
+                >✕</button>
+              )}
+            </form>
+          </div>
 
-          gap: 12,
+          <div style={{ padding: grouped.length ? 16 : 0, display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Bulk bar */}
+            {grouped.length > 0 && (
+              <div className="tr-dashboard-bulk-selection">
+                <div className="tr-dashboard-bulk-toolbar" style={{
+                  display: "flex", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: 13, color: D.muted,
+                  background: selectedIds.length > 0 ? D.accentLt : "transparent",
+                  borderRadius: 10, padding: "8px 12px",
+                }}>
+                  <label className="tr-dashboard-bulk-select-label" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" }}>
+                    <SelectAllCheckbox
+                      checked={allPageSelected || selectAllPages}
+                      indeterminate={somePageSelected && !allPageSelected && !selectAllPages}
+                      onChange={toggleSelectAll}
+                      accent={D.accent}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: D.body }}>
+                      {selectAllPages
+                        ? `All ${total} reviews selected`
+                        : allPageSelected
+                          ? `All ${allVisibleIds.length} on this page selected`
+                          : somePageSelected
+                            ? `${selectedIds.length} of ${allVisibleIds.length} selected`
+                            : `Select all (${allVisibleIds.length})`}
+                    </span>
+                  </label>
 
-          marginTop: 30,
-        }}
-      >
-        <button
-          className="tr-dashboard-pagination-prev"
-          disabled={page === 1}
-          onClick={() =>
-            changePage(page - 1)
-          }
-          style={{
-            height: 38,
+                  {selectedIds.length > 0 && (
+                    <>
+                      <button className="tr-dashboard-bulk-approve-button" onClick={() => handleBulkAction("approve")} style={ABT("approve")}>✓ Approve</button>
+                      <button className="tr-dashboard-bulk-reject-button" onClick={() => handleBulkAction("reject")} style={ABT("reject")}>✕ Reject</button>
+                      {!selectAllPages && (
+                        <button className="tr-dashboard-bulk-assign-button" onClick={() => setBulkAssigning((v) => !v)} style={ABT("neutral")}>Assign Product</button>
+                      )}
+                      <button
+                        className="tr-dashboard-bulk-delete-button"
+                        onClick={() => {
+                          const count = selectAllPages ? total : selectedIds.length;
+                          if (window.confirm(`Delete ${count} review${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
+                            handleBulkAction("delete");
+                          }
+                        }}
+                        style={{ ...ABT("reject"), background: "#fee2e2", color: "#b91c1c" }}
+                      >Delete</button>
+                      <button
+                        className="tr-dashboard-bulk-clear-button"
+                        onClick={clearSelection}
+                        style={{ border: "none", background: "none", color: D.muted, cursor: "pointer", fontSize: 13, textDecoration: "underline", marginLeft: "auto" }}
+                      >Clear</button>
+                    </>
+                  )}
+                </div>
 
-            border:
-              "1px solid #D6E6F2",
+                {allPageSelected && !selectAllPages && total > allVisibleIds.length && (
+                  <div className="tr-dashboard-page-selection-banner" style={{
+                    marginTop: 8, padding: "10px 14px", background: D.greyLt, borderRadius: 10,
+                    display: "flex", alignItems: "center", gap: 12, fontSize: 13, color: D.body, flexWrap: "wrap",
+                  }}>
+                    <span>All <strong>{allVisibleIds.length}</strong> reviews on this page are selected.</span>
+                    <button className="tr-dashboard-select-all-pages-button" onClick={handleSelectAllPages} style={{ ...linkBtn, padding: 0, fontSize: 13, textDecoration: "underline" }}>
+                      Select all {total} reviews
+                    </button>
+                  </div>
+                )}
+                {selectAllPages && (
+                  <div className="tr-dashboard-all-selection-banner" style={{
+                    marginTop: 8, padding: "10px 14px", background: D.greyLt, borderRadius: 10,
+                    display: "flex", alignItems: "center", gap: 12, fontSize: 13, color: D.body, flexWrap: "wrap",
+                  }}>
+                    <span>All <strong>{total}</strong> reviews are selected.</span>
+                    <button className="tr-dashboard-all-selection-clear-button" onClick={clearSelection} style={{ ...linkBtn, padding: 0, fontSize: 13, textDecoration: "underline" }}>
+                      Clear selection
+                    </button>
+                  </div>
+                )}
+                {bulkAssigning && selectedIds.length > 0 && !selectAllPages && (
+                  <div className="tr-dashboard-bulk-product-picker" style={{ marginTop: 10 }}>
+                    <ProductPicker onSelect={handleBulkAssignProduct} onClose={() => setBulkAssigning(false)} />
+                  </div>
+                )}
+              </div>
+            )}
 
-            borderRadius: 10,
+            {/* Groups / empty state */}
+            {grouped.length === 0 ? (
+              isFirstTime ? (
+                <div className="tr-dashboard-empty-state" style={{ padding: "56px 24px 64px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: D.amberLt, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="#E0A100" stroke="#E0A100" strokeWidth="1.5" strokeLinejoin="round">
+                      <path d={STAR_PATH} />
+                    </svg>
+                  </div>
+                  <h3 style={{ margin: "18px 0 6px", fontSize: 18, fontWeight: 700, color: D.text }}>No reviews yet</h3>
+                  <p style={{ margin: 0, maxWidth: 380, fontSize: 15, lineHeight: 1.5, color: D.muted }}>
+                    Once customers leave a review, it shows up here. You can also import the ones you already have.
+                  </p>
+                  <div style={{ marginTop: 22, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10 }}>
+                    <button onClick={handleInstallScript} style={btnPrimary}>{t.installWidget}</button>
+                    <button onClick={() => setShowImport(true)} style={btnSecondary}>{t.import}</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="tr-dashboard-empty-state" style={{ padding: "48px 24px", textAlign: "center", color: D.muted, fontSize: 15 }}>
+                  {t.noReviews}
+                </div>
+              )
+            ) : (
+              grouped.map((g) => (
+                <ProductGroup
+                  key={g.productId} group={g} onAction={handleAction} t={t}
+                  selectedIds={selectedIds} onToggleSelect={toggleSelect}
+                  onToggleGroupSelect={toggleGroupSelect}
+                />
+              ))
+            )}
+          </div>
+        </div>
 
-            padding: "0 20px",
-
-            fontSize: 12.5,
-
-            fontWeight: 650,
-
-            cursor:
-              page === 1
-                ? "default"
-                : "pointer",
-
-            background:
-              page === 1
-                ? "#EDF4F8"
-                : "#FFFFFF",
-
-            color:
-              page === 1
-                ? "#B8C8D4"
-                : "#4F7392",
-
-            boxShadow:
-              page === 1
-                ? "none"
-                : "0 5px 14px rgba(79,115,146,.07)",
-          }}
-        >
-          {t.prev}
-        </button>
-
-        <span
-          className="tr-dashboard-pagination-label"
-          style={{
-            fontSize: 12.5,
-
-            color: "#829BAF",
-
-            fontWeight: 550,
-
-            background: "#FFFFFF",
-
-            border:
-              "1px solid #D6E6F2",
-
-            borderRadius: 9,
-
-            padding: "8px 14px",
-          }}
-        >
-          {t.page} {page} {t.of} {totalPages}
-        </span>
-
-        <button
-          className="tr-dashboard-pagination-next"
-          disabled={
-            page === totalPages
-          }
-          onClick={() =>
-            changePage(page + 1)
-          }
-          style={{
-            height: 38,
-
-            border:
-              "1px solid #D6E6F2",
-
-            borderRadius: 10,
-
-            padding: "0 20px",
-
-            fontSize: 12.5,
-
-            fontWeight: 650,
-
-            cursor:
-              page === totalPages
-                ? "default"
-                : "pointer",
-
-            background:
-              page === totalPages
-                ? "#EDF4F8"
-                : "#FFFFFF",
-
-            color:
-              page === totalPages
-                ? "#B8C8D4"
-                : "#4F7392",
-
-            boxShadow:
-              page === totalPages
-                ? "none"
-                : "0 5px 14px rgba(79,115,146,.07)",
-          }}
-        >
-          {t.next}
-        </button>
+        {/* ── Pagination ── */}
+        {totalPages > 1 && (
+          <div className="tr-dashboard-pagination" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
+            <button
+              className="tr-dashboard-pagination-prev"
+              disabled={page === 1}
+              onClick={() => changePage(page - 1)}
+              style={{ ...btnSecondary, opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? "default" : "pointer" }}
+            >{t.prev}</button>
+            <span className="tr-dashboard-pagination-label" style={{ fontSize: 14, color: D.muted, fontWeight: 500 }}>
+              {t.page} {page} {t.of} {totalPages}
+            </span>
+            <button
+              className="tr-dashboard-pagination-next"
+              disabled={page === totalPages}
+              onClick={() => changePage(page + 1)}
+              style={{ ...btnSecondary, opacity: page === totalPages ? 0.5 : 1, cursor: page === totalPages ? "default" : "pointer" }}
+            >{t.next}</button>
+          </div>
+        )}
       </div>
-    )}
-  </div>
-</div>
+    </div>
   );
 }

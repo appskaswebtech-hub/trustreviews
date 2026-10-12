@@ -571,7 +571,7 @@ export default function WidgetCustomizePage() {
 
     .tr-widget-preview-card:hover{
       border-color:#C2D9E8 !important;
-      box-shadow:0 14px 34px rgba(79,115,146,.085) !important;
+      box-shadow:0 14px 34px rgba(16,34,74,.085) !important;
     }
 
     @media(max-width:768px){
@@ -630,10 +630,10 @@ export default function WidgetCustomizePage() {
     style={{
       width: "100%",
       background: "#FFFFFF",
-      border: "1px solid #D6E6F2",
+      border: "1px solid #D5E6FB",
       borderRadius: 18,
       overflow: "hidden",
-      boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+      boxShadow: "0 10px 28px rgba(16,34,74,.06)",
     }}
     className="tr-app-routes-app-widgets-key-div-33 tr-widget-preview-card"
   >
@@ -646,7 +646,7 @@ export default function WidgetCustomizePage() {
         padding: "15px 17px",
         borderBottom: "1px solid #E2ECF3",
         background:
-          "linear-gradient(135deg,#FFFFFF 0%,#F5FAFD 100%)",
+          "linear-gradient(135deg,#FFFFFF 0%,#F5F9FF 100%)",
       }}
       className="tr-widget-preview-header"
     >
@@ -668,10 +668,10 @@ export default function WidgetCustomizePage() {
             justifyContent: "center",
             flexShrink: 0,
             background:
-              "linear-gradient(145deg,#EDF5FA,#E1EEF6)",
-            border: "1px solid #D6E6F2",
-            color: "#4F7392",
-            boxShadow: "0 5px 12px rgba(79,115,146,.06)",
+              "linear-gradient(145deg,#EDF5FF,#E1EEF6)",
+            border: "1px solid #D5E6FB",
+            color: "#10224A",
+            boxShadow: "0 5px 12px rgba(16,34,74,.06)",
           }}
           className="tr-widget-preview-icon"
         >
@@ -710,7 +710,7 @@ export default function WidgetCustomizePage() {
             style={{
               fontSize: 14.5,
               fontWeight: 800,
-              color: "#496B87",
+              color: "#10224A",
               lineHeight: 1.3,
               letterSpacing: "-.015em",
             }}
@@ -741,8 +741,8 @@ export default function WidgetCustomizePage() {
           padding: "5px 9px",
           borderRadius: 999,
           background: "#F1F7FA",
-          border: "1px solid #D6E6F2",
-          color: "#6F8FA9",
+          border: "1px solid #D5E6FB",
+          color: "#5B6B85",
           fontSize: 10.5,
           fontWeight: 750,
           flexShrink: 0,
@@ -755,7 +755,7 @@ export default function WidgetCustomizePage() {
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: "#8DB4D6",
+            background: "#73AFF1",
           }}
         />
 
@@ -767,7 +767,7 @@ export default function WidgetCustomizePage() {
       style={{
         padding: "18px",
         background:
-          "radial-gradient(circle at 50% 0%, rgba(214,230,242,.38), transparent 35%), #F6FAFC",
+          "radial-gradient(circle at 50% 0%, rgba(213,230,251,.38), transparent 35%), #F6FAFC",
       }}
       className="tr-widget-preview-content"
     >
@@ -778,7 +778,7 @@ export default function WidgetCustomizePage() {
           borderRadius: 14,
           background: "#FFFFFF",
           border: "1px solid #E0EAF1",
-          boxShadow: "0 8px 22px rgba(79,115,146,.055)",
+          boxShadow: "0 8px 22px rgba(16,34,74,.055)",
         }}
       >
         <ReviewWidgetPreview
@@ -795,10 +795,10 @@ export default function WidgetCustomizePage() {
     style={{
       width: "100%",
       background: "#FFFFFF",
-      border: "1px solid #D6E6F2",
+      border: "1px solid #D5E6FB",
       borderRadius: 18,
       overflow: "hidden",
-      boxShadow: "0 10px 28px rgba(79,115,146,.06)",
+      boxShadow: "0 10px 28px rgba(16,34,74,.06)",
     }}
     className="tr-widget-preview-card"
   >
@@ -811,7 +811,7 @@ export default function WidgetCustomizePage() {
         padding: "15px 17px",
         borderBottom: "1px solid #E2ECF3",
         background:
-          "linear-gradient(135deg,#FFFFFF 0%,#F5FAFD 100%)",
+          "linear-gradient(135deg,#FFFFFF 0%,#F5F9FF 100%)",
       }}
       className="tr-widget-preview-header"
     >
@@ -833,10 +833,10 @@ export default function WidgetCustomizePage() {
             justifyContent: "center",
             flexShrink: 0,
             background:
-              "linear-gradient(145deg,#EDF5FA,#E1EEF6)",
-            border: "1px solid #D6E6F2",
-            color: "#4F7392",
-            boxShadow: "0 5px 12px rgba(79,115,146,.06)",
+              "linear-gradient(145deg,#EDF5FF,#E1EEF6)",
+            border: "1px solid #D5E6FB",
+            color: "#10224A",
+            boxShadow: "0 5px 12px rgba(16,34,74,.06)",
           }}
           className="tr-widget-preview-icon"
         >
@@ -869,7 +869,7 @@ export default function WidgetCustomizePage() {
             style={{
               fontSize: 14.5,
               fontWeight: 800,
-              color: "#496B87",
+              color: "#10224A",
               lineHeight: 1.3,
               letterSpacing: "-.015em",
             }}
@@ -900,8 +900,8 @@ export default function WidgetCustomizePage() {
           padding: "5px 9px",
           borderRadius: 999,
           background: "#F1F7FA",
-          border: "1px solid #D6E6F2",
-          color: "#6F8FA9",
+          border: "1px solid #D5E6FB",
+          color: "#5B6B85",
           fontSize: 10.5,
           fontWeight: 750,
           flexShrink: 0,
@@ -917,7 +917,7 @@ export default function WidgetCustomizePage() {
       style={{
         padding: "18px",
         background:
-          "radial-gradient(circle at 50% 0%, rgba(214,230,242,.38), transparent 35%), #F6FAFC",
+          "radial-gradient(circle at 50% 0%, rgba(213,230,251,.38), transparent 35%), #F6FAFC",
       }}
       className="tr-widget-preview-content"
     >

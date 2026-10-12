@@ -5,6 +5,7 @@ import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
+import { BRAND } from "../utils/brand";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -21,8 +22,9 @@ export async function loader({ request }) {
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78",
+  text: BRAND.navy, muted: "#6b6b78",
   green: "#1f7a4d", greenLt: "#e7f4ec",
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 function ProviderCard({ providerKey, provider, connected }) {

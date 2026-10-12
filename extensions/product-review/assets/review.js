@@ -35,6 +35,7 @@ var REVIEW_TRANSLATIONS_EN = {
   sortOptions: { newest: "Newest First", oldest: "Oldest First", highest: "Highest Rated", lowest: "Lowest Rated", helpful: "Most Helpful" },
   search: "Search", searchAria: "Search reviews", searchPlaceholder: "Search reviews...",
   searchClearAria: "Clear search", noResults: "No reviews match your search.",
+  noReviewsYet: "No reviews yet. Be the first to write one!",
   helpful: "Helpful", share: "Share",
   helpfulQuestion: "Was this review helpful?", notHelpful: "Not helpful",
   requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
@@ -579,8 +580,15 @@ function renderReviews(){
     return 0;
   });
 
+  // No reviews at all: hide Sort/Search (nothing to sort or search) and invite
+  // the first review instead of "No reviews match your search."
+  var hasReviews = allReviews.length > 0;
+  var toolbarRight = document.querySelector(".reviews-toolbar .toolbar-right");
+  if(toolbarRight) toolbarRight.style.display = hasReviews ? "" : "none";
+
   if(filtered.length === 0){
     container.innerHTML = "";
+    noResults.textContent = hasReviews ? T.noResults : (T.noReviewsYet || REVIEW_TRANSLATIONS_EN.noReviewsYet);
     noResults.style.display = "block";
     renderPagination(0);
     return;

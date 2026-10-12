@@ -11,6 +11,7 @@ import {
   syncSubscriptionStatus,
   isDevStore,
 } from "../billing.server";
+import { BRAND } from "../utils/brand";
 
 /* ── Required by React Router v7 in production ── */
 export function headers() {
@@ -104,7 +105,8 @@ export const action = async ({ request }) => {
 /* ── Styles ── */
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
-  text: "#17171c", muted: "#6b6b78", accent: "#111827",
+  text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
+  onAccent: BRAND.onBlue, accentText: BRAND.blueText,
 };
 
 /* ── Page ── */
@@ -226,7 +228,7 @@ export default function BillingPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 8% 0%, rgba(141,180,214,.20), transparent 28%), radial-gradient(circle at 92% 5%, rgba(214,230,242,.55), transparent 30%), #F2F7FB",
+      "radial-gradient(circle at 8% 0%, rgba(115,175,241,.20), transparent 28%), radial-gradient(circle at 92% 5%, rgba(213,230,251,.55), transparent 30%), #EAF3FE",
     minHeight: "100vh",
     padding: "44px 28px 56px",
   }}
@@ -237,10 +239,10 @@ export default function BillingPage() {
       maxWidth: 940,
       margin: "0 auto",
       background: "rgba(255,255,255,.72)",
-      border: "1px solid #D6E6F2",
+      border: "1px solid #D5E6FB",
       borderRadius: 24,
       padding: "34px",
-      boxShadow: "0 18px 50px rgba(79,115,146,.09)",
+      boxShadow: "0 18px 50px rgba(16,34,74,.09)",
       backdropFilter: "blur(12px)",
     }}
     className="tr-app-routes-app-billing-div-4"
@@ -249,7 +251,7 @@ export default function BillingPage() {
       style={{
         fontSize: 32,
         fontWeight: 800,
-        color: "#4F7392",
+        color: "#10224A",
         margin: "0 0 7px",
         textAlign: "center",
         letterSpacing: "-.035em",
@@ -263,7 +265,7 @@ export default function BillingPage() {
     <p
       style={{
         fontSize: 14,
-        color: "#829CAF",
+        color: "#5B6B85",
         margin: "0 0 30px",
         textAlign: "center",
         lineHeight: 1.6,
@@ -276,16 +278,16 @@ export default function BillingPage() {
     {devStore && (
       <div
         style={{
-          background: "linear-gradient(135deg,#F2F7FB 0%,#FFFFFF 100%)",
-          border: "1px solid #8DB4D6",
+          background: "linear-gradient(135deg,#EAF3FE 0%,#FFFFFF 100%)",
+          border: "1px solid #73AFF1",
           borderRadius: 12,
           padding: "12px 16px",
           marginBottom: 22,
           fontSize: 12.8,
-          color: "#4F7392",
+          color: "#10224A",
           fontWeight: 650,
           textAlign: "center",
-          boxShadow: "0 6px 18px rgba(79,115,146,.07)",
+          boxShadow: "0 6px 18px rgba(16,34,74,.07)",
         }}
         className="tr-app-routes-app-billing-div-7"
       >
@@ -294,7 +296,7 @@ export default function BillingPage() {
           className="tr-app-routes-app-billing-strong-8"
           style={{
             fontWeight: 800,
-            color: "#4F7392",
+            color: "#10224A",
           }}
         >
           Advanced plan is free
@@ -306,16 +308,16 @@ export default function BillingPage() {
     {!devStore && isAdvanced && (
       <div
         style={{
-          background: "linear-gradient(135deg,#FFFFFF 0%,#F2F7FB 100%)",
+          background: "linear-gradient(135deg,#FFFFFF 0%,#EAF3FE 100%)",
           border: "1px solid #B9D3E6",
           borderRadius: 12,
           padding: "12px 16px",
           marginBottom: 22,
           fontSize: 12.8,
-          color: "#4F7392",
+          color: "#10224A",
           fontWeight: 650,
           textAlign: "center",
-          boxShadow: "0 6px 18px rgba(79,115,146,.06)",
+          boxShadow: "0 6px 18px rgba(16,34,74,.06)",
         }}
         className="tr-app-routes-app-billing-div-9"
       >
@@ -324,7 +326,7 @@ export default function BillingPage() {
           className="tr-app-routes-app-billing-strong-10"
           style={{
             fontWeight: 800,
-            color: "#4F7392",
+            color: "#10224A",
           }}
         >
           Advanced
@@ -343,7 +345,7 @@ export default function BillingPage() {
         padding: "4px",
         borderRadius: 20,
         background:
-          "linear-gradient(135deg,rgba(242,247,251,.85),rgba(255,255,255,.65))",
+          "linear-gradient(135deg,rgba(234,243,254,.85),rgba(255,255,255,.65))",
       }}
       className="tr-app-routes-app-billing-div-11"
     >
@@ -410,13 +412,13 @@ export default function BillingPage() {
     <p
       style={{
         fontSize: 14,
-        color: "#829CAF",
+        color: "#5B6B85",
         margin: 0,
         textAlign: "center",
         lineHeight: 1.6,
         padding: "11px 14px",
         background: "#F7FAFC",
-        border: "1px solid #D6E6F2",
+        border: "1px solid #D5E6FB",
         borderRadius: 10,
       }}
       className="tr-app-routes-app-billing-p-12"
@@ -491,8 +493,8 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading, 
             cursor: isLoading ? "wait" : "pointer",
             // background: action.variant === "primary" ? "#111827" : "#fff",
              background:
-                "linear-gradient(135deg,#8DB4D6 0%,#6F96B6 100%)",
-            color: action.variant === "primary" ? "#fff" : "#111827",
+                "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+            color: action.variant === "primary" ? "#10224A" : "#111827",
             transition: "opacity .15s",
             opacity: isLoading ? 0.6 : 1,
           }}

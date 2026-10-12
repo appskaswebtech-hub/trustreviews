@@ -2,6 +2,7 @@ import { redirect, useLoaderData, useSubmit, useActionData, Link } from "react-r
 import { useState } from "react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { BRAND } from "../utils/brand";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LAYOUTS = [
@@ -124,7 +125,7 @@ const SAMPLES = [
   { id: 9, name: "Chloe F.", initials: "CF", rating: 5, title: "Five stars all the way",  text: "From ordering to delivery this was flawless. The product is beautiful and I could not be happier.", date: "2 months ago", abs: "Oct 5, 2024", verified: true,  helpful: 29, hasMedia: true, hasReply: false, tags: ["Great experience"] },
 ];
 
-const C = { accent: "#6B1A2C", accentL: "#f5e6e9", surface: "#fff", border: "#e5e4ec", text: "#17171c", muted: "#6b6b78" };
+const C = { accent: BRAND.blue, accentL: BRAND.blueLight, surface: "#fff", border: "#e5e4ec", text: BRAND.navy, muted: "#6b6b78", onAccent: BRAND.onBlue, accentText: BRAND.blueText };
 
 // ─── Loader / Action ──────────────────────────────────────────────────────────
 export async function loader({ request, params }) {
@@ -476,7 +477,7 @@ function SettingsSidebar({ s, onChange }) {
         <button onClick={() => setOpen(isOpen ? null : id)} style={{
           width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "11px 14px",
           background: isOpen ? "#fdf2f4" : "none", border: "none",
-          fontSize: 11.5, fontWeight: 600, color: isOpen ? C.accent : C.muted,
+          fontSize: 11.5, fontWeight: 600, color: isOpen ? C.accentText : C.muted,
           textTransform: "uppercase", letterSpacing: 0.5, cursor: "pointer",
         }} className="tr-app-routes-app-customize-id-button-80">
           <span style={{ fontSize: 14 }} className="tr-app-routes-app-customize-id-span-81">{emoji}</span>
@@ -546,7 +547,7 @@ function SettingsSidebar({ s, onChange }) {
               flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 600,
               border: `1.5px solid ${value === (o.key || o) ? C.accent : C.border}`,
               background: value === (o.key || o) ? C.accentL : "#fff",
-              color: value === (o.key || o) ? C.accent : C.muted,
+              color: value === (o.key || o) ? C.accentText : C.muted,
             }} className="tr-app-routes-app-customize-id-button-98">{o.label || o}</button>
           ))}
         </div>
@@ -566,7 +567,7 @@ function SettingsSidebar({ s, onChange }) {
                 padding: "8px 4px", borderRadius: 8, cursor: "pointer", textAlign: "center",
                 border: `2px solid ${s.layout === l.key ? C.accent : C.border}`,
                 background: s.layout === l.key ? C.accentL : "#fff",
-                fontSize: 10, fontWeight: 600, color: s.layout === l.key ? C.accent : C.text,
+                fontSize: 10, fontWeight: 600, color: s.layout === l.key ? C.accentText : C.text,
               }} className="tr-app-routes-app-customize-id-button-101">
                 <div style={{ fontSize: 17, marginBottom: 2 }} className="tr-app-routes-app-customize-id-div-102">{l.icon}</div>
                 {l.label}
@@ -615,7 +616,7 @@ function SettingsSidebar({ s, onChange }) {
                 flex: 1, padding: "5px 4px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 600,
                 border: `1.5px solid ${s.cardBorderStyle === bs ? C.accent : C.border}`,
                 background: s.cardBorderStyle === bs ? C.accentL : "#fff",
-                color: s.cardBorderStyle === bs ? C.accent : C.muted,
+                color: s.cardBorderStyle === bs ? C.accentText : C.muted,
               }} className="tr-app-routes-app-customize-id-button-106">{bs}</button>
             ))}
           </div>
@@ -759,7 +760,7 @@ export default function TemplateBuilder() {
           placeholder="Template name"  className="tr-app-routes-app-customize-id-input-117"/>
         <div style={{ flex: 1 }}  className="tr-app-routes-app-customize-id-div-118"/>
         {saved && <span style={{ fontSize: 12, color: "#059669", fontWeight: 600 }} className="tr-app-routes-app-customize-id-span-119">Saved ✓</span>}
-        <button onClick={handleSave} style={{ padding: "8px 28px", borderRadius: 9, fontSize: 13.5, fontWeight: 600, background: C.accent, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(107,26,44,.28)" }} className="tr-app-routes-app-customize-id-button-120">Save</button>
+        <button onClick={handleSave} style={{ padding: "8px 28px", borderRadius: 9, fontSize: 13.5, fontWeight: 600, background: C.accent, color: C.onAccent, border: "none", cursor: "pointer", boxShadow: "0 2px 8px rgba(107,26,44,.28)" }} className="tr-app-routes-app-customize-id-button-120">Save</button>
       </div>
 
       {/* Body */}
@@ -783,7 +784,7 @@ export default function TemplateBuilder() {
                     padding: "4px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
                     border: `1.5px solid ${activeTab === t ? C.accent : C.border}`,
                     background: activeTab === t ? C.accentL : "#fff",
-                    color: activeTab === t ? C.accent : C.muted,
+                    color: activeTab === t ? C.accentText : C.muted,
                   }} className="tr-app-routes-app-customize-id-button-128">{t === "preview" ? "Desktop" : "Mobile"}</button>
                 ))}
               </div>

@@ -42,7 +42,7 @@ export const BLOCKS = {
     { type: "checkbox", label: "Show \"Write a Review\" button and form", value: true },
     { type: "checkbox", label: "Show \"Verified\" badge on every review", value: true },
   ] },
-  review: { name: "Reviews + Write Review", settings: [
+  review: { name: "Reviews + Write a Review", settings: [
     { type: "checkbox", label: "Show \"Write a Review\" button and form", value: true },
     { type: "select", label: "Review helpfulness voting", value: "Simple" },
     { type: "color", label: "Accent Color (buttons & stars)", value: "#1a1a1a" },
@@ -69,13 +69,13 @@ export const WIDGETS = CATALOG.map((w) => {
 
 // Widgets without a theme block (the app shows "Learn more →" instead of Install).
 export const NON_THEME_NOTES = {
-  instagram_shopping: "Set it up from Trust Reviews → Widgets → UCC Instagram Shopping. It is not added as a theme block.",
+  instagram_shopping: "Set it up from Trust Reviews → Widgets → Instagram Shop Feed. It is not added as a theme block.",
   customer_accounts: "Uses a Customer Account UI extension, not a theme block, so there are no Theme Editor steps.",
   collection_ratings: "An app embed, not a block: in the Theme Editor open App embeds, switch on \"Collection Star Ratings\" and press Save. Stars then appear under the product name on product cards across the store; colors, size, text and where it shows are set right there.",
 };
 
 export function widgetImage(w) {
-  return w.image || `/images/${encodeURIComponent(w.title)}.png`;
+  return w.image || null;
 }
 
 // Same helpers the Widgets page uses for the letter badge on each card.

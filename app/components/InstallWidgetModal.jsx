@@ -41,16 +41,16 @@ export default function InstallWidgetModal({ shop, apiKey, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 760, maxHeight: "92vh", overflowY: "auto",
-          background: "#FFFFFF", borderRadius: 16, border: "1px solid #D6E6F2",
+          background: "#FFFFFF", borderRadius: 16, border: "1px solid #D5E6FB",
           boxShadow: "0 24px 60px rgba(23,32,42,.25)", fontFamily: "var(--app-font-family)",
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "20px 22px 12px" }}>
           <div>
-            <h2 id="install-widget-title" style={{ margin: 0, fontSize: 20, fontWeight: 750, color: "#4F7392" }}>
+            <h2 id="install-widget-title" style={{ margin: 0, fontSize: 20, fontWeight: 750, color: "#10224A" }}>
               Add reviews to your store
             </h2>
-            <p style={{ margin: "6px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "#829CAF" }}>
+            <p style={{ margin: "6px 0 0", fontSize: 13.5, lineHeight: 1.55, color: "#5B6B85" }}>
               Watch where the widget appears in Shopify&apos;s Theme Editor. Click <b>Continue</b> —
               the Theme Editor opens with <b>Trust Reviews Engine</b> switched on. Press <b>Save</b>,
               then add the review widgets you want from <b>Add block</b>.
@@ -60,7 +60,7 @@ export default function InstallWidgetModal({ shop, apiKey, onClose }) {
             onClick={onClose}
             aria-label="Close"
             style={{
-              border: "1px solid #D6E6F2", background: "#F2F7FB", color: "#4F7392",
+              border: "1px solid #D5E6FB", background: "#FFFFFF", color: "#10224A",
               borderRadius: 8, width: 32, height: 32, fontSize: 16, cursor: "pointer", flexShrink: 0,
             }}
           >
@@ -76,7 +76,7 @@ export default function InstallWidgetModal({ shop, apiKey, onClose }) {
           <button
             onClick={onClose}
             style={{
-              border: "1px solid #D6E6F2", background: "#FFFFFF", color: "#4F7392",
+              border: "1px solid #D5E6FB", background: "#FFFFFF", color: "#10224A",
               borderRadius: 9, padding: "9px 18px", fontWeight: 650, fontSize: 13.5, cursor: "pointer",
             }}
           >
@@ -86,9 +86,9 @@ export default function InstallWidgetModal({ shop, apiKey, onClose }) {
             onClick={handleContinue}
             style={{
               border: "none", borderRadius: 9, padding: "9px 22px",
-              background: "linear-gradient(135deg,#8DB4D6,#6F96B6)", color: "#fff",
+              background: "linear-gradient(135deg,#73AFF1,#5E9FE8)", color: "#10224A",
               fontWeight: 700, fontSize: 13.5, cursor: "pointer",
-              boxShadow: "0 6px 16px rgba(79,115,146,.17)",
+              boxShadow: "0 6px 16px rgba(16,34,74,.17)",
             }}
           >
             Continue to Theme Editor →
