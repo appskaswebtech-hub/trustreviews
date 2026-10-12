@@ -494,7 +494,7 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading, 
             // background: action.variant === "primary" ? "#111827" : "#fff",
              background:
                 "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
-            color: action.variant === "primary" ? "#10224A" : "#111827",
+            color: action.variant === "primary" ? "#fff" : "#fff",
             transition: "opacity .15s",
             opacity: isLoading ? 0.6 : 1,
           }}
