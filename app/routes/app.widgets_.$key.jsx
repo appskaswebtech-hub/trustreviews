@@ -755,7 +755,7 @@ export default function WidgetCustomizePage() {
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: "#73AFF1",
+            background: "#2A74C9",
           }}
         />
 

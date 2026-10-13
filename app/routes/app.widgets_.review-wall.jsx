@@ -167,7 +167,7 @@ export default function ReviewWallPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.16), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.42), transparent 28%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.16), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.42), transparent 28%), #EAF3FE",
     padding: "clamp(20px, 4vw, 42px) clamp(14px, 3vw, 28px)",
     fontFamily: "inherit",
     boxSizing: "border-box",
@@ -206,7 +206,7 @@ export default function ReviewWallPage() {
           right: "18%",
           height: 3,
           background:
-            "linear-gradient(90deg, transparent, #73AFF1, transparent)",
+            "linear-gradient(90deg, transparent, #2A74C9, transparent)",
           borderRadius: "0 0 10px 10px",
         }}
       />
@@ -239,7 +239,7 @@ export default function ReviewWallPage() {
           style={{
             fontSize: 10.5,
             fontWeight: 800,
-            background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+            background: "linear-gradient(135deg,#2A74C9,#1F62B0)",
             color: "#fff",
             padding: "5px 10px",
             borderRadius: 20,
@@ -381,7 +381,7 @@ export default function ReviewWallPage() {
                 height: "clamp(32px, 5vw, 36px)",
                 borderRadius: 10,
                 background:
-                  "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+                  "linear-gradient(135deg,#2A74C9 0%,#1F62B0 100%)",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",

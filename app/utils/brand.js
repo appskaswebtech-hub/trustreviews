@@ -3,9 +3,9 @@
 // Mirrored as CSS variables in app/global.css.
 export const BRAND = {
   navy: "#10224A",       // headings and main text
-  blue: "#73AFF1",       // buttons, active tabs, highlights
-  blueHover: "#5E9FE8",
+  blue: "#2A74C9",       // buttons, active tabs, highlights (a darker shade of the logo blue #73AFF1 so white text reads well)
+  blueHover: "#1F62B0",
   blueLight: "#EAF3FE",  // soft blue backgrounds (selected chips, badges)
-  onBlue: "#fff",     // text on a blue button — white on #73AFF1 is too faint to read
-  blueText: "#2B6CB0",   // blue for links / small text on white (the logo blue is too light for text)
+  onBlue: "#fff",     // text on a blue button
+  blueText: "#2B6CB0",   // blue for links / small text on white
 };

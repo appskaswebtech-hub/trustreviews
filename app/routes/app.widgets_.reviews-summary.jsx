@@ -46,7 +46,7 @@ export default function ReviewsSummarySettingsPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.15), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 30%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.15), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 30%), #EAF3FE",
     minHeight: "100vh",
     padding: "clamp(18px, 4vw, 34px)",
     display: "flex",
@@ -189,7 +189,7 @@ export default function ReviewsSummarySettingsPage() {
         width: 120,
         height: 120,
         borderRadius: "50%",
-        background: "rgba(115,175,241,.08)",
+        background: "rgba(42,116,201,.08)",
         bottom: -70,
         left: -45,
         pointerEvents: "none",
@@ -332,7 +332,7 @@ export default function ReviewsSummarySettingsPage() {
         justifyContent: "center",
         gap: 8,
         background:
-          "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+          "linear-gradient(135deg,#2A74C9 0%,#1F62B0 100%)",
         color: "#fff",
         fontWeight: 750,
         fontSize: 13.5,

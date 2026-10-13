@@ -277,7 +277,7 @@ function PaywallPage() {
       width: 130,
       height: 130,
       borderRadius: "50%",
-      background: "rgba(115,175,241,.08)",
+      background: "rgba(42,116,201,.08)",
       bottom: -80,
       left: -50,
       pointerEvents: "none",
@@ -502,8 +502,8 @@ function PaywallPage() {
       fontSize: 14,
       fontWeight: 750,
       background:
-        "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
-      color: "#10224A",
+        "linear-gradient(135deg,#2A74C9 0%,#1F62B0 100%)",
+      color: "#FFFFFF",
       textDecoration: "none",
       boxShadow:
         "0 8px 20px rgba(16,34,74,.2)",

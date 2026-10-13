@@ -221,7 +221,7 @@ export default function FreePlanUpsellModal() {
       padding: "19px 20px",
       marginBottom: 0,
       background:
-        "linear-gradient(135deg,#587D9B 0%,#739DBD 52%,#73AFF1 100%)",
+        "linear-gradient(135deg,#587D9B 0%,#739DBD 52%,#2A74C9 100%)",
       position: "relative",
       overflow: "hidden",
     }}

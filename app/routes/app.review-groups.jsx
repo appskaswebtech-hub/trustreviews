@@ -677,9 +677,9 @@ export default function ReviewGroupsPage() {
             fontWeight: 700,
             cursor: newGroupName.trim() ? "pointer" : "default",
             background: newGroupName.trim()
-              ? "linear-gradient(135deg,#73AFF1,#5E9FE8)"
+              ? "linear-gradient(135deg,#2A74C9,#1F62B0)"
               : "#D5E6FB",
-            color: "#10224A",
+            color: "#FFFFFF",
             whiteSpace: "nowrap",
             boxShadow: newGroupName.trim()
               ? "0 6px 16px rgba(16,34,74,.18)"

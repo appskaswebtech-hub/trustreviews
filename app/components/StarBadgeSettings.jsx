@@ -135,7 +135,7 @@ export default function StarBadgeSettings({ settings }) {
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700,
               color: "#10224A", background: "#D5E6FB", padding: "5px 11px", borderRadius: 20,
-              border: "1px solid rgba(115,175,241,.45)",
+              border: "1px solid rgba(42,116,201,.45)",
             }}>
               ✓ Saved
             </span>
@@ -144,7 +144,7 @@ export default function StarBadgeSettings({ settings }) {
             onClick={handleSave}
             style={{
               border: "none", borderRadius: 9, padding: "9px 18px",
-              background: "linear-gradient(135deg,#73AFF1,#5E9FE8)", color: "#fff",
+              background: "linear-gradient(135deg,#2A74C9,#1F62B0)", color: "#fff",
               fontWeight: 700, fontSize: 12.5, cursor: "pointer",
               boxShadow: "0 6px 16px rgba(16,34,74,.17)",
             }}

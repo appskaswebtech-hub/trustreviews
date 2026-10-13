@@ -51,7 +51,7 @@ export default function InstagramShoppingStubPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.48), transparent 30%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.48), transparent 30%), #EAF3FE",
     fontFamily: "var(--app-font-family)",
     color: "#10224A",
     fontSize: 14,
@@ -322,7 +322,7 @@ export default function InstagramShoppingStubPage() {
           width: 110,
           height: 110,
           borderRadius: "50%",
-          background: "rgba(115,175,241,.08)",
+          background: "rgba(42,116,201,.08)",
           bottom: -65,
           left: -35,
           pointerEvents: "none",
@@ -436,7 +436,7 @@ export default function InstagramShoppingStubPage() {
                   width: 5,
                   height: 5,
                   borderRadius: "50%",
-                  background: "#73AFF1",
+                  background: "#2A74C9",
                 }}
               />
               Coming soon

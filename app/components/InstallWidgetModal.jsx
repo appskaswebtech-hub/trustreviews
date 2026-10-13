@@ -86,7 +86,7 @@ export default function InstallWidgetModal({ shop, apiKey, onClose }) {
             onClick={handleContinue}
             style={{
               border: "none", borderRadius: 9, padding: "9px 22px",
-              background: "linear-gradient(135deg,#73AFF1,#5E9FE8)", color: "#10224A",
+              background: "linear-gradient(135deg,#2A74C9,#1F62B0)", color: "#FFFFFF",
               fontWeight: 700, fontSize: 13.5, cursor: "pointer",
               boxShadow: "0 6px 16px rgba(16,34,74,.17)",
             }}

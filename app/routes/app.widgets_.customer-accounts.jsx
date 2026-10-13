@@ -44,7 +44,7 @@ export default function CustomerAccountsStubPage() {
   style={{
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 32%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.14), transparent 28%), radial-gradient(circle at 100% 8%, rgba(213,230,251,.5), transparent 32%), #EAF3FE",
     fontFamily: "var(--app-font-family)",
     color: "#10224A",
     fontSize: 14,
@@ -302,7 +302,7 @@ export default function CustomerAccountsStubPage() {
           width: 115,
           height: 115,
           borderRadius: "50%",
-          background: "rgba(115,175,241,.08)",
+          background: "rgba(42,116,201,.08)",
           bottom: -70,
           left: -35,
           pointerEvents: "none",

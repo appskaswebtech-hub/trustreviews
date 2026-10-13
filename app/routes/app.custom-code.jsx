@@ -258,14 +258,14 @@ function TabBar({ active, onChange }) {
           color: isActive ? "#10224A" : "#5B6B85",
           background: isActive ? "#FFFFFF" : "transparent",
           borderBottom: isActive
-            ? "3px solid #73AFF1"
+            ? "3px solid #2A74C9"
             : "3px solid transparent",
           display: "flex",
           alignItems: "center",
           gap: 7,
           transition: "all .16s ease",
           boxShadow: isActive
-            ? "0 -2px 10px rgba(115,175,241,.06)"
+            ? "0 -2px 10px rgba(42,116,201,.06)"
             : "none",
         }}
       >
@@ -282,7 +282,7 @@ function TabBar({ active, onChange }) {
             background: isActive ? "#D5E6FB" : "#EAF3FE",
             color: isActive ? "#10224A" : "#8DA7BC",
             border: isActive
-              ? "1px solid rgba(115,175,241,.45)"
+              ? "1px solid rgba(42,116,201,.45)"
               : "1px solid #E3EDF4",
           }}
         >
@@ -807,7 +807,7 @@ export default function CustomCodePage() {
               background: "#D5E6FB",
               padding: "5px 11px",
               borderRadius: 20,
-              border: "1px solid rgba(115,175,241,.45)",
+              border: "1px solid rgba(42,116,201,.45)",
             }}
             className="tr-app-routes-app-custom-code-span-36"
           >
@@ -821,8 +821,8 @@ export default function CustomCodePage() {
             border: "none",
             borderRadius: 9,
             padding: "9px 18px",
-            background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-            color: "#10224A",
+            background: "linear-gradient(135deg,#2A74C9,#1F62B0)",
+            color: "#FFFFFF",
             fontWeight: 700,
             fontSize: 12.5,
             cursor: "pointer",
@@ -982,8 +982,8 @@ export default function CustomCodePage() {
                     width: 24,
                     height: 24,
                     borderRadius: "50%",
-                    background: "#73AFF1",
-                    color: "#10224A",
+                    background: "#2A74C9",
+                    color: "#FFFFFF",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1096,7 +1096,7 @@ export default function CustomCodePage() {
                     borderRadius: 9,
                     cursor: "pointer",
                     border: active
-                      ? "2px solid #73AFF1"
+                      ? "2px solid #2A74C9"
                       : "1px solid #D5E6FB",
                     background: active ? "#EAF3FE" : "#FFFFFF",
                     color: active ? "#10224A" : "#5B6B85",
@@ -1105,7 +1105,7 @@ export default function CustomCodePage() {
                     textAlign: "left",
                     transition: "all .15s",
                     boxShadow: active
-                      ? "0 5px 14px rgba(115,175,241,.10)"
+                      ? "0 5px 14px rgba(42,116,201,.10)"
                       : "none",
                   }}
                   className="tr-app-routes-app-custom-code-button-58"
@@ -1117,7 +1117,7 @@ export default function CustomCodePage() {
                       style={{
                         float: "right",
                         fontSize: 14,
-                        color: "#73AFF1",
+                        color: "#2A74C9",
                       }}
                       className="tr-app-routes-app-custom-code-span-59"
                     >
@@ -1326,8 +1326,8 @@ document.addEventListener('trust:review-submitted', function(e) {
                 border: "none",
                 borderRadius: 9,
                 padding: "10px 24px",
-                background: "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-                color: "#10224A",
+                background: "linear-gradient(135deg,#2A74C9,#1F62B0)",
+                color: "#FFFFFF",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",

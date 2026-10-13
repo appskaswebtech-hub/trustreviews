@@ -77,7 +77,7 @@ export default function AdvancedPaywall({
       color: "#10224A",
       marginBottom: 12,
       background: "#D5E6FB",
-      border: "1px solid rgba(115,175,241,.45)",
+      border: "1px solid rgba(42,116,201,.45)",
       padding: "5px 10px",
       borderRadius: 999,
     }}
@@ -179,8 +179,8 @@ export default function AdvancedPaywall({
       borderRadius: 10,
       fontSize: 16,
       fontWeight: 700,
-      background: `linear-gradient(135deg, ${accentColor} 0%, #5E9FE8 100%)`,
-      color: "#10224A",
+      background: `linear-gradient(135deg, ${accentColor} 0%, #1F62B0 100%)`,
+      color: "#FFFFFF",
       textDecoration: "none",
       boxShadow: "0 8px 20px rgba(16,34,74,.18)",
     }}

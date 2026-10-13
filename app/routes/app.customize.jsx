@@ -1220,7 +1220,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
     }
 
     .tr-builder-bottom-drop:hover{
-      border-color:#73AFF1 !important;
+      border-color:#2A74C9 !important;
       background:#F7FAFF !important;
       color:#10224A !important;
       box-shadow:0 8px 20px rgba(16,34,74,.07) !important;
@@ -1397,7 +1397,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
           width: 150,
           height: 150,
           borderRadius: "50%",
-          background: "rgba(115,175,241,.08)",
+          background: "rgba(42,116,201,.08)",
           bottom: -90,
           left: -55,
           pointerEvents: "none",
@@ -1566,7 +1566,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                 background: "#FFFFFF",
 
                 border: selected
-                  ? "1.5px solid #73AFF1"
+                  ? "1.5px solid #2A74C9"
                   : "1px solid #D5E4ED",
 
                 borderRadius: 16,
@@ -1576,7 +1576,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                 cursor: "pointer",
 
                 boxShadow: selected
-                  ? "0 0 0 3px rgba(115,175,241,.13), 0 12px 28px rgba(16,34,74,.085)"
+                  ? "0 0 0 3px rgba(42,116,201,.13), 0 12px 28px rgba(16,34,74,.085)"
                   : "0 5px 16px rgba(16,34,74,.045)",
 
                 transition:
@@ -1695,7 +1695,7 @@ function Canvas({ blocks, selectedPath, onSelect, onReorder, onDelete, onDropNew
                         width: 5,
                         height: 5,
                         borderRadius: "50%",
-                        background: "#73AFF1",
+                        background: "#2A74C9",
                       }}
                     />
 
@@ -1993,7 +1993,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
     }
 
     .tr-builder-palette-item:hover{
-      border-color:#73AFF1 !important;
+      border-color:#2A74C9 !important;
       background:#F7FAFF !important;
       box-shadow:0 6px 16px rgba(16,34,74,.09) !important;
       transform:translateY(-1px);
@@ -2283,7 +2283,7 @@ function BlockPalette({ onAdd, colTarget, onClearColTarget, onAddToCol }) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor =
-                  "#73AFF1";
+                  "#2A74C9";
                 e.currentTarget.style.boxShadow =
                   "0 6px 16px rgba(16,34,74,.09)";
               }}
@@ -2560,8 +2560,8 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
     }
 
     .tr-builder-name-input:focus{
-      border-color:#73AFF1 !important;
-      box-shadow:0 0 0 3px rgba(115,175,241,.14) !important;
+      border-color:#2A74C9 !important;
+      box-shadow:0 0 0 3px rgba(42,116,201,.14) !important;
     }
 
     .tr-builder-left-panel::-webkit-scrollbar,
@@ -3038,8 +3038,8 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
           fontSize: 12.5,
           fontWeight: 750,
           background:
-            "linear-gradient(135deg,#73AFF1 0%,#7099B9 100%)",
-          color: "#10224A",
+            "linear-gradient(135deg,#2A74C9 0%,#7099B9 100%)",
+          color: "#FFFFFF",
           border: "none",
           cursor: "pointer",
           boxShadow: "0 6px 16px rgba(16,34,74,.18)",
@@ -3573,7 +3573,7 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
             width: 5,
             height: 5,
             borderRadius: "50%",
-            background: "#73AFF1",
+            background: "#2A74C9",
           }}
         />
 
@@ -3934,7 +3934,7 @@ export default function CustomizePage() {
     margin: "0 auto",
     padding: "clamp(18px, 3vw, 34px) clamp(14px, 3vw, 28px)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.5), transparent 28%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.5), transparent 28%), #EAF3FE",
     minHeight: "100vh",
     fontFamily: "inherit",
     boxSizing: "border-box",
@@ -3957,7 +3957,7 @@ export default function CustomizePage() {
     }
 
     .tr-customize-new-card:hover{
-      border-color:#73AFF1 !important;
+      border-color:#2A74C9 !important;
       background:#F5F9FF !important;
       transform:translateY(-2px);
       box-shadow:0 12px 26px rgba(16,34,74,.08) !important;
@@ -4485,7 +4485,7 @@ export default function CustomizePage() {
               fontSize: 13,
               fontWeight: 750,
               background:
-                "linear-gradient(135deg,#73AFF1,#5E9FE8)",
+                "linear-gradient(135deg,#2A74C9,#1F62B0)",
               color: "#fff",
               border: "none",
               cursor: "pointer",
@@ -4609,8 +4609,8 @@ export default function CustomizePage() {
                 fontSize: 13,
                 fontWeight: 750,
                 background:
-                  "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-                color: "#10224A",
+                  "linear-gradient(135deg,#2A74C9,#1F62B0)",
+                color: "#FFFFFF",
                 border: "none",
                 cursor: "pointer",
                 display: "inline-flex",

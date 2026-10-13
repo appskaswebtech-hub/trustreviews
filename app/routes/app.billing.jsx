@@ -228,7 +228,7 @@ export default function BillingPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 8% 0%, rgba(115,175,241,.20), transparent 28%), radial-gradient(circle at 92% 5%, rgba(213,230,251,.55), transparent 30%), #EAF3FE",
+      "radial-gradient(circle at 8% 0%, rgba(42,116,201,.20), transparent 28%), radial-gradient(circle at 92% 5%, rgba(213,230,251,.55), transparent 30%), #EAF3FE",
     minHeight: "100vh",
     padding: "44px 28px 56px",
   }}
@@ -279,7 +279,7 @@ export default function BillingPage() {
       <div
         style={{
           background: "linear-gradient(135deg,#EAF3FE 0%,#FFFFFF 100%)",
-          border: "1px solid #73AFF1",
+          border: "1px solid #2A74C9",
           borderRadius: 12,
           padding: "12px 16px",
           marginBottom: 22,
@@ -493,7 +493,7 @@ function PlanCard({ name, price, features, isCurrent, badge, action, isLoading, 
             cursor: isLoading ? "wait" : "pointer",
             // background: action.variant === "primary" ? "#111827" : "#fff",
              background:
-                "linear-gradient(135deg,#73AFF1 0%,#5E9FE8 100%)",
+                "linear-gradient(135deg,#2A74C9 0%,#1F62B0 100%)",
             color: action.variant === "primary" ? "#fff" : "#fff",
             transition: "opacity .15s",
             opacity: isLoading ? 0.6 : 1,

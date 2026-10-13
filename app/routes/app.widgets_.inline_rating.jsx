@@ -108,7 +108,7 @@ export default function InlineRatingInfoPage() {
   style={{
     fontFamily: "var(--app-font-family)",
     background:
-      "radial-gradient(circle at 0% 0%, rgba(115,175,241,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.45), transparent 28%), #EAF3FE",
+      "radial-gradient(circle at 0% 0%, rgba(42,116,201,.14), transparent 26%), radial-gradient(circle at 100% 5%, rgba(213,230,251,.45), transparent 28%), #EAF3FE",
     minHeight: "100vh",
     padding: "clamp(18px, 3vw, 32px)",
     boxSizing: "border-box",
@@ -464,8 +464,8 @@ export default function InlineRatingInfoPage() {
             height: 34,
             borderRadius: 10,
             background:
-              "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-            color: "#10224A",
+              "linear-gradient(135deg,#2A74C9,#1F62B0)",
+            color: "#FFFFFF",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -587,8 +587,8 @@ export default function InlineRatingInfoPage() {
             height: 34,
             borderRadius: 10,
             background:
-              "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-            color: "#10224A",
+              "linear-gradient(135deg,#2A74C9,#1F62B0)",
+            color: "#FFFFFF",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -671,8 +671,8 @@ export default function InlineRatingInfoPage() {
               borderRadius: 9,
               padding: "8px 14px",
               background:
-                "linear-gradient(135deg,#73AFF1,#5E9FE8)",
-              color: "#10224A",
+                "linear-gradient(135deg,#2A74C9,#1F62B0)",
+              color: "#FFFFFF",
               fontSize: 12.5,
               fontWeight: 750,
               cursor: "pointer",

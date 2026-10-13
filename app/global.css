@@ -5,10 +5,10 @@
 
   /* Brand colors (from the logo) — keep in sync with app/utils/brand.js */
   --tr-navy: #10224A;
-  --tr-blue: #73AFF1;
-  --tr-blue-hover: #5E9FE8;
+  --tr-blue: #2A74C9;
+  --tr-blue-hover: #1F62B0;
   --tr-blue-light: #EAF3FE;
-  --tr-on-blue: #10224A;
+  --tr-on-blue: #FFFFFF;
 }
 
 :root, .p-theme-light, .p-theme-dark {

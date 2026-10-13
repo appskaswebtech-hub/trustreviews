@@ -10,7 +10,7 @@ export default function HelpButton() {
           display: flex; align-items: center; justify-content: center; background: #4C6FFF; color: #fff; text-decoration: none;
           box-shadow: 0 6px 18px rgba(76,111,255,.35); transition: transform .15s ease, box-shadow .15s ease; }
         .tr-help-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(76,111,255,.45); }
-        .tr-help-btn:focus-visible { outline: 2px solid #73AFF1; outline-offset: 3px; }
+        .tr-help-btn:focus-visible { outline: 2px solid #2A74C9; outline-offset: 3px; }
         .tr-help-btn .tr-help-tip { position: absolute; right: 46px; white-space: nowrap; background: #17171c; color: #fff;
           font-size: 12px; font-weight: 500; padding: 5px 9px; border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
         .tr-help-btn:hover .tr-help-tip, .tr-help-btn:focus-visible .tr-help-tip { opacity: 1; }

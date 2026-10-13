@@ -338,7 +338,7 @@ export function OnboardingCard({
     background: "linear-gradient(135deg, #EAF3FE 0%, #FFFFFF 100%)",
     border: "1px solid #D5E6FB",
     borderRadius: 18,
-    boxShadow: "0 10px 28px rgba(115,175,241,.08)",
+    boxShadow: "0 10px 28px rgba(42,116,201,.08)",
   }}
 >
   {STEPS.map((label, i) => {
@@ -372,7 +372,7 @@ export function OnboardingCard({
               background: isCompleted
                 ? "#D5E6FB"
                 : isActive
-                ? "linear-gradient(135deg, #73AFF1 0%, #AFCBE2 100%)"
+                ? "linear-gradient(135deg, #2A74C9 0%, #AFCBE2 100%)"
                 : "#FFFFFF",
 
               color: isCompleted
@@ -382,16 +382,16 @@ export function OnboardingCard({
                 : "#A8BAC8",
 
               border: isActive
-                ? "2px solid #73AFF1"
+                ? "2px solid #2A74C9"
                 : isCompleted
-                ? "1.5px solid #73AFF1"
+                ? "1.5px solid #2A74C9"
                 : "1.5px solid #D5E6FB",
 
               boxShadow: isActive
-                ? "0 8px 20px rgba(115,175,241,.28)"
+                ? "0 8px 20px rgba(42,116,201,.28)"
                 : isCompleted
-                ? "0 5px 14px rgba(115,175,241,.14)"
-                : "0 3px 10px rgba(115,175,241,.06)",
+                ? "0 5px 14px rgba(42,116,201,.14)"
+                : "0 3px 10px rgba(42,116,201,.06)",
 
               transform: isActive ? "scale(1.08)" : "scale(1)",
 
@@ -425,10 +425,10 @@ export function OnboardingCard({
                   height: 7,
                   borderRadius: "50%",
                   background: "#FFFFFF",
-                  border: "2px solid #73AFF1",
+                  border: "2px solid #2A74C9",
                   bottom: -4,
                   right: -3,
-                  boxShadow: "0 2px 7px rgba(115,175,241,.3)",
+                  boxShadow: "0 2px 7px rgba(42,116,201,.3)",
                 }}
                className="tr-app-components-onboardingwizardui-span-1"/>
             )}
@@ -458,9 +458,9 @@ export function OnboardingCard({
               fontWeight: 600,
               lineHeight: 1,
               color: isCompleted
-                ? "#73AFF1"
+                ? "#2A74C9"
                 : isActive
-                ? "#73AFF1"
+                ? "#2A74C9"
                 : "#C0CDD6",
               textTransform: "uppercase",
               letterSpacing: ".06em",
@@ -493,7 +493,7 @@ export function OnboardingCard({
                 height: "100%",
                 borderRadius: 999,
                 background:
-                  "linear-gradient(90deg, #73AFF1, #D5E6FB)",
+                  "linear-gradient(90deg, #2A74C9, #D5E6FB)",
                 transform: isCompleted
                   ? "scaleX(1)"
                   : "scaleX(0)",
@@ -652,7 +652,7 @@ export function OnboardingCard({
     border: "1px solid rgba(213,230,251,.95)",
     padding: "34px 32px 30px",
     boxShadow: `
-      0 20px 50px rgba(115,175,241,.12),
+      0 20px 50px rgba(42,116,201,.12),
       0 6px 18px rgba(16,34,74,.05),
       inset 0 1px 0 rgba(255,255,255,.95)
     `,
@@ -684,8 +684,8 @@ export function OnboardingCard({
 
     .trw-radio:hover {
       transform: translateY(-2px);
-      border-color: #73AFF1 !important;
-      box-shadow: 0 10px 24px rgba(115,175,241,.14) !important;
+      border-color: #2A74C9 !important;
+      box-shadow: 0 10px 24px rgba(42,116,201,.14) !important;
     }
 
     .trw-btn-primary {
@@ -697,7 +697,7 @@ export function OnboardingCard({
 
     .trw-btn-primary:not(:disabled):hover {
       transform: translateY(-1px);
-      box-shadow: 0 9px 20px rgba(115,175,241,.30);
+      box-shadow: 0 9px 20px rgba(42,116,201,.30);
     }
 
     .trw-btn-ghost {
@@ -745,7 +745,7 @@ export function OnboardingCard({
       height: 3,
       borderRadius: "0 0 10px 10px",
       background:
-        "linear-gradient(90deg, transparent, #73AFF1 30%, #D5E6FB 70%, transparent)",
+        "linear-gradient(90deg, transparent, #2A74C9 30%, #D5E6FB 70%, transparent)",
     }}
   />
 
@@ -791,7 +791,7 @@ export function OnboardingCard({
             borderRadius: 999,
             background: "#EAF3FE",
             border: "1px solid #D5E6FB",
-            color: "#73AFF1",
+            color: "#2A74C9",
             fontSize: 10.5,
             fontWeight: 700,
             letterSpacing: ".04em",
@@ -803,7 +803,7 @@ export function OnboardingCard({
               width: 6,
               height: 6,
               borderRadius: "50%",
-              background: "#73AFF1",
+              background: "#2A74C9",
             }}
            className="tr-app-components-onboardingwizardui-span-6"/>
 
@@ -888,12 +888,12 @@ export function OnboardingCard({
             justifyContent: "center",
 
             background:
-              "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
+              "linear-gradient(135deg, #2A74C9 0%, #D5E6FB 100%)",
 
-            color: "#10224A",
+            color: "#FFFFFF",
 
             boxShadow:
-              "0 10px 24px rgba(115,175,241,.26)",
+              "0 10px 24px rgba(42,116,201,.26)",
 
             border: "1px solid rgba(255,255,255,.9)",
           }}
@@ -973,7 +973,7 @@ export function OnboardingCard({
                   cursor: "pointer",
 
                   border: selected
-                    ? "2px solid #73AFF1"
+                    ? "2px solid #2A74C9"
                     : "1px solid #D5E6FB",
 
                   background: selected
@@ -981,8 +981,8 @@ export function OnboardingCard({
                     : "#FFFFFF",
 
                   boxShadow: selected
-                    ? "0 12px 28px rgba(115,175,241,.16)"
-                    : "0 5px 16px rgba(115,175,241,.06)",
+                    ? "0 12px 28px rgba(42,116,201,.16)"
+                    : "0 5px 16px rgba(42,116,201,.06)",
 
                   position: "relative",
                 }}
@@ -1000,7 +1000,7 @@ export function OnboardingCard({
 
                       borderRadius: "50%",
 
-                      background: "#73AFF1",
+                      background: "#2A74C9",
 
                       display: "flex",
                       alignItems: "center",
@@ -1026,16 +1026,16 @@ export function OnboardingCard({
                     justifyContent: "center",
 
                     background: selected
-                      ? "linear-gradient(135deg, #73AFF1, #AFCBE2)"
+                      ? "linear-gradient(135deg, #2A74C9, #AFCBE2)"
                       : "#EAF3FE",
 
                     border: selected
-                      ? "1px solid #73AFF1"
+                      ? "1px solid #2A74C9"
                       : "1px solid #D5E6FB",
 
                     color: selected
                       ? "#FFFFFF"
-                      : "#73AFF1",
+                      : "#2A74C9",
                   }}
                 >
                   {icon}
@@ -1198,7 +1198,7 @@ export function OnboardingCard({
                 : "default",
 
               boxShadow: canNext
-                ? "0 7px 18px rgba(115,175,241,.25)"
+                ? "0 7px 18px rgba(42,116,201,.25)"
                 : "none",
             }}
           >

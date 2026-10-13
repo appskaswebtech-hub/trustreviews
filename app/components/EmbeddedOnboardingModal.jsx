@@ -219,8 +219,8 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
     .trw-modal-close:hover {
       background: #EAF3FE !important;
-      border-color: #73AFF1 !important;
-      box-shadow: 0 8px 20px rgba(115,175,241,.18);
+      border-color: #2A74C9 !important;
+      box-shadow: 0 8px 20px rgba(42,116,201,.18);
       transform: rotate(90deg);
     }
 
@@ -304,7 +304,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
         boxShadow: `
           0 35px 90px rgba(16,34,74,.22),
-          0 16px 36px rgba(115,175,241,.16),
+          0 16px 36px rgba(42,116,201,.16),
           inset 0 1px 0 rgba(255,255,255,.95)
         `,
       }}
@@ -321,7 +321,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           borderRadius: "0 0 10px 10px",
 
           background:
-            "linear-gradient(90deg, transparent, #73AFF1, transparent)",
+            "linear-gradient(90deg, transparent, #2A74C9, transparent)",
 
           opacity: 0.85,
         }}
@@ -385,7 +385,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               flexShrink: 0,
 
               background:
-                "linear-gradient(135deg, #73AFF1 0%, #D5E6FB 100%)",
+                "linear-gradient(135deg, #2A74C9 0%, #D5E6FB 100%)",
 
               border:
                 "1px solid rgba(255,255,255,.95)",
@@ -399,7 +399,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               fontSize: 20,
 
               boxShadow: `
-                0 10px 24px rgba(115,175,241,.30),
+                0 10px 24px rgba(42,116,201,.30),
                 inset 0 1px 0 rgba(255,255,255,.95)
               `,
             }}
@@ -467,12 +467,12 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               border: "1px solid #D5E6FB",
 
               boxShadow:
-                "0 6px 18px rgba(115,175,241,.10)",
+                "0 6px 18px rgba(42,116,201,.10)",
             }}
           >
             <span
               style={{
-                color: "#73AFF1",
+                color: "#2A74C9",
 
                 fontSize: 14,
 
@@ -526,7 +526,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
               justifyContent: "center",
 
               boxShadow:
-                "0 6px 16px rgba(115,175,241,.10)",
+                "0 6px 16px rgba(42,116,201,.10)",
             }}
           >
             ✕
@@ -575,12 +575,12 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
             alignItems: "center",
             justifyContent: "center",
 
-            color: "#73AFF1",
+            color: "#2A74C9",
 
             fontSize: 15,
 
             boxShadow:
-              "0 4px 12px rgba(115,175,241,.10)",
+              "0 4px 12px rgba(42,116,201,.10)",
           }}
          className="tr-app-components-embeddedonboardingmodal-div-7">
           ★
@@ -616,7 +616,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
 
         <div
           style={{
-            color: "#73AFF1",
+            color: "#2A74C9",
 
             fontSize: 12,
 
@@ -656,7 +656,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
           padding: "28px",
 
           boxShadow: `
-            0 18px 44px rgba(115,175,241,.10),
+            0 18px 44px rgba(42,116,201,.10),
             inset 0 1px 0 rgba(255,255,255,.95)
           `,
         }}
@@ -696,7 +696,7 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
        className="tr-app-components-embeddedonboardingmodal-div-14">
         <span
           style={{
-            color: "#73AFF1",
+            color: "#2A74C9",
             fontWeight: 700,
           }}
          className="tr-app-components-embeddedonboardingmodal-span-15">
