@@ -6,6 +6,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { connectSupportly } from "./supportly.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -16,6 +17,16 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  hooks: {
+    // Register the shop with Supportly so the chat panel works without the
+    // merchant doing anything. This fires on install and again on every token
+    // exchange, which doubles as the refresh for the expiring offline token
+    // Supportly holds. connectSupportly never throws, so a Supportly outage
+    // cannot break a merchant's auth.
+    afterAuth: async ({ session }) => {
+      await connectSupportly(session);
+    },
+  },
   future: {
     expiringOfflineAccessTokens: true,
   },

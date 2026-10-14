@@ -12,9 +12,11 @@ import prisma from "../db.server";
 import { syncSubscriptionStatus, isDevStore, getShopPlan } from "../billing.server";
 import { signOnboardingToken } from "../utils/onboarding-token.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
+import { connectSupportly, getSupportlyStatus } from "../supportly.server";
 import EmbeddedOnboardingModal from "../components/EmbeddedOnboardingModal";
 import FreePlanUpsellModal from "../components/FreePlanUpsellModal";
 import HelpButton from "../components/HelpButton";
+import SupportlyChat from "../components/SupportlyChat";
 import "@shopify/polaris/build/esm/styles.css";
 
 export const loader = async ({ request }) => {
@@ -125,17 +127,28 @@ export const loader = async ({ request }) => {
     }
   }
 
+  // The chat button only appears once the shop is registered with Supportly.
+  // afterAuth does that on install, so this only catches shops that installed
+  // before it existed: one attempt, never retried, since lastSyncedAt is set
+  // either way.
+  let { connected: supportlyChat, configured, lastSyncedAt } = await getSupportlyStatus(session.shop);
+  if (configured && !lastSyncedAt) {
+    const registered = await connectSupportly(session);
+    supportlyChat = registered.ok;
+  }
+
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     lang: store?.language || "en",
     onboardingUrl,
     onboardingModalData,
     showFreeUpsell,
+    supportlyChat,
   };
 };
 
 export default function App() {
-  const { apiKey, onboardingUrl, onboardingModalData, showFreeUpsell } = useLoaderData();
+  const { apiKey, onboardingUrl, onboardingModalData, showFreeUpsell, supportlyChat } = useLoaderData();
 
   // AppProvider stays mounted regardless — it's what loads the App Bridge
   // script, and App Bridge is *required* to break out of the Shopify admin
@@ -191,6 +204,7 @@ export default function App() {
 
           <Outlet />
           <HelpButton />
+          {supportlyChat && <SupportlyChat />}
 
           {onboardingModalData && <EmbeddedOnboardingModal {...onboardingModalData} />}
           {!onboardingModalData && showFreeUpsell && <FreePlanUpsellModal />}

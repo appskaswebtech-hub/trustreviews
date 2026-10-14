@@ -457,6 +457,7 @@ model Widget {
   summaryPosition String   @default("left")    // "left" | "right" | "top" | "bottom"
   showWriteReviewBtn Boolean @default(false)
   heading      String   @default("") // "" = translated default heading in the store's language
+  showHeading  Boolean  @default(true) // false = hide the widget heading on the storefront
 
   // Typography
   fontFamily   String?  @default("inherit")
@@ -503,6 +504,7 @@ model Widget {
   // Slider Settings
   autoplay      Boolean @default(true)
   autoplaySpeed Int     @default(3000)
+  slidesPerView Int     @default(1)    // Spotlight Slider: review cards shown at once (1–3)
 
   showArrows    Boolean @default(true)
   showDots      Boolean @default(true)

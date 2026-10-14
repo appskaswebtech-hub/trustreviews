@@ -85,6 +85,7 @@ export async function action({ request, params }) {
     summaryPosition:    form.get("summaryPosition") || "left",
     showWriteReviewBtn: form.get("showWriteReviewBtn") === "true",
     heading:         form.get("heading"),
+    showHeading:     form.get("showHeading") !== "false",
     contentFilter:   form.get("contentFilter") || "all",
 
     fontFamily:      form.get("fontFamily"),
@@ -120,6 +121,7 @@ export async function action({ request, params }) {
 
     autoplay:        form.get("autoplay")      === "true",
     autoplaySpeed:   parseInt(form.get("autoplaySpeed"))|| 3000,
+    slidesPerView:   Math.min(Math.max(parseInt(form.get("slidesPerView")) || 1, 1), 3),
     showArrows:      form.get("showArrows")    === "true",
     showDots:        form.get("showDots")      === "true",
 
@@ -246,6 +248,51 @@ const COL_OPTIONS = [
   { label: "1", value: "1" }, { label: "2", value: "2" }, { label: "3", value: "3" }, { label: "4", value: "4" },
 ];
 
+// Which settings each design actually uses on the storefront (worked out from
+// extensions/product-review/assets/reviews-widget.js + .css), so the page only
+// shows options that change something. Widget background, font, padding,
+// heading and "Reviews to include" apply to every design and are always shown.
+// Keep in sync when a design starts or stops using a setting.
+const GRID_FIELDS = ["accent", "starGap", "cardBg", "text", "muted", "border", "reviewSize", "metaSize", "maxRev", "columns", "verified", "avatar", "date", "cardPadding", "cardGap", "radius", "shadow"];
+const without = (list, ...drop) => list.filter((f) => !drop.includes(f));
+const CAROUSEL_ALL = [...GRID_FIELDS, "star", "autoplay", "arrows", "dots"];
+const STYLE_FIELDS = {
+  dark_grid:        without(GRID_FIELDS, "cardBg", "text", "muted"),   // dark cards + light text are built in
+  minimal_grid:     without(GRID_FIELDS, "radius", "shadow", "border"), // flat cards with an accent top line
+  accent_wall:      without(GRID_FIELDS, "cardBg", "text", "muted", "border"), // cards filled with the accent color
+  list_view:        without(GRID_FIELDS, "columns"),
+  editorial:        without(GRID_FIELDS, "columns", "radius"),
+  masonry_wall:     GRID_FIELDS,
+  popup:            [...GRID_FIELDS, "popup"],
+  trust_medals:     GRID_FIELDS,
+  verified_counter: GRID_FIELDS,
+  all_reviews_counter: GRID_FIELDS,
+  star_summary:     GRID_FIELDS,
+  floating_tab:     GRID_FIELDS,
+  slider:           CAROUSEL_ALL,
+  scroll_strip:     CAROUSEL_ALL,
+  center_carousel:  CAROUSEL_ALL,
+  bubble_carousel:  without(CAROUSEL_ALL, "avatar"),
+  coverflow:        without(CAROUSEL_ALL, "star", "columns"),
+  snippet_rotator:  without(CAROUSEL_ALL, "star", "columns", "arrows"),
+  spotlight_slider: ["accent", "star", "cardBg", "text", "muted", "border", "reviewSize", "metaSize", "maxRev", "verified", "cardGap", "radius", "shadow", "autoplay", "arrows", "slidesPerView"],
+  hero_quote:       ["accent", "maxRev", "radius", "autoplay", "arrows", "dots"],
+  split_media:      ["accent", "cardBg", "text", "border", "maxRev", "radius", "autoplay", "arrows", "dots"],
+  quote_fade:       ["accent", "starGap", "text", "reviewSize", "metaSize", "maxRev", "autoplay", "arrows", "dots"],
+  marquee:          ["accent", "star", "cardBg", "text", "muted", "border", "reviewSize", "metaSize", "maxRev", "cardGap", "radius", "shadow"],
+  badge_strip:      ["accent", "cardBg", "border", "maxRev", "radius", "shadow"],
+  compact_rows:     ["star", "starGap", "text", "muted", "border", "reviewSize", "metaSize", "maxRev", "verified", "date"],
+  insta_stories:    ["accent", "text", "maxRev", "autoplay"],
+  insta_reels:      ["accent", "maxRev", "radius", "autoplay"],
+  insta_carousel:   ["accent", "star", "text", "reviewSize", "maxRev", "cardGap", "radius", "shadow", "arrows"],
+  insta_mosaic:     ["accent", "star", "cardBg", "text", "border", "reviewSize", "maxRev", "cardGap", "radius", "shadow"],
+  insta_phone:      ["accent", "star", "cardBg", "text", "muted", "border", "maxRev", "radius", "autoplay"],
+  insta_stack:      ["accent", "star", "cardBg", "text", "muted", "border", "reviewSize", "maxRev", "radius"],
+  // These two have their own option sections below; only the extras live here.
+  classic_list:     ["accent", "star", "starGap", "text", "muted", "border"],
+  summary_side:     ["accent", "text", "muted", "border", "metaSize"],
+};
+
 export default function WidgetCustomizePage() {
   const { settings, key, shop, apiKey } = useLoaderData();
   const submit = useSubmit();
@@ -260,6 +307,7 @@ export default function WidgetCustomizePage() {
   const [showWriteReviewBtn, setShowWriteReviewBtn] = useState(settings.showWriteReviewBtn ?? false);
   const [showHelpfulVoting, setShowHelpfulVoting] = useState(settings.showHelpfulVoting ?? true);
   const [heading, setHeading]           = useState(settings.heading ?? "");
+  const [showHeading, setShowHeading]   = useState(settings.showHeading ?? true);
   const [contentFilter, setContentFilter] = useState(settings.contentFilter ?? "all");
 
   const [fontFamily, setFontFamily]     = useState(settings.fontFamily ?? "inherit");
@@ -290,18 +338,19 @@ export default function WidgetCustomizePage() {
   const [borderRadius, setBorderRadius]   = useState(settings.borderRadius ?? 10);
 
   const [autoplay, setAutoplay]           = useState(settings.autoplay ?? true);
+  const [slidesPerView, setSlidesPerView] = useState(settings.slidesPerView ?? 1);
   const [showArrows, setShowArrows]       = useState(settings.showArrows ?? true);
   const [showDots, setShowDots]           = useState(settings.showDots ?? true);
   const [popupEnabled, setPopupEnabled]   = useState(settings.popupEnabled ?? false);
 
   const [saved, setSaved] = useState(false);
 
-  const isSlider       = ["slider", "scroll_strip", "quote_fade", "snippet_rotator", "hero_quote", "coverflow", "split_media", "bubble_carousel", "center_carousel", "spotlight_slider"].includes(style);
   const isInstaStories = style === "insta_stories" || style === "insta_reels" || style === "insta_phone";
-  const isInstaCarousel = style === "insta_carousel";
   const isPopup        = style === "popup";
   const isClassicList  = style === "classic_list";
   const isSummarySide  = style === "summary_side";
+  const has = (field) => (STYLE_FIELDS[style] || CAROUSEL_ALL).includes(field);
+  const ownSection = isClassicList || isSummarySide; // padding etc. live in their own section
 
   const handleSave = () => {
     const fd = new FormData();
@@ -314,6 +363,7 @@ export default function WidgetCustomizePage() {
     fd.set("showWriteReviewBtn", String(showWriteReviewBtn));
     fd.set("showHelpfulVoting", String(showHelpfulVoting));
     fd.set("heading", heading);
+    fd.set("showHeading", String(showHeading));
     fd.set("contentFilter", contentFilter);
     fd.set("fontFamily", fontFamily);
     fd.set("headingSize", String(headingSize));
@@ -341,6 +391,7 @@ export default function WidgetCustomizePage() {
     fd.set("borderRadius", String(borderRadius));
     fd.set("autoplay", String(autoplay));
     fd.set("autoplaySpeed", "3000");
+    fd.set("slidesPerView", String(slidesPerView));
     fd.set("showArrows", String(showArrows));
     fd.set("showDots", String(showDots));
     fd.set("popupEnabled", String(popupEnabled));
@@ -353,11 +404,11 @@ export default function WidgetCustomizePage() {
   const previewSettings = {
     accentColor, starColor, starGap, textAlign, summaryPosition, showWriteReviewBtn, showHelpfulVoting,
     backgroundColor: bgColor, cardBackground: cardBg, textColor, borderColor: borderCol,
-    mutedTextColor, headingColor, writeBtnColor,
+    mutedTextColor, headingColor, writeBtnColor, showHeading,
     fontFamily, headingSize, reviewSize, metaSize,
     showVerified: verified, showAvatar: avatar, showDate: date, showShadow: shadow,
     maxReviews: maxRev, columns: Number(columns),
-    showArrows, showDots, autoplay,
+    showArrows, showDots, autoplay, slidesPerView,
     paddingTop, paddingBottom, cardPadding, cardGap, borderRadius,
   };
 
@@ -395,47 +446,56 @@ export default function WidgetCustomizePage() {
           content: (
             <>
               <SelectField label="Widget Design" value={style} onChange={setStyle} options={STYLE_OPTIONS} />
-              <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
-              <ColorField label="Star Color" value={starColor} onChange={setStarColor} />
-              <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />
+              {has("accent") && <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />}
+              {has("star") && <ColorField label="Star Color" value={starColor} onChange={setStarColor} />}
+              {has("starGap") && <RangeField label="Gap Between Stars" value={starGap} onChange={setStarGap} min={0} max={12} step={1} unit="px" />}
               <ColorField label="Widget Background" value={bgColor} onChange={setBgColor} />
-              <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />
-              <ColorField label="Text Color" value={textColor} onChange={setTextColor} />
-              <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor}
-                helpText="The widget heading only — separate from the review text color above" />
-              <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
-                helpText="Dates, review counts, and other secondary text" />
-              <ColorField label="Border Color" value={borderCol} onChange={setBorderCol} />
+              {has("cardBg") && <ColorField label="Card Background" value={cardBg} onChange={setCardBg} />}
+              {has("text") && <ColorField label="Text Color" value={textColor} onChange={setTextColor} />}
+              {has("muted") && (
+                <ColorField label="Muted Text Color" value={mutedTextColor} onChange={setMutedTextColor}
+                  helpText="Dates, review counts, and other secondary text" />
+              )}
+              {has("border") && <ColorField label="Border Color" value={borderCol} onChange={setBorderCol} />}
               <SelectField label="Font Family" value={fontFamily} onChange={setFontFamily} options={FONT_OPTIONS} />
             </>
           ),
         },
         {
-          key: "text", label: "Text",
-          content: (
-            <TextFieldInput label="Section Heading" value={heading} onChange={setHeading} placeholder="Auto — “What our customers say” in your store's language" />
-          ),
-        },
-        {
-          key: "header", label: "Widget header",
+          key: "header", label: "Heading",
           content: (
             <>
-              <RangeField label="Heading Size" value={headingSize} onChange={setHeadingSize} min={18} max={56} unit="px" />
-              <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />
-              <RangeField label="Meta / Name Size" value={metaSize} onChange={setMetaSize} min={10} max={20} unit="px" />
+              <ToggleField label="Show heading" checked={showHeading} onChange={setShowHeading}
+                helpText="Turn off to hide the “What our customers say” title above the reviews" />
+              {showHeading && (
+                <>
+                  <TextFieldInput label="Heading text" value={heading} onChange={setHeading} placeholder="Auto — “What our customers say” in your store's language" />
+                  <ColorField label="Heading Color" value={headingColor} onChange={setHeadingColor} />
+                  <RangeField label="Heading Size" value={headingSize} onChange={setHeadingSize} min={18} max={56} unit="px" />
+                </>
+              )}
             </>
           ),
         },
+        ...(has("reviewSize") || has("metaSize") ? [{
+          key: "textsize", label: "Text size",
+          content: (
+            <>
+              {has("reviewSize") && <RangeField label="Review Text Size" value={reviewSize} onChange={setReviewSize} min={12} max={24} unit="px" />}
+              {has("metaSize") && <RangeField label="Meta / Name Size" value={metaSize} onChange={setMetaSize} min={10} max={20} unit="px" />}
+            </>
+          ),
+        }] : []),
         {
           key: "reviews", label: "Reviews section",
           content: (
             <>
               <SelectField label="Reviews to include" value={contentFilter} onChange={setContentFilter} options={CONTENT_FILTER_OPTIONS} />
-              <RangeField label="Max Reviews to Show" value={maxRev} onChange={setMaxRev} min={2} max={20} />
-              <SelectField label="Desktop Columns" value={columns} onChange={setColumns} options={COL_OPTIONS} />
-              <ToggleField label="Show verified badge" checked={verified} onChange={setVerified} />
-              <ToggleField label="Show reviewer avatar" checked={avatar} onChange={setAvatar} />
-              <ToggleField label="Show review date" checked={date} onChange={setDate} />
+              {has("maxRev") && <RangeField label="Max Reviews to Show" value={maxRev} onChange={setMaxRev} min={2} max={20} />}
+              {has("columns") && <SelectField label="Desktop Columns" value={columns} onChange={setColumns} options={COL_OPTIONS} />}
+              {has("verified") && <ToggleField label="Show verified badge" checked={verified} onChange={setVerified} />}
+              {has("avatar") && <ToggleField label="Show reviewer avatar" checked={avatar} onChange={setAvatar} />}
+              {has("date") && <ToggleField label="Show review date" checked={date} onChange={setDate} />}
             </>
           ),
         },
@@ -499,23 +559,25 @@ export default function WidgetCustomizePage() {
             </>
           ),
         }] : []),
-        {
+        ...(!ownSection ? [{
           key: "advanced", label: "Advanced",
           content: (
             <>
               <RangeField label="Section Padding Top" value={paddingTop} onChange={setPaddingTop} min={0} max={120} step={4} unit="px" />
               <RangeField label="Section Padding Bottom" value={paddingBottom} onChange={setPaddingBottom} min={0} max={120} step={4} unit="px" />
-              <RangeField label="Card Padding" value={cardPadding} onChange={setCardPadding} min={8} max={48} step={4} unit="px" />
-              <RangeField label="Card Gap" value={cardGap} onChange={setCardGap} min={4} max={48} step={4} unit="px" />
-              <RangeField label="Card Border Radius" value={borderRadius} onChange={setBorderRadius} min={0} max={32} step={2} unit="px" />
-              <ToggleField label="Show card shadow" checked={shadow} onChange={setShadow} />
-              {isSlider && (
-                <>
-                  <ToggleField label="Autoplay slides" checked={autoplay} onChange={setAutoplay} />
-                  <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />
-                  <ToggleField label="Show dot indicators" checked={showDots} onChange={setShowDots} />
-                </>
+              {has("cardPadding") && <RangeField label="Card Padding" value={cardPadding} onChange={setCardPadding} min={8} max={48} step={4} unit="px" />}
+              {has("cardGap") && <RangeField label="Card Gap" value={cardGap} onChange={setCardGap} min={4} max={48} step={4} unit="px" />}
+              {has("radius") && <RangeField label="Card Border Radius" value={borderRadius} onChange={setBorderRadius} min={0} max={32} step={2} unit="px" />}
+              {has("shadow") && <ToggleField label="Show card shadow" checked={shadow} onChange={setShadow} />}
+              {has("slidesPerView") && (
+                <RangeField
+                  label="Reviews shown at once"
+                  value={slidesPerView} onChange={setSlidesPerView} min={1} max={3} step={1}
+                />
               )}
+              {has("autoplay") && !isInstaStories && <ToggleField label="Autoplay slides" checked={autoplay} onChange={setAutoplay} />}
+              {has("arrows") && <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />}
+              {has("dots") && <ToggleField label="Show dot indicators" checked={showDots} onChange={setShowDots} />}
               {isInstaStories && (
                 <ToggleField
                   label={style === "insta_reels" ? "Autoplay videos on scroll" : style === "insta_phone" ? "Auto-advance reviews" : "Auto-advance stories"}
@@ -527,15 +589,12 @@ export default function WidgetCustomizePage() {
                     : "Off: viewer waits for a tap on the left/right side to move between stories"}
                 />
               )}
-              {isInstaCarousel && (
-                <ToggleField label="Show prev/next arrows" checked={showArrows} onChange={setShowArrows} />
-              )}
               {isPopup && (
                 <ToggleField label="Enable popup widget" checked={popupEnabled} onChange={setPopupEnabled} helpText="A floating button + modal that shows reviews on click" />
               )}
             </>
           ),
-        },
+        }] : []),
       ]}
       preview={
         // <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }} className="tr-app-routes-app-widgets-key-div-32">

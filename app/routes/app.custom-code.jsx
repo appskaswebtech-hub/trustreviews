@@ -1215,7 +1215,7 @@ export default function CustomCodePage() {
               }}
               className="tr-app-routes-app-custom-code-p-66"
             >
-              Add custom styles or scripts that run on every page of your storefront alongside the review widgets.
+              Add custom styles or  that run on every page of your storefront alongside the review widgets.
             </p>
           </div>
 

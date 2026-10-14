@@ -261,7 +261,7 @@
       var header=document.createElement('div'); header.className='trust-reviews__sl-header';
       var headerLeft=document.createElement('div');
       var labelEl=document.createElement('div'); labelEl.className='trust-reviews__sl-label'; labelEl.textContent=(s.t.customerReviews||'Customer reviews');
-      var headEl=document.createElement('div'); headEl.className='trust-reviews__sl-heading'; headEl.textContent=s.heading||'What our customers say';
+      var headEl=document.createElement('div'); headEl.className='trust-reviews__sl-heading'; headEl.textContent=s.heading||'What our customers say'; if(s.showHeading===false) headEl.style.display='none';
       headerLeft.appendChild(labelEl); headerLeft.appendChild(headEl);
 
       var slRating=0;
@@ -1632,10 +1632,14 @@
     }
 
     // Spotlight Slider: a rating panel (big score, counter, segmented progress,
-    // arrows) beside one large crossfading testimonial with the review photo.
+    // arrows) beside one large crossfading testimonial with the review photo —
+    // or, with "Reviews shown at once" set to 2–3, a row of review cards that
+    // steps one card at a time (phones always show one).
     function buildSpotlight(reviews, s, total, avg) {
       var items = reviews.slice(0, s.maxRev), n = items.length, current = 0, timer = null, paused = false, inView = true;
-      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__sp';
+      var per = Math.min(Math.max(parseInt(s.slidesPerView, 10) || 1, 1), 3, n || 1);
+      var wrap = document.createElement('div'); wrap.className = 'trust-reviews__sp' + (per > 1 ? ' trust-reviews__sp--multi' : '');
+      if (per > 1) wrap.style.setProperty('--tr-sp-per', per);
       var avgNum = Number(avg || 0);
       var pad = function(x){ return (x < 10 ? '0' : '') + x; };
       var panel = document.createElement('div'); panel.className = 'trust-reviews__sp-panel';
@@ -1680,10 +1684,16 @@
         segs.appendChild(seg);
         return sl;
       });
+      if (n) show(0);
 
       function show(i) {
         current = ((i % n) + n) % n;
-        slides.forEach(function(sl, k){ sl.classList.toggle('is-active', k === current); });
+        slides.forEach(function(sl, k){
+          var pos = (k - current + n) % n; // 0 = lead card, then the ones after it
+          sl.classList.toggle('is-active', pos < per);
+          sl.classList.toggle('is-lead', pos === 0);
+          sl.style.order = per > 1 ? pos : '';
+        });
         var sg = segs.children;
         for (var k = 0; k < sg.length; k++) { sg[k].classList.toggle('is-active', k === current); sg[k].classList.toggle('is-done', k < current); }
         counter.textContent = pad(current + 1);
@@ -2026,8 +2036,8 @@
       var borderColor=(blockBorderColor&&blockBorderColor!==D_BORDER_COLOR)?blockBorderColor:(d.borderColor||D_BORDER_COLOR);
       var backgroundColor=(blockBgColor&&blockBgColor!==D_BG_COLOR)?blockBgColor:(d.backgroundColor||'transparent');
       var cardBackground=(blockCardBg&&blockCardBg!==D_CARD_BG)?blockCardBg:(d.cardBackground||D_CARD_BG);
-      if(headingEl){ var customH=(d.heading&&!isStockHeading(d.heading))?d.heading:null; if(isStockHeading(headingEl.textContent)) headingEl.textContent=customH||t.defaultHeading||D_HEADING; }
-      var s={t:t,accentColor:accentColor,starColor:starColor,starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,mutedTextColor:mutedTextColor,headingColor:headingColor,writeBtnColor:writeBtnColor,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:backgroundColor,cardBackground:cardBackground,textColor:textColor,borderColor:borderColor,fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING};
+      if(headingEl){ var customH=(d.heading&&!isStockHeading(d.heading))?d.heading:null; if(isStockHeading(headingEl.textContent)) headingEl.textContent=customH||t.defaultHeading||D_HEADING; headingEl.style.display=d.showHeading===false?'none':''; }
+      var s={t:t,accentColor:accentColor,starColor:starColor,starGap:d.starGap!=null?d.starGap:2,textAlign:d.textAlign||'left',style:style,columns:columns,maxRev:maxRev,showVerified:showVerified,showAvatar:showAvatar,showDate:showDate,showHelpfulVoting:showHelpfulVoting,mutedTextColor:mutedTextColor,headingColor:headingColor,writeBtnColor:writeBtnColor,tabletColumns:d.tabletColumns||2,mobileColumns:d.mobileColumns||1,paddingTop:d.paddingTop!=null?d.paddingTop:40,paddingBottom:d.paddingBottom!=null?d.paddingBottom:40,cardPadding:d.cardPadding!=null?d.cardPadding:16,cardGap:d.cardGap!=null?d.cardGap:16,borderRadius:d.borderRadius!=null?d.borderRadius:10,showShadow:d.showShadow!==false,backgroundColor:backgroundColor,cardBackground:cardBackground,textColor:textColor,borderColor:borderColor,fontFamily:d.fontFamily||'inherit',headingSize:d.headingSize||32,reviewSize:d.reviewSize||16,metaSize:d.metaSize||13,autoplay:d.autoplay!==false,autoplaySpeed:d.autoplaySpeed||3000,slidesPerView:d.slidesPerView||1,showArrows:d.showArrows!==false,showDots:d.showDots!==false,popupEnabled:d.popupEnabled||false,popupDelay:d.popupDelay!=null?d.popupDelay:5000,summaryPosition:d.summaryPosition||'left',showWriteReviewBtn:d.showWriteReviewBtn||false,heading:d.heading||D_HEADING,showHeading:d.showHeading!==false};
       return fetch('/apps/review?shop='+shop+'&productId='+productId+'&widgetKey='+widgetKey+'&locale='+encodeURIComponent(storeLocale)).then(function(r){return r.json();}).then(function(apiData){ (apiData.reviews||[]).forEach(function(r){ r.mediaUrl=resolveMedia(r.mediaUrl); }); var rt=apiData.translations||{}; for(var k in rt) if(!s.t[k]) s.t[k]=rt[k]; renderReviews(apiData,s); });
     })
     .catch(function(){ loadingEl.textContent=(resolvedT||TRANSLATIONS.en).couldNotLoad; });

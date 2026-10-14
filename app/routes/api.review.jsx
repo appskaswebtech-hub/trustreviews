@@ -550,6 +550,7 @@ export async function loader({ request }) {
         summaryPosition:    true,
         showWriteReviewBtn: true,
         heading:         true,
+        showHeading:     true,
         contentFilter:   true,
 
         fontFamily:      true,
@@ -586,6 +587,7 @@ export async function loader({ request }) {
 
         autoplay:        true,
         autoplaySpeed:   true,
+        slidesPerView:   true,
         showArrows:      true,
         showDots:        true,
 

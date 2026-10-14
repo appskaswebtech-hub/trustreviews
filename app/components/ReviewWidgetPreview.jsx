@@ -219,6 +219,9 @@ function PvMarquee({ items, s, heading, wrapStyle, headingStyle }) {
 function PvSpotlight({ items, s, heading, wrapStyle, headingStyle }) {
   const [idx, setIdx] = useState(0);
   const n = items.length, r = items[idx];
+  // "Reviews shown at once" 2–3: a row of cards (media on top), stepping one card at a time.
+  const per = Math.min(Math.max(Number(s.slidesPerView) || 1, 1), 3, n);
+  const visible = Array.from({ length: per }, (_, k) => pvWrap(n, idx + k));
   const avg = items.reduce((a, x) => a + x.rating, 0) / n;
   const pad = (x) => String(x).padStart(2, "0");
   const navBtn = { background: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.25)", boxShadow: "none" };
@@ -241,6 +244,30 @@ function PvSpotlight({ items, s, heading, wrapStyle, headingStyle }) {
             </div>
           )}
         </div>
+        {per > 1 ? (
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${per}, minmax(0,1fr))`, gap: 12 }}>
+            <style>{`@keyframes trPvFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
+            {visible.map((i) => {
+              const rv = items[i];
+              return (
+                <div key={`${idx}-${i}`} style={{ display: "flex", flexDirection: "column", gap: 8, padding: 14, borderRadius: s.borderRadius + 4, background: s.cardBackground, border: `1px solid ${s.borderColor}`, color: s.textColor, animation: "trPvFade .45s ease", minWidth: 0 }}>
+                  <div style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: s.borderRadius, background: PV_TILES[i % PV_TILES.length] }}>
+                    {i % 2 === 0 && <span style={{ position: "absolute", top: "50%", left: "50%", width: 26, height: 26, margin: "-13px 0 0 -13px", borderRadius: "50%", background: "rgba(255,255,255,.4)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>▶</span>}
+                  </div>
+                  <span style={{ lineHeight: 0 }}>{PV_QUOTE(s.accentColor, 22)}</span>
+                  <div style={{ fontSize: s.reviewSize * 0.85, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{rv.comment}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: "auto" }}>
+                    <span style={{ width: 24, height: 24, borderRadius: "50%", background: s.accentColor, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{initials(rv.customer)}</span>
+                    <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.25, minWidth: 0 }}>
+                      <strong style={{ fontSize: 11 }}>{rv.customer}</strong>
+                      <span style={{ fontSize: 9 }}>{stars(rv.rating, s.starColor || "#F59E0B", 1)}</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
         <div key={idx} style={{ display: "grid", gridTemplateColumns: "minmax(0,.9fr) minmax(0,1.2fr)", gap: 16, alignItems: "center", padding: 18, borderRadius: s.borderRadius + 4, background: s.cardBackground, border: `1px solid ${s.borderColor}`, color: s.textColor, animation: "trPvFade .45s ease" }}>
           <style>{`@keyframes trPvFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
           <div style={{ position: "relative", alignSelf: "stretch", minHeight: 150, borderRadius: s.borderRadius, background: PV_TILES[idx % PV_TILES.length] }}>
@@ -258,6 +285,7 @@ function PvSpotlight({ items, s, heading, wrapStyle, headingStyle }) {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
@@ -316,7 +344,7 @@ export default function ReviewWidgetPreview({ style, settings, heading }) {
     padding: `${s.paddingTop}px 0 ${s.paddingBottom}px`,
     fontFamily: s.fontFamily === "inherit" ? undefined : s.fontFamily,
   };
-  const headingStyle = { fontSize: s.headingSize, fontWeight: 600, color: s.headingColor || s.accentColor, margin: "0 0 16px" };
+  const headingStyle = { fontSize: s.headingSize, fontWeight: 600, color: s.headingColor || s.accentColor, margin: "0 0 16px", ...(s.showHeading === false ? { display: "none" } : {}) };
 
   if (style === "verified_counter") {
     return (

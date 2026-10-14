@@ -532,7 +532,18 @@
 .trust-reviews__sp-title{margin:0;font-size:calc(var(--tr-rev-size,15px)*1.2);font-weight:700}
 .trust-reviews__sp-text{margin:0;font-size:calc(var(--tr-rev-size,15px)*1.2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
 .trust-reviews__sp-author{display:flex;align-items:center;gap:12px;margin-top:6px}
+/* "Reviews shown at once" 2–3: each review is its own card in a row */
+.trust-reviews__sp--multi .trust-reviews__sp-stage{grid-template-columns:repeat(var(--tr-sp-per,2),minmax(0,1fr));gap:var(--tr-gap,16px);background:none;border:none;box-shadow:none;border-radius:0;overflow:visible;min-height:0}
+.trust-reviews__sp--multi .trust-reviews__sp-slide{grid-area:auto;display:none;justify-content:flex-start;gap:12px;padding:clamp(18px,2.4vw,28px);opacity:1;visibility:visible;transform:none;background:var(--tr-card-bg,#fff);border:1px solid var(--tr-border,#ececec);border-radius:var(--tr-radius,18px);box-shadow:var(--tr-shadow,0 4px 20px rgba(0,0,0,.06))}
+.trust-reviews__sp--multi .trust-reviews__sp-slide.is-active{display:flex;animation:trSpIn .45s ease}
+.trust-reviews__sp--multi .trust-reviews__sp-media{grid-row:auto;min-height:0;aspect-ratio:4/3}
+.trust-reviews__sp--multi .trust-reviews__sp-quote svg{width:32px;height:32px}
+.trust-reviews__sp--multi .trust-reviews__sp-title,.trust-reviews__sp--multi .trust-reviews__sp-text{font-size:var(--tr-rev-size,15px)}
+.trust-reviews__sp--multi .trust-reviews__sp-text{-webkit-line-clamp:6}
+@keyframes trSpIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (max-width:749px){
+  .trust-reviews__sp--multi .trust-reviews__sp-stage{grid-template-columns:1fr}
+  .trust-reviews__sp--multi .trust-reviews__sp-slide.is-active:not(.is-lead){display:none}
   .trust-reviews__sp{grid-template-columns:1fr}
   .trust-reviews__sp-panel{padding:20px;display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:center}
   .trust-reviews__sp-score{grid-row:1 / span 2;font-size:48px}

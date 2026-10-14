@@ -1,26 +1,28 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import globalStyles from "./global.css?url";
-
-export const links = () => [{ rel: "stylesheet", href: globalStyles }];
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useSearchParams } from "react-router";
 
 export default function App() {
+  const [params] = useSearchParams();
+  const shop = params.get("shop") ?? "";
+
   return (
-    <html lang="en" className="tr-app-root-html-1">
-      <head className="tr-app-root-head-2">
-        <meta charSet="utf-8"  className="tr-app-root-meta-3"/>
-        <meta name="viewport" content="width=device-width,initial-scale=1"  className="tr-app-root-meta-4"/>
-        <link rel="preconnect" href="https://cdn.shopify.com/"  className="tr-app-root-link-5"/>
-        <link
-          rel="stylesheet"
-          href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
-         className="tr-app-root-link-6"/>
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <link rel="preconnect" href="https://cdn.shopify.com/" />
+        <link rel="stylesheet" href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css" />
         <Meta />
         <Links />
       </head>
-      <body className="tr-app-root-body-8">
+      <body>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
+        <script
+          defer
+          src="https://supportly.kaswebtechsolutions.com/widget.js"
+          data-shop={shop}
+        />
       </body>
     </html>
   );
