@@ -193,14 +193,14 @@ export const APPS = [
 
 // The short list shown at the bottom of the dashboard
 // (app/components/RecommendedApps.jsx). Curated by hand rather than sorted by
-// rating, so the picks stay complementary to a reviews app: bundles and
-// upsells lift the orders reviews bring in, wishlists bring shoppers back, and
-// post-purchase surveys are the same job as reviews one step later.
+// rating — reorder or swap a handle here and the strip follows, no layout to
+// touch. The fourth slot is a free pick; BUNDLE KIT holds it because it's our
+// best-reviewed listing.
 export const RECOMMENDED_HANDLES = [
+  "kas-subscription",
+  "instagallery",
+  "orderping-2",
   "bundle-kit-1",
-  "upsellify-4",
-  "wishkeeper",
-  "feedback-tool",
 ];
 
 export function recommendedApps(limit = 4) {
