@@ -200,6 +200,10 @@ export default function App() {
             <Link to="/app/billing">
               Billing
             </Link>
+
+            <Link to="/app/more-apps">
+              More Apps
+            </Link>
           </NavMenu>
 
           <Outlet />
