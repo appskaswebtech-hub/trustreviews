@@ -5,6 +5,7 @@ import db from "../db.server";
 import { useState, useRef, useEffect } from "react";
 import { notifyIntegrations } from "../utils/events.server";
 import InstallWidgetModal from "../components/InstallWidgetModal";
+import RecommendedApps from "../components/RecommendedApps";
 import { BRAND } from "../utils/brand";
 //import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
@@ -2511,6 +2512,9 @@ export default function ReviewsPage() {
             >{t.next}</button>
           </div>
         )}
+
+        {/* ── Our other apps ── */}
+        <RecommendedApps />
       </div>
     </div>
   );

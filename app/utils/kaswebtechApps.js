@@ -191,10 +191,30 @@ export const APPS = [
   },
 ];
 
-// App Store listing URL, tagged so installs coming from this page are
-// attributable in the partner dashboard.
-export function listingUrl(handle) {
-  return `https://apps.shopify.com/${handle}?utm_source=trust-reviews&utm_medium=app&utm_campaign=more-apps`;
+// The short list shown at the bottom of the dashboard
+// (app/components/RecommendedApps.jsx). Curated by hand rather than sorted by
+// rating, so the picks stay complementary to a reviews app: bundles and
+// upsells lift the orders reviews bring in, wishlists bring shoppers back, and
+// post-purchase surveys are the same job as reviews one step later.
+export const RECOMMENDED_HANDLES = [
+  "bundle-kit-1",
+  "upsellify-4",
+  "wishkeeper",
+  "feedback-tool",
+];
+
+export function recommendedApps(limit = 4) {
+  return RECOMMENDED_HANDLES
+    .slice(0, limit)
+    .map((handle) => APPS.find((app) => app.handle === handle))
+    .filter(Boolean);
+}
+
+// App Store listing URL, tagged so installs coming from inside the app are
+// attributable in the partner dashboard. `campaign` separates the two places
+// we link from: the More Apps page and the dashboard strip.
+export function listingUrl(handle, campaign = "more-apps") {
+  return `https://apps.shopify.com/${handle}?utm_source=trust-reviews&utm_medium=app&utm_campaign=${campaign}`;
 }
 
 // A 72px icon is plenty for the 56px card tile at 2x DPR — asking the CDN for
