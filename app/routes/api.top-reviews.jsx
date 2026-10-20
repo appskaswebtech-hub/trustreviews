@@ -4,6 +4,8 @@
 // GET /api/top-reviews?product_id=123456
 
 import db from "../db.server";
+import { resolveLanguage } from "../utils/widgetTranslations.server";
+import { translateReviews } from "../utils/reviewTranslation.server";
 
 export async function loader({ request }) {
   const url = new URL(request.url);
@@ -39,7 +41,7 @@ export async function loader({ request }) {
       return Response.json({ reviews: [], average: 0, count: 0, language: "en" }, { headers });
     }
 
-    const language = store.language || "en";
+    const language = resolveLanguage(url.searchParams.get("locale"), store.language);
 
     // Build where clause
     const where = {
@@ -89,7 +91,9 @@ export async function loader({ request }) {
       : 0;
     const count = agg._count.id || 0;
 
-    return Response.json({ reviews, average, count, language }, { headers });
+    const translated = await translateReviews(shop, reviews, language, store.language || "en");
+
+    return Response.json({ reviews: translated, average, count, language }, { headers });
   } catch (err) {
     console.error("[api/top-reviews]", err);
     return Response.json({ reviews: [], average: 0, count: 0, language: "en" }, { headers });

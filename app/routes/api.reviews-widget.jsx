@@ -178,6 +178,8 @@ export async function loader({ request }) {
     var params = new URLSearchParams();
     if (shop)      params.set('shop',       shop);
     if (productId) params.set('product_id', productId);
+    var pageLang = (document.documentElement.lang || '').split('-')[0].toLowerCase();
+    if (pageLang) params.set('locale', pageLang);
 
     return APP_URL + '/api/top-reviews?' + params.toString();
   }

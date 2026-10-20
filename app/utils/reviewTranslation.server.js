@@ -115,16 +115,62 @@ export async function translateReviews(shop, reviews, targetLang, baseLang = "en
     }
   }
 
+  const customerNames = await translateGenericCustomerNames(shop, creds, reviews, targetLang);
+
   return reviews.map((r) => {
     const t = cacheByReviewId.get(r.id);
-    if (!t) return r;
+    const customer = customerNames.get(r.customer) ?? r.customer;
+    if (!t) return customer === r.customer ? r : { ...r, customer };
     return {
       ...r,
+      customer,
       title: r.title ? (t.title || r.title) : r.title,
       comment: t.comment || r.comment,
       reply: r.reply ? (t.reply || r.reply) : r.reply,
     };
   });
+}
+
+// Placeholder reviewer names ("Client", "Customer", "Anonymous"…) get stored
+// when a review has no real name (e.g. imports). Those are labels, not names,
+// so they're translated with the rest of the review. Real names are never sent
+// to Azure. Results are cached in memory per language — there are only a
+// handful of distinct placeholders, so no DB table is needed.
+const GENERIC_CUSTOMER_NAMES = new Set([
+  "client", "clients", "customer", "customers", "anonymous", "guest", "user", "buyer",
+  "cliente", "clienti", "kunde", "klant", "klient", "anonyme", "anónimo", "anonimo", "anonym",
+]);
+const customerNameCache = new Map();
+
+async function translateGenericCustomerNames(shop, creds, reviews, targetLang) {
+  const result = new Map();
+  const pending = [];
+  for (const name of new Set(reviews.map((r) => r.customer))) {
+    if (!name || !GENERIC_CUSTOMER_NAMES.has(String(name).trim().toLowerCase())) continue;
+    const hit = customerNameCache.get(`${targetLang}:${name}`);
+    if (hit) result.set(name, hit);
+    else pending.push(name);
+  }
+  if (!pending.length) return result;
+
+  const translated = await runExclusive(shop, async () => {
+    if (isRateLimited(shop)) return null;
+    try {
+      return await translateTexts(creds.apiKey, creds.region, pending, targetLang);
+    } catch (error) {
+      markIfRateLimited(shop, error);
+      console.error("[azure translator] customer label failed, serving original:", error.message);
+      return null;
+    }
+  });
+  if (translated) {
+    pending.forEach((name, i) => {
+      const text = translated[i] || name;
+      customerNameCache.set(`${targetLang}:${name}`, text);
+      result.set(name, text);
+    });
+  }
+  return result;
 }
 
 export async function translateQuestions(shop, questions, targetLang, baseLang = "en") {
