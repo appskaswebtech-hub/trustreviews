@@ -6,10 +6,17 @@ import { testKlaviyoConnection } from "./klaviyo.server";
 import { testMailchimpConnection, getMailchimpLists } from "./mailchimp.server";
 import { testGoogleMerchantConnection } from "./google-merchant.server";
 import { testAzureTranslatorConnection } from "./azureTranslator.server";
+import { testOmnisendConnection } from "./omnisend.server";
+import { testHubspotConnection } from "./hubspot.server";
+import { testWebhookConnection } from "./webhook.server";
 
 // Shopify Flow has no external API key to test — connection is always valid
 // once the extension is deployed. Return ok:true immediately.
 async function testFlowConnection() {
+  return { ok: true };
+}
+
+async function testFeedConnection() {
   return { ok: true };
 }
 
@@ -20,6 +27,10 @@ export const TESTERS = {
   shopify_flow:     testFlowConnection,
   google_merchant:  testGoogleMerchantConnection,
   azure_translator: testAzureTranslatorConnection,
+  omnisend:         testOmnisendConnection,
+  hubspot:          testHubspotConnection,
+  webhook:          testWebhookConnection,
+  google_feed:      testFeedConnection,
 };
 
 export { getMailchimpLists };

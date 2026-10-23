@@ -45,11 +45,15 @@ function ProviderCard({ providerKey, provider, connected }) {
         alignItems: "center", justifyContent: "center", fontSize: 32, position: "relative",
       }} className="tr-app-routes-app-integrations-div-2">
         <span style={{
-          width: 44, height: 44, borderRadius: "50%",
-          background: "rgba(255,255,255,.55)", color: C.text,
+          width: 56, height: 56, borderRadius: "50%",
+          background: "rgba(255,255,255,.75)", color: C.text,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 18, fontWeight: 600,
-        }} className="tr-app-routes-app-integrations-span-3">{provider.label.charAt(0).toUpperCase()}</span>
+        }} className="tr-app-routes-app-integrations-span-3">
+          {provider.logo
+            ? <img src={provider.logo} alt={provider.label} width={30} height={30} style={{ objectFit: "contain" }} />
+            : provider.label.charAt(0).toUpperCase()}
+        </span>
         {connected && (
           <span style={{
             position: "absolute", top: 10, right: 10, fontSize: 11, fontWeight: 600,
@@ -87,7 +91,7 @@ export default function IntegrationsGalleryPage() {
           title="Integrations — Advanced Plan"
           description="Connect an email platform to sync review and Q&A events for automations."
           features={[
-            "Klaviyo, Mailchimp & Shopify Flow",
+            "Klaviyo, Omnisend, Mailchimp, HubSpot, Zapier/Webhook & Shopify Flow",
             "Google Merchant Center sync",
             "Azure Translator",
             "Everything else in Advanced",

@@ -6,6 +6,7 @@ import db from "../db.server";
 import { PROVIDER_META } from "../utils/providers";
 import { TESTERS, getMailchimpLists } from "../utils/integrations.server";
 import { syncAllApprovedReviews } from "../utils/google-merchant.server";
+import { generateFeedToken, buildFeedUrl } from "../utils/google-feed.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
@@ -51,6 +52,10 @@ export const loader = async ({ request, params }) => {
     lastError:      integration?.lastError ?? null,
     lastCheckedAt:  integration?.lastCheckedAt ?? null,
     mailchimpLists,
+    feedUrl:
+      providerKey === "google_feed" && integration?.apiKey
+        ? buildFeedUrl(process.env.SHOPIFY_APP_URL || new URL(request.url).origin, session.shop, integration.apiKey)
+        : null,
     googleServiceAccountEmail:
       providerKey === "google_merchant" ? process.env.GOOGLE_MERCHANT_SERVICE_ACCOUNT_EMAIL || null : null,
   };
@@ -103,6 +108,23 @@ export const action = async ({ request, params }) => {
       } catch (err) {
         return { ok: false, message: `Failed to send test event: ${err.message}` };
       }
+    }
+    return null;
+  }
+
+  // Google Reviews Feed: the "key" is a private token embedded in the feed URL
+  if (providerKey === "google_feed") {
+    if (actionType === "create" || actionType === "regenerate") {
+      await db.integration.upsert({
+        where,
+        update: { apiKey: generateFeedToken(), connected: true, lastError: null, lastCheckedAt: new Date() },
+        create: { shop: session.shop, provider: providerKey, apiKey: generateFeedToken(), connected: true, lastCheckedAt: new Date() },
+      });
+      return { ok: true, message: actionType === "create" ? "Feed link created." : "New feed link created. Update it in Merchant Center — the old link no longer works." };
+    }
+    if (actionType === "disconnect") {
+      await db.integration.delete({ where }).catch(() => {});
+      return { ok: true, message: "Feed link removed." };
     }
     return null;
   }
@@ -314,6 +336,64 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
   );
 }
 
+/* ── Google Reviews Feed page ── */
+function FeedPage({ provider, feedUrl, connected, fetcher }) {
+  const [copied, setCopied] = useState(false);
+  const busy = fetcher.state !== "idle";
+  const result = fetcher.data;
+  const submit = (actionType) => fetcher.submit({ actionType }, { method: "post" });
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(feedUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* ignore */ }
+  };
+  const btn = { borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: busy ? "default" : "pointer" };
+
+  return (
+    <div style={{ background: C.surface, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20, maxWidth: 520 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+        <StatusDot connected={connected} />
+        <strong style={{ fontSize: 13 }}>{connected ? "Feed link active" : "No feed link yet"}</strong>
+      </div>
+
+      {feedUrl ? (
+        <>
+          <label style={{ fontSize: 12, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Feed URL</label>
+          <input readOnly value={feedUrl} onFocus={(e) => e.target.select()}
+            style={{ width: "100%", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, marginBottom: 10, boxSizing: "border-box" }} />
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={copy} style={{ ...btn, border: "none", background: C.accent, color: C.onAccent }}>{copied ? "Copied ✓" : "Copy URL"}</button>
+            <a href={feedUrl} target="_blank" rel="noreferrer" style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.text, textDecoration: "none" }}>Preview feed ↗</a>
+            <button onClick={() => { if (window.confirm("The current link will stop working. Continue?")) submit("regenerate"); }} disabled={busy}
+              style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.text }}>Regenerate</button>
+            <button onClick={() => { if (window.confirm("Remove the feed link?")) submit("disconnect"); }} disabled={busy}
+              style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.red, marginLeft: "auto" }}>Disconnect</button>
+          </div>
+        </>
+      ) : (
+        <button onClick={() => submit("create")} disabled={busy}
+          style={{ ...btn, border: "none", background: C.accent, color: C.onAccent }}>{busy ? "Creating…" : "Create feed link"}</button>
+      )}
+
+      {result?.message && (
+        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 8, fontSize: 12.5, background: result.ok ? C.greenLt : C.redLt, color: result.ok ? C.green : C.red }}>
+          {result.message}
+        </div>
+      )}
+
+      {provider.guide && (
+        <div style={{ marginTop: 20, padding: "14px 16px", background: "#fff", borderRadius: 10, border: `1px solid ${C.border}` }}>
+          <strong style={{ fontSize: 12, color: C.text, display: "block", marginBottom: 8 }}>How to set up {provider.label}</strong>
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
+            {provider.guide.steps.map((step, i) => <li key={i}>{step}</li>)}
+          </ol>
+          {provider.guide.notes?.map((note, i) => (
+            <p key={i} style={{ fontSize: 11.5, color: C.muted, margin: "10px 0 0" }}>{note}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Klaviyo / Mailchimp page ── */
 function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedListId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail, fetcher }) {
   const [apiKey, setApiKey] = useState("");
@@ -434,6 +514,19 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         </div>
       )}
 
+      {/* Step-by-step setup guide */}
+      {provider.guide && (
+        <div style={{ marginTop: 20, padding: "14px 16px", background: "#fff", borderRadius: 10, border: `1px solid ${C.border}` }}>
+          <strong style={{ fontSize: 12, color: C.text, display: "block", marginBottom: 8 }}>How to set up {provider.label}</strong>
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: C.muted, lineHeight: 1.7 }}>
+            {provider.guide.steps.map((step, i) => <li key={i}>{step}</li>)}
+          </ol>
+          {provider.guide.notes?.map((note, i) => (
+            <p key={i} style={{ fontSize: 11.5, color: C.muted, margin: "10px 0 0", wordBreak: "break-word" }}>{note}</p>
+          ))}
+        </div>
+      )}
+
       {/* Events that fire / what gets translated */}
       <div style={{ marginTop: 20, padding: "14px 16px", background: "#f8f9fc", borderRadius: 10, border: `1px solid ${C.border}` }} className="tr-app-routes-app-integrations-provider-div-82">
         {providerKey === "azure_translator" ? (
@@ -463,7 +556,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
 }
 
 export default function IntegrationSettingsPage() {
-  const { providerKey, provider, isPro, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail } = useLoaderData();
+  const { providerKey, provider, isPro, shop, adminBase, hasKey, maskedKey, listId, connected, lastError, lastCheckedAt, mailchimpLists, googleServiceAccountEmail, feedUrl } = useLoaderData();
   const fetcher = useFetcher();
 
   if (!isPro) {
@@ -473,7 +566,7 @@ export default function IntegrationSettingsPage() {
           title={`${provider.label} — Advanced Plan`}
           description="Integrations are part of the Advanced plan."
           features={[
-            "Klaviyo, Mailchimp & Shopify Flow",
+            "Klaviyo, Omnisend, Mailchimp, HubSpot, Zapier/Webhook & Shopify Flow",
             "Google Merchant Center sync",
             "Azure Translator",
             "Everything else in Advanced",
@@ -492,7 +585,11 @@ export default function IntegrationSettingsPage() {
           width: 34, height: 34, borderRadius: "50%", background: C.accentLt || "#eaf0ff",
           color: C.accentText, display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 15, fontWeight: 600,
-        }} className="tr-app-routes-app-integrations-provider-div-98">{provider.label.charAt(0).toUpperCase()}</div>
+        }} className="tr-app-routes-app-integrations-provider-div-98">
+          {provider.logo
+            ? <img src={provider.logo} alt={provider.label} width={20} height={20} style={{ objectFit: "contain" }} />
+            : provider.label.charAt(0).toUpperCase()}
+        </div>
         <h1 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: 0 }} className="tr-app-routes-app-integrations-provider-h1-99">{provider.label}</h1>
         {connected && (
           <span style={{ fontSize: 11, fontWeight: 600, background: C.greenLt, color: C.green, borderRadius: 20, padding: "3px 10px" }} className="tr-app-routes-app-integrations-provider-span-100">✓ Connected</span>
@@ -502,6 +599,8 @@ export default function IntegrationSettingsPage() {
 
       {providerKey === "shopify_flow" ? (
         <FlowPage provider={provider} connected={connected} lastCheckedAt={lastCheckedAt} fetcher={fetcher} shop={shop} adminBase={adminBase} />
+      ) : providerKey === "google_feed" ? (
+        <FeedPage provider={provider} feedUrl={feedUrl} connected={connected} fetcher={fetcher} />
       ) : (
         <ApiKeyPage
           provider={provider} providerKey={providerKey}

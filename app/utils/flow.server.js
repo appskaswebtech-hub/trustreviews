@@ -12,36 +12,39 @@ const FLOW_TRIGGER_MUTATION = `#graphql
   }
 `;
 
+// Throws on failure so callers (the Test button, notifyIntegrations) can
+// report the real reason instead of silently succeeding.
 export async function fireFlowTrigger(shop, { handle, payload }) {
-  try {
-    const { admin } = await unauthenticated.admin(shop);
-    const response = await admin.graphql(FLOW_TRIGGER_MUTATION, {
-      variables: { handle, payload },
-    });
-    const json = await response.json();
-    const errors = json?.data?.flowTriggerReceive?.userErrors ?? [];
-    if (errors.length) {
-      console.error("[flow] trigger errors:", errors);
-    }
-  } catch (err) {
-    console.error("[flow] fireFlowTrigger failed:", err.message);
+  const { admin } = await unauthenticated.admin(shop);
+  const response = await admin.graphql(FLOW_TRIGGER_MUTATION, {
+    variables: { handle, payload },
+  });
+  const json = await response.json();
+  if (json?.errors?.length) {
+    throw new Error(json.errors.map((e) => e.message).join("; "));
+  }
+  const errors = json?.data?.flowTriggerReceive?.userErrors ?? [];
+  if (errors.length) {
+    throw new Error(errors.map((e) => e.message).join("; "));
   }
 }
 
 // Maps an integration event to the correct Flow trigger handle + payload shape.
 export async function sendFlowEvent(shop, { metricName, email, properties }) {
-  const handle =
-    metricName === "Review Approved" ? "review-approved" : "review-submitted";
+  const approved = metricName === "Review Approved";
+  const payload = {
+    "customer email": email || "",
+    "customer name":  properties.customer || "",
+    rating:           String(properties.rating ?? ""),
+    comment:          properties.comment || "",
+    "product id":     String(properties.productId || ""),
+  };
+  // Only the Review Submitted trigger declares a "status" field; Shopify
+  // rejects payload keys the trigger doesn't define.
+  if (!approved) payload.status = properties.status || "pending";
 
   await fireFlowTrigger(shop, {
-    handle,
-    payload: {
-      "customer email": email || "",
-      "customer name":  properties.customer || "",
-      rating:           String(properties.rating ?? ""),
-      comment:          properties.comment || "",
-      "product id":     String(properties.productId || ""),
-      status:           properties.status || "pending",
-    },
+    handle: approved ? "review-approved" : "review-submitted",
+    payload,
   });
 }
