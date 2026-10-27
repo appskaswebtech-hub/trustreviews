@@ -114,7 +114,8 @@
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media(max-width:768px){
-  .hr-sc-wrap{flex-direction:column}
+  .hr-sc-wrap{flex-direction:column;gap:16px}
+  .hr-sc-carousel{padding:0 4px}
   .hr-sc-panel{max-width:100%;width:100%;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:16px;padding:20px}
   .hr-slide-3,.hr-slide-2{grid-template-columns:1fr}
   .hr-grid{grid-template-columns:repeat(2,1fr)}

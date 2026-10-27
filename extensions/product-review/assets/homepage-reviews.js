@@ -103,25 +103,36 @@
       // Too few reviews to slide: repeat them so the loop still has something to move to.
       if (loop) while (items.length && items.length <= perView) items = items.concat(base);
       track.innerHTML = '';
-      for (var i = 0; i < items.length; i++) {
+      // Loop: clone the first cards at the end so the last step slides on to "1" instead of rewinding.
+      var shown = loop ? items.concat(items.slice(0, perView)) : items;
+      for (var i = 0; i < shown.length; i++) {
         var slide = document.createElement('div');
         slide.className = 'hr-slide';
         slide.style.flex = '0 0 calc((100% - ' + (perView - 1) + ' * var(--hr-gap,20px)) / ' + perView + ')';
-        slide.appendChild(buildCard(items[i], s, t));
+        slide.appendChild(buildCard(shown[i], s, t));
         track.appendChild(slide);
       }
-      track.dataset.count = items.length;
-      goTo(0);
+      realCount = items.length;
+      place(0, false);
     }
-    function goTo(idx) {
-      var count = parseInt(track.dataset.count, 10) || 0;
-      var max = Math.max(0, count - perView);
-      current = idx > max ? (loop ? 0 : max) : idx < 0 ? (loop ? max : 0) : idx;
-      var step = 'calc((100% + var(--hr-gap,20px)) / ' + perView + ' * ' + current + ')';
+    var realCount = 0;
+    function place(idx, animate) {
+      track.style.transition = animate ? '' : 'none';
+      current = idx;
+      var step = 'calc((100% + var(--hr-gap,20px)) / ' + perView + ' * ' + idx + ')';
       track.style.transform = 'translateX(calc(-1 * ' + step + '))';
-      var hide = !loop && max === 0;
+      if (!animate) void track.offsetWidth;
+      var hide = !loop && realCount <= perView;
       prevBtn.style.visibility = nextBtn.style.visibility = hide ? 'hidden' : '';
     }
+    function goTo(idx) {
+      if (!loop) { place(Math.max(0, Math.min(idx, realCount - perView)), true); return; }
+      if (idx < 0) { place(realCount, false); idx = realCount - 1; }
+      place(Math.min(idx, realCount), true);
+    }
+    track.addEventListener('transitionend', function () {
+      if (loop && current >= realCount) place(current - realCount, false);
+    });
     prevBtn.addEventListener('click', function () { goTo(current - 1); });
     nextBtn.addEventListener('click', function () { goTo(current + 1); });
 
