@@ -92,24 +92,35 @@
     nextBtn.innerHTML = '&#8250;';
     nextBtn.setAttribute('aria-label', 'Next');
 
-    // Build slides
-    var items = reviews.slice(0, s.maxRev || 9);
-    var slideClass = cols === 3 ? 'hr-slide-3' : cols === 2 ? 'hr-slide-2' : 'hr-slide-1';
-    var slides = [], current = 0;
-
-    for (var i = 0; i < items.length; i += cols) {
-      var slide = document.createElement('div');
-      slide.className = 'hr-slide ' + slideClass;
-      var chunk = items.slice(i, i + cols);
-      for (var k = 0; k < chunk.length; k++) slide.appendChild(buildCard(chunk[k], s, t));
-      track.appendChild(slide);
-      slides.push(slide);
+    // One card per step. Mobile shows a single card; desktop shows `cols`.
+    var base = reviews.slice(0, s.maxRev || 9);
+    var loop = s.loop !== false;
+    var current = 0, perView = 1;
+    function viewCount() { return window.innerWidth <= 768 ? 1 : cols; }
+    function render() {
+      perView = viewCount();
+      var items = base.slice();
+      // Too few reviews to slide: repeat them so the loop still has something to move to.
+      if (loop) while (items.length && items.length <= perView) items = items.concat(base);
+      track.innerHTML = '';
+      for (var i = 0; i < items.length; i++) {
+        var slide = document.createElement('div');
+        slide.className = 'hr-slide';
+        slide.style.flex = '0 0 calc((100% - ' + (perView - 1) + ' * var(--hr-gap,20px)) / ' + perView + ')';
+        slide.appendChild(buildCard(items[i], s, t));
+        track.appendChild(slide);
+      }
+      track.dataset.count = items.length;
+      goTo(0);
     }
-
-    var total_slides = slides.length;
     function goTo(idx) {
-      current = ((idx % total_slides) + total_slides) % total_slides;
-      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      var count = parseInt(track.dataset.count, 10) || 0;
+      var max = Math.max(0, count - perView);
+      current = idx > max ? (loop ? 0 : max) : idx < 0 ? (loop ? max : 0) : idx;
+      var step = 'calc((100% + var(--hr-gap,20px)) / ' + perView + ' * ' + current + ')';
+      track.style.transform = 'translateX(calc(-1 * ' + step + '))';
+      var hide = !loop && max === 0;
+      prevBtn.style.visibility = nextBtn.style.visibility = hide ? 'hidden' : '';
     }
     prevBtn.addEventListener('click', function () { goTo(current - 1); });
     nextBtn.addEventListener('click', function () { goTo(current + 1); });
@@ -121,6 +132,10 @@
       var dx = e.changedTouches[0].clientX - startX;
       if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
     });
+
+    var lastView = viewCount();
+    window.addEventListener('resize', function () { if (viewCount() !== lastView) { lastView = viewCount(); render(); } });
+    render();
 
     carousel.appendChild(prevBtn);
     carousel.appendChild(trackWrap);
@@ -380,6 +395,7 @@
     var layout    = 'summary_carousel';
     var maxRev    = parseInt(el.dataset.max, 10) || 9;
     var seoEnabled = el.dataset.seoEnabled !== 'false';
+    var loopEnabled = el.dataset.loop !== 'false';
 
     var loadingEl = el.querySelector('.hr-loading');
     var bodyEl    = el.querySelector('.hr-body');
@@ -439,6 +455,7 @@
           showMedia:    d.showAvatar      !== false,
           sectionRadius:d.borderRadius    != null ? d.borderRadius : 6,
           layout:       d.defaultStyle    || layout,
+          loop:         loopEnabled,
         };
 
         applyVars(el, s);

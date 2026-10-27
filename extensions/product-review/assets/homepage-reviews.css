@@ -14,8 +14,9 @@
 .hr-arrow{background:none;border:none;font-size:2rem;cursor:pointer;color:var(--hr-text,#111);padding:4px 10px;line-height:1;flex-shrink:0;transition:opacity .15s;user-select:none}
 .hr-arrow:hover{opacity:.5}
 .hr-track-wrap{flex:1;overflow:hidden}
-.hr-track{display:flex;transition:transform .4s ease}
-.hr-slide{min-width:100%;display:grid;gap:var(--hr-gap,20px);box-sizing:border-box}
+.hr-track{display:flex;gap:var(--hr-gap,20px);transition:transform .4s ease}
+.hr-slide{min-width:0;box-sizing:border-box;display:flex}
+.hr-slide>.hr-card{flex:1;min-width:0}
 .hr-slide-3{grid-template-columns:repeat(3,1fr)}
 .hr-slide-2{grid-template-columns:repeat(2,1fr)}
 .hr-slide-1{grid-template-columns:1fr}

@@ -16,6 +16,7 @@
   data-seo-enabled="{{ block.settings.enable_seo_schema }}"
   data-max="{{ block.settings.max_reviews }}"
   data-layout="{{ block.settings.layout_style }}"
+  data-loop="{{ block.settings.enable_loop }}"
   data-widget-key="homepage_reviews"
 >
   <h2 class="hr-heading">{{ block.settings.heading }}</h2>
@@ -68,6 +69,7 @@
       "step": 3,
       "default": 9
     },
+    { "type": "checkbox", "id": "enable_loop", "label": "Loop carousel (repeat reviews when there are only a few)", "default": true },
     { "type": "header", "content": "SEO" },
     { "type": "checkbox", "id": "enable_seo_schema", "label": "Enable SEO Rich Snippets (Organization schema for search)", "default": true }
   ]
