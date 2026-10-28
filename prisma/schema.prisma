@@ -333,6 +333,17 @@ model WidgetSettings {
   updatedAt     DateTime @updatedAt
 }
 
+// Per-store key for the public reviews API (GET /api/public-reviews). One key
+// per shop; regenerating replaces it, so the old key stops working at once.
+// Advanced-plan feature — see routes/api.public-reviews.jsx.
+model StoreApiKey {
+  id         Int       @id @default(autoincrement())
+  shop       String    @unique
+  key        String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}
+
 model Integration {
   id            String    @id @default(cuid())
   shop          String

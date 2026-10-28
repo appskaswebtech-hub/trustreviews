@@ -197,6 +197,10 @@ export default function App() {
               Custom Code
             </Link>
 
+            <Link to="/app/api-access">
+              API Access
+            </Link>
+
             <Link to="/app/billing">
               Billing
             </Link>
