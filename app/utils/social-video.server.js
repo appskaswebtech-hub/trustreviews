@@ -9,7 +9,7 @@ import crypto from "crypto";
 import db from "../db.server";
 
 const FB_VERSION = "v21.0";
-const SYNC_MAX_AGE_MS = 6 * 60 * 60 * 1000; // CDN video links expire, so re-sync lazily
+const SYNC_MAX_AGE_MS = 30 * 60 * 1000; // CDN links expire and stories live 24h, so re-sync lazily
 const IG_REFRESH_WITHIN_MS = 10 * 24 * 60 * 60 * 1000;
 
 export const PROVIDERS = ["instagram", "facebook"];
@@ -98,11 +98,12 @@ export async function connectWithCode(shop, provider, rawCode) {
       })}`,
     );
     const me = await getJson(
-      `https://graph.instagram.com/${FB_VERSION}/me?${new URLSearchParams({ fields: "user_id,username", access_token: long.access_token })}`,
+      `https://graph.instagram.com/${FB_VERSION}/me?${new URLSearchParams({ fields: "user_id,username,profile_picture_url", access_token: long.access_token })}`,
     );
     conn = {
       accountId: String(me.user_id || me.id || short.user_id || ""),
       accountName: me.username ? `@${me.username}` : "Instagram",
+      avatarUrl: me.profile_picture_url || null,
       accessToken: long.access_token,
       tokenExpiresAt: new Date(Date.now() + (long.expires_in || 60 * 24 * 3600) * 1000),
     };
@@ -157,26 +158,51 @@ async function refreshInstagramToken(conn) {
   return data.accessToken;
 }
 
-async function fetchInstagramVideos(conn) {
+const mapInstagramMedia = (m, kind) => ({
+  externalId: m.id, kind, mediaType: m.media_type || "IMAGE", caption: m.caption || null,
+  videoUrl: m.media_url || "",
+  // Photos use their own file as the thumbnail.
+  thumbnailUrl: m.thumbnail_url || (m.media_type !== "VIDEO" ? m.media_url || null : null),
+  permalink: m.permalink, postedAt: m.timestamp ? new Date(m.timestamp) : null,
+});
+
+async function fetchInstagramContent(conn) {
   let token = conn.accessToken;
   if (conn.tokenExpiresAt && conn.tokenExpiresAt.getTime() - Date.now() < IG_REFRESH_WITHIN_MS) {
     try { token = await refreshInstagramToken(conn); } catch { /* still valid for now; surfaced if the fetch fails */ }
   }
+  const fields = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp";
   const json = await getJson(
-    `https://graph.instagram.com/${FB_VERSION}/me/media?${new URLSearchParams({
-      fields: "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp",
-      limit: "50", access_token: token,
-    })}`,
+    `https://graph.instagram.com/${FB_VERSION}/me/media?${new URLSearchParams({ fields, limit: "50", access_token: token })}`,
   );
   const all = json.data || [];
-  const isVideo = all.filter((m) => m.media_type === "VIDEO");
-  const videos = isVideo
-    .map((m) => ({
-      externalId: m.id, caption: m.caption || null, videoUrl: m.media_url || "",
-      thumbnailUrl: m.thumbnail_url || null, permalink: m.permalink,
-      postedAt: m.timestamp ? new Date(m.timestamp) : null,
-    }));
-  return { videos, stats: { posts: all.length, videoPosts: isVideo.length, embedOnly: videos.filter((v) => !v.videoUrl).length } };
+  const items = all.filter((m) => m.permalink).map((m) => mapInstagramMedia(m, "post"));
+
+  // Stories are only returned while live (24h) and may be unavailable for some
+  // accounts — never fail the whole sync over them.
+  let stories = [];
+  try {
+    const s = await getJson(
+      `https://graph.instagram.com/${FB_VERSION}/me/stories?${new URLSearchParams({ fields, access_token: token })}`,
+    );
+    stories = (s.data || []).filter((m) => m.permalink && m.media_url).map((m) => mapInstagramMedia(m, "story"));
+  } catch { /* no stories / not permitted */ }
+
+  // Refresh the profile picture too (the CDN link expires).
+  let avatarUrl = conn.avatarUrl;
+  try {
+    const me = await getJson(`https://graph.instagram.com/${FB_VERSION}/me?${new URLSearchParams({ fields: "profile_picture_url", access_token: token })}`);
+    avatarUrl = me.profile_picture_url || avatarUrl;
+  } catch { /* keep the old one */ }
+
+  return {
+    items, stories, avatarUrl,
+    stats: {
+      posts: all.length,
+      videos: items.filter((v) => v.mediaType === "VIDEO").length,
+      embedOnly: items.filter((v) => v.mediaType === "VIDEO" && !v.videoUrl).length,
+    },
+  };
 }
 
 async function fetchFacebookVideos(conn) {
@@ -192,7 +218,7 @@ async function fetchFacebookVideos(conn) {
       );
       for (const v of json.data || []) {
         out.set(v.id, {
-          externalId: v.id, caption: v.description || null, videoUrl: v.source || "",
+          externalId: v.id, kind: "post", mediaType: "VIDEO", caption: v.description || null, videoUrl: v.source || "",
           thumbnailUrl: v.picture || null,
           permalink: v.permalink_url ? new URL(v.permalink_url, "https://www.facebook.com").href : `https://www.facebook.com/${v.id}`,
           postedAt: v.created_time ? new Date(v.created_time) : null,
@@ -202,31 +228,38 @@ async function fetchFacebookVideos(conn) {
       if (edge === "videos") throw err; // reels edge is optional
     }
   }
-  const videos = [...out.values()];
-  return { videos, stats: { posts: videos.length, videoPosts: videos.length, embedOnly: videos.filter((v) => !v.videoUrl).length } };
+  const items = [...out.values()];
+  return {
+    items, stories: [], avatarUrl: conn.avatarUrl,
+    stats: { posts: items.length, videos: items.length, embedOnly: items.filter((v) => !v.videoUrl).length },
+  };
 }
 
-// Pulls the latest videos for one provider; keeps the merchant's hide/show
-// choice on videos that are still there and drops ones deleted upstream.
+// Pulls the latest content for one provider: feed posts / reels, and (Instagram)
+// live stories. Keeps the merchant's hide/show choice on items that are still
+// there and drops ones deleted upstream (stories vanish after 24h).
 export async function syncVideos(shop, provider) {
   const conn = await db.socialConnection.findUnique({ where: { shop_provider: { shop, provider } } });
   if (!conn) return 0;
   // Stamp the attempt first so concurrent storefront hits don't all re-sync.
   await db.socialConnection.update({ where: { id: conn.id }, data: { lastSyncedAt: new Date() } });
   try {
-    const { videos, stats } = provider === "instagram" ? await fetchInstagramVideos(conn) : await fetchFacebookVideos(conn);
-    for (const v of videos) {
+    const { items, stories, avatarUrl, stats } =
+      provider === "instagram" ? await fetchInstagramContent(conn) : await fetchFacebookVideos(conn);
+    for (const v of [...items, ...stories]) {
       await db.socialVideo.upsert({
         where: { shop_provider_externalId: { shop, provider, externalId: v.externalId } },
         update: v,
         create: { shop, provider, ...v },
       });
     }
-    await db.socialVideo.deleteMany({
-      where: { shop, provider, externalId: { notIn: videos.map((v) => v.externalId) } },
-    });
-    await db.socialConnection.update({ where: { id: conn.id }, data: { lastError: null } });
-    return { count: videos.length, ...stats };
+    for (const [kind, list] of [["post", items], ["story", stories]]) {
+      await db.socialVideo.deleteMany({
+        where: { shop, provider, kind, externalId: { notIn: list.map((v) => v.externalId) } },
+      });
+    }
+    await db.socialConnection.update({ where: { id: conn.id }, data: { lastError: null, avatarUrl } });
+    return { count: items.length, storyCount: stories.length, ...stats };
   } catch (err) {
     await db.socialConnection.update({ where: { id: conn.id }, data: { lastError: String(err.message).slice(0, 500) } });
     throw err;
@@ -242,20 +275,33 @@ export function embedUrl(provider, permalink) {
   return permalink.replace(/[?#].*$/, "").replace(/\/?$/, "/") + "embed";
 }
 
-// Storefront read: visible videos, newest first. Triggers a background-safe
-// re-sync when the stored CDN links are getting old.
-export async function getStorefrontVideos(shop, limit = 12) {
+// Storefront read, newest first. Re-syncs when stored CDN links are old.
+// kind "post" = feed (videosOnly narrows it to videos / reels); kind "story" =
+// live stories. `account` is what the widgets show in their header / story circle.
+export async function getStorefrontContent(shop, { kind = "post", videosOnly = false, limit = 12 } = {}) {
   const conns = await db.socialConnection.findMany({ where: { shop } });
   const stale = conns.filter((c) => !c.lastSyncedAt || Date.now() - c.lastSyncedAt.getTime() > SYNC_MAX_AGE_MS);
   await Promise.all(stale.map((c) => syncVideos(shop, c.provider).catch(() => {})));
 
   const rows = await db.socialVideo.findMany({
-    where: { shop, hidden: false },
-    orderBy: { postedAt: "desc" },
+    where: { shop, hidden: false, kind, ...(videosOnly ? { mediaType: "VIDEO" } : {}) },
+    orderBy: { postedAt: kind === "story" ? "asc" : "desc" }, // stories play oldest → newest
     take: limit,
   });
-  return rows.map((v) => ({
-    id: v.id, provider: v.provider, src: v.videoUrl || null, embed: embedUrl(v.provider, v.permalink),
-    thumb: v.thumbnailUrl, caption: v.caption, permalink: v.permalink,
-  }));
+  const ig = (await db.socialConnection.findMany({ where: { shop, provider: "instagram" } }))[0];
+  const items = rows.map((v) => {
+    const isVideo = v.mediaType === "VIDEO";
+    return {
+      id: v.id, provider: v.provider, type: v.mediaType,
+      src: isVideo ? v.videoUrl || null : null,
+      image: isVideo ? null : v.videoUrl || null,
+      embed: isVideo ? embedUrl(v.provider, v.permalink) : null,
+      thumb: v.thumbnailUrl, caption: v.caption, permalink: v.permalink,
+    };
+  });
+  const username = ig ? ig.accountName.replace(/^@/, "") : "";
+  return {
+    items,
+    account: ig ? { username, avatar: ig.avatarUrl, url: `https://www.instagram.com/${username}/` } : null,
+  };
 }

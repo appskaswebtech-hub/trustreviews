@@ -421,6 +421,7 @@ model SocialConnection {
   accountName    String    @default("")
   accessToken    String    @db.Text
   tokenExpiresAt DateTime? // null = does not expire (Facebook page tokens)
+  avatarUrl      String?   @db.Text // profile picture, shown on the stories circle
   lastSyncedAt   DateTime?
   lastError      String?   @db.Text
   createdAt      DateTime  @default(now())
@@ -441,7 +442,9 @@ model SocialVideo {
   provider     String
   externalId   String
   caption      String?  @db.Text
-  videoUrl     String   @db.Text
+  kind         String   @default("post")  // "post" (feed item / reel) | "story" (live for 24h)
+  mediaType    String   @default("VIDEO") // "VIDEO" | "IMAGE" | "CAROUSEL_ALBUM"
+  videoUrl     String   @db.Text          // the media file: the video, or the photo for IMAGE / CAROUSEL_ALBUM ("" = embed only)
   thumbnailUrl String?  @db.Text
   permalink    String   @db.Text
   postedAt     DateTime?

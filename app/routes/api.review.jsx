@@ -9,7 +9,7 @@ import { notifyIntegrations } from "../utils/events.server";
 import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import { batchRatings } from "../utils/ratings.server";
-import { getStorefrontVideos } from "../utils/social-video.server";
+import { getStorefrontContent } from "../utils/social-video.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -347,13 +347,20 @@ export async function loader({ request }) {
   }
 
   // ── Instagram / Facebook videos (Social Videos block) ─────────────────────
-  if (url.searchParams.get("type") === "social-videos") {
-    const limit = Math.min(24, Math.max(1, parseInt(url.searchParams.get("limit"), 10) || 12));
+  const socialType = url.searchParams.get("type");
+  if (socialType === "social-videos" || socialType === "social-feed" || socialType === "social-stories") {
+    const limit = Math.min(30, Math.max(1, parseInt(url.searchParams.get("limit"), 10) || 12));
     try {
-      return Response.json({ videos: await getStorefrontVideos(shop, limit) });
+      const { items, account } = await getStorefrontContent(shop, {
+        kind: socialType === "social-stories" ? "story" : "post",
+        videosOnly: socialType === "social-videos",
+        limit,
+      });
+      // "videos" kept for the Social Videos block already live in themes.
+      return Response.json({ videos: items, items, account });
     } catch (err) {
-      console.error("[api/review social-videos]", err);
-      return Response.json({ videos: [] });
+      console.error("[api/review social]", err);
+      return Response.json({ videos: [], items: [], account: null });
     }
   }
 

@@ -78,7 +78,16 @@ const DETAILS = {
     tip: "Advanced plan. Connect your Google Business / pick your place on the Google Reviews page first.",
   },
   instagram_shopping: {
-    where: "Not a theme block — set it up from its page in the app.",
+    where: "Home page — your Instagram and Facebook reels and videos.",
+    tip: "First connect your Instagram / Facebook on the Instagram & Facebook page in the app, then add the block.",
+  },
+  instagram_feed: {
+    where: "Home page — your latest Instagram posts, reels and carousels.",
+    tip: "First connect your Instagram (Business or Creator account) on the Instagram & Facebook page in the app, then add the block.",
+  },
+  instagram_stories: {
+    where: "Home page — a story circle that opens your live Instagram stories.",
+    tip: "Instagram shares stories for 24 hours only (not Highlights), so the circle appears only while you have a live story.",
   },
   customer_accounts: {
     where: "Customer account pages, like the order confirmation / order status page — customers write and view their reviews there.",

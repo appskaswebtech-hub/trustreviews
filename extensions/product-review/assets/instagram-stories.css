@@ -1,0 +1,22 @@
+.igs-widget{padding:var(--igs-pt,24px) 16px var(--igs-pb,24px);box-sizing:border-box}
+.igs-widget *{box-sizing:border-box}
+.igs-heading{text-align:center;margin:0 0 16px}
+.igs-body{display:flex;justify-content:var(--igs-align,center)}
+.igs-circle{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit}
+.igs-ring{width:var(--igs-size,88px);height:var(--igs-size,88px);border-radius:50%;padding:3px;background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)}
+.igs-ring-in{width:100%;height:100%;border-radius:50%;border:3px solid #fff;overflow:hidden;background:#ddd}
+.igs-ring-in img{width:100%;height:100%;object-fit:cover;display:block}
+.igs-name{font-size:13px;max-width:calc(var(--igs-size,88px) + 24px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.igs-viewer{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
+.igs-stage{position:relative;width:min(420px,100vw);height:min(100vh,calc(min(420px,100vw) * 16 / 9));background:#000;border-radius:12px;overflow:hidden}
+.igs-media{width:100%;height:100%;object-fit:contain;display:block}
+.igs-bars{position:absolute;left:10px;right:10px;top:10px;display:flex;gap:4px;z-index:2}
+.igs-bar{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.35);overflow:hidden}
+.igs-bar i{display:block;height:100%;width:0;background:#fff}
+.igs-bar.done i{width:100%}
+.igs-user{position:absolute;left:12px;top:22px;z-index:2;display:flex;align-items:center;gap:8px;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.igs-user img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+.igs-close{position:absolute;right:10px;top:18px;z-index:3;background:none;border:0;color:#fff;font-size:30px;line-height:1;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.igs-tap{position:absolute;top:60px;bottom:50px;width:35%;z-index:1;background:none;border:0;cursor:pointer}
+.igs-tap.prev{left:0}.igs-tap.next{right:0;width:65%}
+.igs-link{position:absolute;left:0;right:0;bottom:12px;text-align:center;z-index:2;color:#fff;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.7)}

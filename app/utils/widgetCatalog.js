@@ -14,7 +14,7 @@ export const PURPOSES = {
 
 // Theme Editor template to open when installing a block — must be one the block
 // is enabled on (see `enabled_on` in extensions/product-review/blocks/*.liquid).
-const BLOCK_TEMPLATES = { "homepage-reviews": "index", "social-videos": "index" };
+const BLOCK_TEMPLATES = { "homepage-reviews": "index", "social-videos": "index", "instagram-feed": "index", "instagram-stories": "index" };
 export function editorTemplateFor(blockHandle) {
   return BLOCK_TEMPLATES[blockHandle] || "product";
 }
@@ -357,6 +357,28 @@ export const WIDGETS = [
     href: "/app/widgets/instagram-shopping",
     blockHandle: "social-videos",
     bg: "linear-gradient(135deg,#fce4ec,#f3b8cf)",
+  },
+  {
+    key: "instagram_feed",
+    purpose: "show",
+    title: "Instagram Feed",
+    image: "/images/UCC%20Instagram%20Shopping.png",
+    description: "Show your latest Instagram posts, reels and carousels as a grid or swipeable carousel, with a Follow button.",
+    href: "/app/widgets/instagram-shopping",
+    blockHandle: "instagram-feed",
+    bg: "linear-gradient(135deg,#fce4ec,#f3b8cf)",
+    badge: "NEW",
+  },
+  {
+    key: "instagram_stories",
+    purpose: "show",
+    title: "Instagram Stories",
+    image: "/images/UCC%20Instagram%20Shopping.png",
+    description: "Show your live Instagram stories as a story circle that opens a full-screen viewer.",
+    href: "/app/widgets/instagram-shopping",
+    blockHandle: "instagram-stories",
+    bg: "linear-gradient(135deg,#fce4ec,#f3b8cf)",
+    badge: "NEW",
   },
   {
     key: "google_reviews",

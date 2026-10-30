@@ -10,6 +10,12 @@ import { BRAND } from "../utils/brand";
 
 const LABEL = { instagram: "Instagram", facebook: "Facebook" };
 
+const WIDGET_BLOCKS = [
+  { handle: "instagram-feed", title: "Instagram Feed", desc: "Your latest posts, reels and carousels as a grid or swipeable carousel." },
+  { handle: "instagram-stories", title: "Instagram Stories", desc: "Your live stories as a story circle that opens a full-screen viewer." },
+  { handle: "social-videos", title: "Social Videos", desc: "Only your reels and videos (Instagram and Facebook) as a carousel or grid." },
+];
+
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
@@ -30,13 +36,18 @@ export async function loader({ request }) {
         lastError: c?.lastError || "",
       };
     }),
-    videos: videos.map((v) => ({
-      id: v.id, provider: v.provider, caption: v.caption || "", thumb: v.thumbnailUrl,
-      src: v.videoUrl, permalink: v.permalink, hidden: v.hidden,
+    videos: videos.filter((v) => v.kind === "post").map((v) => ({
+      id: v.id, provider: v.provider, type: v.mediaType, caption: v.caption || "", thumb: v.thumbnailUrl,
+      src: v.mediaType === "VIDEO" ? v.videoUrl : "", permalink: v.permalink, hidden: v.hidden,
     })),
-    installUrl:
+    stories: videos.filter((v) => v.kind === "story").map((v) => ({
+      id: v.id, type: v.mediaType, thumb: v.thumbnailUrl, permalink: v.permalink,
+    })),
+    installUrls: Object.fromEntries(["social-videos", "instagram-feed", "instagram-stories"].map((handle) => [
+      handle,
       `https://${shop}/admin/themes/current/editor` +
-      `?template=index&addAppBlockId=${encodeURIComponent(apiKey)}/social-videos&target=newAppsSection`,
+        `?template=index&addAppBlockId=${encodeURIComponent(apiKey)}/${handle}&target=newAppsSection`,
+    ])),
   };
 }
 
@@ -49,13 +60,13 @@ export async function action({ request }) {
   if (body.intent === "sync" && provider) {
     try {
       const r = await syncVideos(shop, provider);
+      const parts = [`${r.count} post${r.count === 1 ? "" : "s"} (${r.videos} video${r.videos === 1 ? "" : "s"})`];
+      if (provider === "instagram") parts.push(`${r.storyCount} live ${r.storyCount === 1 ? "story" : "stories"}`);
       return {
         ok: true,
-        info: r.count > 0
-          ? `Synced ${r.count} video${r.count === 1 ? "" : "s"}${r.embedOnly ? ` (${r.embedOnly} play through the ${LABEL[provider]} player because ${LABEL[provider]} gives no direct file, e.g. licensed music)` : ""}.`
-          : r.posts === 0
-            ? `${LABEL[provider]} returned no posts for this account.`
-            : `${LABEL[provider]} returned ${r.posts} posts but none are videos. Only video posts and reels can be shown.`,
+        info: `Synced ${parts.join(" and ")}.` +
+          (r.embedOnly ? ` ${r.embedOnly} video${r.embedOnly === 1 ? " plays" : "s play"} through the ${LABEL[provider]} player because ${LABEL[provider]} gives no direct file (e.g. licensed music).` : "") +
+          (r.count === 0 ? ` ${LABEL[provider]} returned no posts for this account.` : ""),
       };
     }
     catch (err) { return { ok: false, message: err.message }; }
@@ -137,7 +148,8 @@ function VideoTile({ v }) {
   };
   return (
     <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", opacity: hidden ? 0.5 : 1, background: "#fff" }}>
-      <a href={v.permalink} target="_blank" rel="noreferrer" style={{ display: "block", aspectRatio: "9/16", background: "#111" }}>
+      <a href={v.permalink} target="_blank" rel="noreferrer" style={{ display: "block", aspectRatio: v.type === "VIDEO" ? "9/16" : "1/1", background: "#111", position: "relative" }}>
+        {v.type !== "IMAGE" && <span style={{ position: "absolute", left: 6, top: 6, fontSize: 11, background: "rgba(0,0,0,.6)", color: "#fff", padding: "2px 7px", borderRadius: 20 }}>{v.type === "VIDEO" ? "Video" : "Album"}</span>}
         {v.thumb
           ? <img src={v.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           : v.src ? <video src={v.src} muted preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
@@ -154,7 +166,7 @@ function VideoTile({ v }) {
 }
 
 export default function SocialVideosPage() {
-  const { providers, videos, installUrl } = useLoaderData();
+  const { providers, videos, stories, installUrls } = useLoaderData();
   const revalidator = useRevalidator();
   // The connect tab finishes in another window; refresh when the merchant comes back.
   useEffect(() => {
@@ -175,32 +187,54 @@ export default function SocialVideosPage() {
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "26px 24px 34px" }}>
         <div style={card}>
-          <h2 style={{ margin: "0 0 6px", fontSize: 22, color: C.text }}>Show your reels and videos on the store</h2>
+          <h2 style={{ margin: "0 0 6px", fontSize: 22, color: C.text }}>Show your Instagram and Facebook on the store</h2>
           <p style={{ margin: "0 0 8px", color: C.muted, fontSize: 14, lineHeight: 1.65 }}>
-            Connect your Instagram (Business or Creator account) and/or Facebook Page. Your latest reels and videos sync automatically; hide any you don't want shown.
+            Connect your Instagram (Business or Creator account) and/or Facebook Page. Posts, reels and live stories sync automatically; hide any post you don't want shown. Facebook shares videos and reels only.
           </p>
           {providers.map((p) => <ProviderRow key={p.provider} p={p} />)}
         </div>
 
         <div style={card}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>Add to your store</div>
-              <div style={{ fontSize: 13, color: C.muted }}>Adds the "Social Videos" block to your home page. Layout, columns and heading are set in the Theme Editor.</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>Add to your store</div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>Each button adds a block to your home page. Layout, columns and heading are set in the Theme Editor.</div>
+          {WIDGET_BLOCKS.map((w) => (
+            <div key={w.handle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", padding: "12px 0", borderTop: `1px solid ${C.border}` }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontWeight: 700, color: C.text }}>{w.title}</div>
+                <div style={{ fontSize: 13, color: C.muted }}>{w.desc}</div>
+              </div>
+              <a href={installUrls[w.handle]} target="_top" style={btn("#2A74C9")}>Add to store</a>
             </div>
-            <a href={installUrl} target="_top" style={btn("#2A74C9")}>Add to store</a>
-          </div>
+          ))}
         </div>
 
         <div style={card}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 12 }}>Videos ({videos.length})</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 12 }}>Posts & reels ({videos.length})</div>
           {videos.length === 0 ? (
             <div style={{ color: C.muted, fontSize: 14 }}>
-              {anyConnected ? "No videos found yet. Only video posts and reels are shown — try Sync now." : "Connect an account above to see your videos here."}
+              {anyConnected ? "No posts found yet — try Sync now." : "Connect an account above to see your posts here."}
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
               {videos.map((v) => <VideoTile key={v.id} v={v} />)}
+            </div>
+          )}
+        </div>
+
+        <div style={card}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>Live stories ({stories.length})</div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 12 }}>
+            Instagram only shares stories for 24 hours, and not your saved Highlights. The Stories widget hides itself when there is no live story.
+          </div>
+          {stories.length === 0 ? (
+            <div style={{ color: C.muted, fontSize: 14 }}>No live stories right now.</div>
+          ) : (
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {stories.map((s) => (
+                <a key={s.id} href={s.permalink} target="_blank" rel="noreferrer" style={{ width: 70, height: 124, borderRadius: 10, overflow: "hidden", background: "#111", display: "block" }}>
+                  {s.thumb && <img src={s.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                </a>
+              ))}
             </div>
           )}
         </div>
