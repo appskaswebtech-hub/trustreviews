@@ -29,6 +29,10 @@ export async function loader({ request }) {
     await connectWithCode(shop, provider, code);
     return htmlResponse(`Your ${provider === "instagram" ? "Instagram" : "Facebook"} account is now connected to ${shop}.`, true);
   } catch (err) {
-    return htmlResponse(err.message, false);
+    // Database / library errors can echo the request, access token included —
+    // log them, show only a generic line. Our own thrown messages are safe.
+    console.error("[auth/social-callback]", err);
+    const safe = /^Prisma|^PrismaClient/.test(err?.name || "") || /accessToken|access_token/.test(err?.message || "");
+    return htmlResponse(safe ? "Something went wrong while saving the connection. Please try again, or contact support if it keeps happening." : err.message, false);
   }
 }
