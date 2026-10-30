@@ -1,6 +1,8 @@
-.igf-widget{padding:var(--igf-pt,40px) 16px var(--igf-pb,40px);box-sizing:border-box}
+.igf-widget{padding:var(--igf-pt,40px) 0 var(--igf-pb,40px);box-sizing:border-box}
+.igf-widget[data-full="true"]{width:100vw;position:relative;left:50%;margin-left:-50vw;margin-right:-50vw}
+.igf-inner{padding:0 clamp(16px,3vw,48px)}
 .igf-widget *{box-sizing:border-box}
-.igf-heading{text-align:center;margin:0 0 20px}
+.igf-heading{text-align:center;margin:0 0 20px;font-size:var(--igf-h,32px);line-height:1.15}
 .igf-head{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 20px;flex-wrap:wrap}
 .igf-head:empty{display:none}
 .igf-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#ddd}

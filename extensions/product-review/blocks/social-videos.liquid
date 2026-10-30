@@ -8,12 +8,20 @@
   data-layout="{{ block.settings.layout }}"
   data-columns="{{ block.settings.columns }}"
   data-max="{{ block.settings.max_videos }}"
-  style="--sv-radius: {{ block.settings.corner_radius }}px; --sv-gap: {{ block.settings.gap }}px; --sv-pt: {{ block.settings.padding_top }}px; --sv-pb: {{ block.settings.padding_bottom }}px;"
+  data-full="{{ block.settings.full_width }}"
+  data-caption="{{ block.settings.show_caption }}"
+  data-preview="{{ block.settings.hover_preview }}"
+  style="--sv-radius: {{ block.settings.corner_radius }}px; --sv-gap: {{ block.settings.gap }}px; --sv-pt: {{ block.settings.padding_top }}px; --sv-pb: {{ block.settings.padding_bottom }}px; --sv-h: {{ block.settings.heading_size }}px;{% if block.settings.background != blank %} background: {{ block.settings.background }};{% endif %}{% if block.settings.text_color != blank %} color: {{ block.settings.text_color }};{% endif %}"
 >
-  {% if block.settings.heading != blank %}
-    <h2 class="sv-heading">{{ block.settings.heading }}</h2>
-  {% endif %}
-  <div class="sv-body"></div>
+  <div class="sv-inner">
+    {% if block.settings.heading != blank %}
+      <h2 class="sv-heading">{{ block.settings.heading }}</h2>
+    {% endif %}
+    {% if block.settings.subheading != blank %}
+      <p class="sv-sub">{{ block.settings.subheading }}</p>
+    {% endif %}
+    <div class="sv-body"></div>
+  </div>
 </div>
 
 <script src="{{ 'social-videos.js' | asset_url }}" defer></script>
@@ -23,23 +31,33 @@
   "name": "Social Videos",
   "target": "section",
   "settings": [
+    { "type": "header", "content": "Content" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Watch & shop our reels" },
+    { "type": "text", "id": "subheading", "label": "Subheading", "default": "Fresh from our Instagram" },
+    { "type": "header", "content": "Layout" },
+    { "type": "checkbox", "id": "full_width", "label": "Full width (edge to edge)", "default": true },
     {
       "type": "select",
       "id": "layout",
       "label": "Layout",
       "default": "carousel",
       "options": [
-        { "value": "carousel", "label": "Carousel (swipe)" },
+        { "value": "carousel", "label": "Carousel (arrows + swipe)" },
         { "value": "grid", "label": "Grid" }
       ]
     },
-    { "type": "range", "id": "columns", "label": "Videos per row (desktop)", "min": 2, "max": 6, "step": 1, "default": 4 },
+    { "type": "range", "id": "columns", "label": "Videos per row (desktop)", "min": 2, "max": 7, "step": 1, "default": 5 },
     { "type": "range", "id": "max_videos", "label": "Max videos", "min": 4, "max": 24, "step": 2, "default": 12 },
-    { "type": "range", "id": "corner_radius", "label": "Corner radius", "min": 0, "max": 24, "step": 2, "unit": "px", "default": 12 },
+    { "type": "checkbox", "id": "show_caption", "label": "Show caption on each video", "default": true },
+    { "type": "checkbox", "id": "hover_preview", "label": "Play a silent preview on hover (desktop)", "default": true },
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "background", "label": "Background" },
+    { "type": "color", "id": "text_color", "label": "Text color" },
+    { "type": "range", "id": "heading_size", "label": "Heading size", "min": 18, "max": 64, "step": 2, "unit": "px", "default": 36 },
+    { "type": "range", "id": "corner_radius", "label": "Corner radius", "min": 0, "max": 28, "step": 2, "unit": "px", "default": 14 },
     { "type": "range", "id": "gap", "label": "Gap", "min": 4, "max": 32, "step": 2, "unit": "px", "default": 14 },
-    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
-    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 48 }
   ]
 }
 {% endschema %}

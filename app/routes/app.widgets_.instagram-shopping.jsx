@@ -62,11 +62,15 @@ export async function action({ request }) {
       const r = await syncVideos(shop, provider);
       const parts = [`${r.count} post${r.count === 1 ? "" : "s"} (${r.videos} video${r.videos === 1 ? "" : "s"})`];
       if (provider === "instagram") parts.push(`${r.storyCount} live ${r.storyCount === 1 ? "story" : "stories"}`);
+      const storyNote = provider !== "instagram" ? "" :
+        r.storiesError ? ` Stories could not be read: ${r.storiesError}`
+        : r.storyCount === 0 ? " Instagram reports no live story right now (stories only show for 24 hours after posting)."
+        : "";
       return {
         ok: true,
         info: `Synced ${parts.join(" and ")}.` +
           (r.embedOnly ? ` ${r.embedOnly} video${r.embedOnly === 1 ? " plays" : "s play"} through the ${LABEL[provider]} player because ${LABEL[provider]} gives no direct file (e.g. licensed music).` : "") +
-          (r.count === 0 ? ` ${LABEL[provider]} returned no posts for this account.` : ""),
+          (r.count === 0 ? ` ${LABEL[provider]} returned no posts for this account.` : "") + storyNote,
       };
     }
     catch (err) { return { ok: false, message: err.message }; }

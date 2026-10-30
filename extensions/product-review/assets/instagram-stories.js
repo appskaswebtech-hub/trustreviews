@@ -75,7 +75,13 @@
       .then(function (data) {
         var stories = (data.items || []).filter(function (s) { return safeUrl(s.src) || safeUrl(s.image) || safeUrl(s.thumb); });
         // Stories are only available for 24h — no live story, no widget.
-        if (!stories.length || !data.account) { el.style.display = 'none'; return; }
+        if (!stories.length || !data.account) {
+          // Merchants in the Theme Editor should see why the block is empty.
+          if (window.Shopify && window.Shopify.designMode) {
+            el.querySelector('.igs-body').innerHTML = '<p style="text-align:center;opacity:.7;margin:0">Instagram Stories: no live story right now. Stories appear here for 24 hours after you post them (Highlights are not available).</p>';
+          } else el.style.display = 'none';
+          return;
+        }
         var acc = data.account;
         var b = document.createElement('button');
         b.type = 'button';

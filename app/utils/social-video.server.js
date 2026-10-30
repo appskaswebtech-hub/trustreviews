@@ -163,7 +163,7 @@ const mapInstagramMedia = (m, kind) => ({
   videoUrl: m.media_url || "",
   // Photos use their own file as the thumbnail.
   thumbnailUrl: m.thumbnail_url || (m.media_type !== "VIDEO" ? m.media_url || null : null),
-  permalink: m.permalink, postedAt: m.timestamp ? new Date(m.timestamp) : null,
+  permalink: m.permalink || (kind === "story" ? "https://www.instagram.com/" : ""), postedAt: m.timestamp ? new Date(m.timestamp) : null,
 });
 
 async function fetchInstagramContent(conn) {
@@ -180,13 +180,14 @@ async function fetchInstagramContent(conn) {
 
   // Stories are only returned while live (24h) and may be unavailable for some
   // accounts — never fail the whole sync over them.
-  let stories = [];
+  let stories = [], storiesRaw = 0, storiesError = "";
   try {
     const s = await getJson(
       `https://graph.instagram.com/${FB_VERSION}/me/stories?${new URLSearchParams({ fields, access_token: token })}`,
     );
-    stories = (s.data || []).filter((m) => m.permalink && m.media_url).map((m) => mapInstagramMedia(m, "story"));
-  } catch { /* no stories / not permitted */ }
+    storiesRaw = (s.data || []).length;
+    stories = (s.data || []).filter((m) => m.media_url).map((m) => mapInstagramMedia(m, "story"));
+  } catch (err) { storiesError = String(err.message).slice(0, 200); } // reported on the admin page, never fatal
 
   // Refresh the profile picture too (the CDN link expires).
   let avatarUrl = conn.avatarUrl;
@@ -201,6 +202,7 @@ async function fetchInstagramContent(conn) {
       posts: all.length,
       videos: items.filter((v) => v.mediaType === "VIDEO").length,
       embedOnly: items.filter((v) => v.mediaType === "VIDEO" && !v.videoUrl).length,
+      storiesRaw, storiesError,
     },
   };
 }
