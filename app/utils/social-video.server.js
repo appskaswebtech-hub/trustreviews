@@ -170,13 +170,13 @@ async function fetchInstagramVideos(conn) {
   );
   const all = json.data || [];
   const isVideo = all.filter((m) => m.media_type === "VIDEO");
-  const videos = isVideo.filter((m) => m.media_url)
+  const videos = isVideo
     .map((m) => ({
-      externalId: m.id, caption: m.caption || null, videoUrl: m.media_url,
+      externalId: m.id, caption: m.caption || null, videoUrl: m.media_url || "",
       thumbnailUrl: m.thumbnail_url || null, permalink: m.permalink,
       postedAt: m.timestamp ? new Date(m.timestamp) : null,
     }));
-  return { videos, stats: { posts: all.length, videoPosts: isVideo.length } };
+  return { videos, stats: { posts: all.length, videoPosts: isVideo.length, embedOnly: videos.filter((v) => !v.videoUrl).length } };
 }
 
 async function fetchFacebookVideos(conn) {
@@ -191,9 +191,8 @@ async function fetchFacebookVideos(conn) {
         })}`,
       );
       for (const v of json.data || []) {
-        if (!v.source) continue;
         out.set(v.id, {
-          externalId: v.id, caption: v.description || null, videoUrl: v.source,
+          externalId: v.id, caption: v.description || null, videoUrl: v.source || "",
           thumbnailUrl: v.picture || null,
           permalink: v.permalink_url ? new URL(v.permalink_url, "https://www.facebook.com").href : `https://www.facebook.com/${v.id}`,
           postedAt: v.created_time ? new Date(v.created_time) : null,
@@ -204,7 +203,7 @@ async function fetchFacebookVideos(conn) {
     }
   }
   const videos = [...out.values()];
-  return { videos, stats: { posts: videos.length, videoPosts: videos.length } };
+  return { videos, stats: { posts: videos.length, videoPosts: videos.length, embedOnly: videos.filter((v) => !v.videoUrl).length } };
 }
 
 // Pulls the latest videos for one provider; keeps the merchant's hide/show
@@ -234,6 +233,15 @@ export async function syncVideos(shop, provider) {
   }
 }
 
+// Videos Meta gives no direct file for (e.g. reels with licensed music) play
+// through the official embed player instead.
+export function embedUrl(provider, permalink) {
+  if (provider === "facebook") {
+    return `https://www.facebook.com/plugins/video.php?${new URLSearchParams({ href: permalink, show_text: "false" })}`;
+  }
+  return permalink.replace(/[?#].*$/, "").replace(/\/?$/, "/") + "embed";
+}
+
 // Storefront read: visible videos, newest first. Triggers a background-safe
 // re-sync when the stored CDN links are getting old.
 export async function getStorefrontVideos(shop, limit = 12) {
@@ -247,7 +255,7 @@ export async function getStorefrontVideos(shop, limit = 12) {
     take: limit,
   });
   return rows.map((v) => ({
-    id: v.id, provider: v.provider, src: v.videoUrl, thumb: v.thumbnailUrl,
-    caption: v.caption, permalink: v.permalink,
+    id: v.id, provider: v.provider, src: v.videoUrl || null, embed: embedUrl(v.provider, v.permalink),
+    thumb: v.thumbnailUrl, caption: v.caption, permalink: v.permalink,
   }));
 }

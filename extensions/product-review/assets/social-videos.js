@@ -7,7 +7,10 @@
     m.className = 'sv-modal';
     m.innerHTML =
       '<div class="sv-modal-inner"><button class="sv-close" aria-label="Close">&times;</button>' +
-      '<video src="' + esc(safeUrl(v.src)) + '" controls autoplay playsinline></video>' +
+      (v.src
+        ? '<video src="' + esc(safeUrl(v.src)) + '" controls autoplay playsinline></video>'
+        // No direct file from Instagram/Facebook (e.g. licensed music): official embed player.
+        : '<iframe src="' + esc(safeUrl(v.embed)) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;height:80vh;max-height:640px;border:0;border-radius:12px;background:#fff"></iframe>') +
       (v.permalink ? '<a class="sv-modal-link" target="_blank" rel="noopener" href="' + esc(safeUrl(v.permalink)) + '">View on ' + (v.provider === 'facebook' ? 'Facebook' : 'Instagram') + ' &rarr;</a>' : '') +
       '</div>';
     function close() { document.removeEventListener('keydown', onKey); m.remove(); }
@@ -25,7 +28,7 @@
     // Instagram/Facebook thumbnails when we have them; otherwise the first frame of the video.
     b.innerHTML = (v.thumb
       ? '<img loading="lazy" alt="" src="' + esc(safeUrl(v.thumb)) + '">'
-      : '<video muted playsinline preload="metadata" src="' + esc(safeUrl(v.src)) + '#t=0.1"></video>') +
+      : v.src ? '<video muted playsinline preload="metadata" src="' + esc(safeUrl(v.src)) + '#t=0.1"></video>' : '') +
       '<span class="sv-badge">' + (v.provider === 'facebook' ? 'Facebook' : 'Instagram') + '</span>' +
       '<span class="sv-play">&#9654;</span>';
     b.addEventListener('click', function () { openModal(v); });
@@ -43,7 +46,7 @@
     fetch('/apps/review?type=social-videos&shop=' + encodeURIComponent(el.dataset.shop) + '&limit=' + max, { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        var videos = (data.videos || []).filter(function (v) { return safeUrl(v.src); });
+        var videos = (data.videos || []).filter(function (v) { return safeUrl(v.src) || safeUrl(v.embed); });
         if (!videos.length) { el.style.display = 'none'; return; }
         var list = document.createElement('div');
         list.className = 'sv-list';

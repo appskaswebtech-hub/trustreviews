@@ -49,14 +49,13 @@ export async function action({ request }) {
   if (body.intent === "sync" && provider) {
     try {
       const r = await syncVideos(shop, provider);
-      const hidden = r.videoPosts - r.count;
       return {
         ok: true,
         info: r.count > 0
-          ? `Synced ${r.count} video${r.count === 1 ? "" : "s"}.`
+          ? `Synced ${r.count} video${r.count === 1 ? "" : "s"}${r.embedOnly ? ` (${r.embedOnly} play through the ${LABEL[provider]} player because ${LABEL[provider]} gives no direct file, e.g. licensed music)` : ""}.`
           : r.posts === 0
-            ? "Instagram returned no posts for this account."
-            : `Instagram returned ${r.posts} posts, ${r.videoPosts} of them videos${hidden > 0 ? `, but ${hidden} had no playable link (e.g. reels with licensed music)` : ""}. Only video posts and reels can be shown.`,
+            ? `${LABEL[provider]} returned no posts for this account.`
+            : `${LABEL[provider]} returned ${r.posts} posts but none are videos. Only video posts and reels can be shown.`,
       };
     }
     catch (err) { return { ok: false, message: err.message }; }
@@ -141,7 +140,7 @@ function VideoTile({ v }) {
       <a href={v.permalink} target="_blank" rel="noreferrer" style={{ display: "block", aspectRatio: "9/16", background: "#111" }}>
         {v.thumb
           ? <img src={v.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          : <video src={v.src} muted preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+          : v.src ? <video src={v.src} muted preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
       </a>
       <div style={{ padding: 10 }}>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>{LABEL[v.provider]}</div>
