@@ -14,7 +14,7 @@ export const PURPOSES = {
 
 // Theme Editor template to open when installing a block — must be one the block
 // is enabled on (see `enabled_on` in extensions/product-review/blocks/*.liquid).
-const BLOCK_TEMPLATES = { "homepage-reviews": "index" };
+const BLOCK_TEMPLATES = { "homepage-reviews": "index", "social-videos": "index" };
 export function editorTemplateFor(blockHandle) {
   return BLOCK_TEMPLATES[blockHandle] || "product";
 }
@@ -351,10 +351,11 @@ export const WIDGETS = [
   {
     key: "instagram_shopping",
     purpose: "show",
-    title: "Instagram Shop Feed",
+    title: "Instagram & Facebook Videos",
     image: "/images/UCC%20Instagram%20Shopping.png",
-    description: "Take your favorite user-generated content from Instagram and pull it into a grid.",
+    description: "Connect Instagram and Facebook and show your reels and videos on the storefront as a swipeable carousel or grid.",
     href: "/app/widgets/instagram-shopping",
+    blockHandle: "social-videos",
     bg: "linear-gradient(135deg,#fce4ec,#f3b8cf)",
   },
   {

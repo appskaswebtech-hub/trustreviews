@@ -9,6 +9,7 @@ import { notifyIntegrations } from "../utils/events.server";
 import { LAYOUTS, PRO_LAYOUT_VALUES, DEFAULT_FREE_LAYOUT } from "../utils/homepageReviewLayouts";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import { batchRatings } from "../utils/ratings.server";
+import { getStorefrontVideos } from "../utils/social-video.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
 
@@ -343,6 +344,17 @@ export async function loader({ request }) {
       language: aiLanguage,
       style,
     });
+  }
+
+  // ── Instagram / Facebook videos (Social Videos block) ─────────────────────
+  if (url.searchParams.get("type") === "social-videos") {
+    const limit = Math.min(24, Math.max(1, parseInt(url.searchParams.get("limit"), 10) || 12));
+    try {
+      return Response.json({ videos: await getStorefrontVideos(shop, limit) });
+    } catch (err) {
+      console.error("[api/review social-videos]", err);
+      return Response.json({ videos: [] });
+    }
   }
 
   // ── Google Reviews widget (Pro-gated; always served from cache) ───────────

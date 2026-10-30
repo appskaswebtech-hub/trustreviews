@@ -411,6 +411,47 @@ model GoogleBusinessConnection {
   updatedAt      DateTime  @updatedAt
 }
 
+// Instagram / Facebook account a merchant connected to pull reels and videos
+// from (utils/social-video.server.js). One row per shop per provider.
+model SocialConnection {
+  id             Int       @id @default(autoincrement())
+  shop           String
+  provider       String    // "instagram" | "facebook"
+  accountId      String
+  accountName    String    @default("")
+  accessToken    String    @db.Text
+  tokenExpiresAt DateTime? // null = does not expire (Facebook page tokens)
+  lastSyncedAt   DateTime?
+  lastError      String?   @db.Text
+  createdAt      DateTime  @default(now())
+
+  @@unique([shop, provider])
+}
+
+model SocialOAuthState {
+  state     String   @id
+  shop      String
+  provider  String
+  createdAt DateTime @default(now())
+}
+
+model SocialVideo {
+  id           Int      @id @default(autoincrement())
+  shop         String
+  provider     String
+  externalId   String
+  caption      String?  @db.Text
+  videoUrl     String   @db.Text
+  thumbnailUrl String?  @db.Text
+  permalink    String   @db.Text
+  postedAt     DateTime?
+  hidden       Boolean  @default(false) // merchant switched it off for the storefront
+  updatedAt    DateTime @updatedAt
+
+  @@unique([shop, provider, externalId])
+  @@index([shop, hidden, postedAt])
+}
+
 model GoogleOAuthState {
   state     String   @id
   shop      String

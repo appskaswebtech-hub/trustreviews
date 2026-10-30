@@ -1,0 +1,22 @@
+.sv-widget{padding:var(--sv-pt,40px) 16px var(--sv-pb,40px);box-sizing:border-box}
+.sv-widget *{box-sizing:border-box}
+.sv-heading{text-align:center;margin:0 0 24px}
+.sv-list{display:grid;gap:var(--sv-gap,14px)}
+.sv-widget[data-layout="grid"] .sv-list{grid-template-columns:repeat(var(--sv-cols,4),1fr)}
+.sv-widget[data-layout="carousel"] .sv-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sv-widget[data-layout="carousel"] .sv-list::-webkit-scrollbar{display:none}
+.sv-widget[data-layout="carousel"] .sv-tile{flex:0 0 calc((100% - (var(--sv-cols,4) - 1) * var(--sv-gap,14px)) / var(--sv-cols,4));scroll-snap-align:start}
+.sv-tile{position:relative;display:block;padding:0;border:0;cursor:pointer;aspect-ratio:9/16;border-radius:var(--sv-radius,12px);overflow:hidden;background:#111;color:#fff}
+.sv-tile img,.sv-tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sv-play{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:20px;padding-left:3px}
+.sv-badge{position:absolute;left:8px;top:8px;font-size:11px;font-weight:600;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:20px}
+.sv-empty{text-align:center;opacity:.7}
+.sv-modal{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px}
+.sv-modal-inner{position:relative;width:min(380px,100%);max-height:100%}
+.sv-modal video{width:100%;max-height:82vh;border-radius:12px;background:#000;display:block}
+.sv-modal-link{display:block;text-align:center;color:#fff;margin-top:10px;font-size:14px}
+.sv-close{position:absolute;right:-6px;top:-38px;background:none;border:0;color:#fff;font-size:30px;cursor:pointer;line-height:1}
+@media(max-width:768px){
+  .sv-widget[data-layout="grid"] .sv-list{grid-template-columns:repeat(2,1fr)}
+  .sv-widget[data-layout="carousel"] .sv-tile{flex-basis:calc((100% - var(--sv-gap,14px)) / 2)}
+}
