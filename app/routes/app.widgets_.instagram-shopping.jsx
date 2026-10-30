@@ -47,7 +47,18 @@ export async function action({ request }) {
   const provider = PROVIDERS.includes(body.provider) ? body.provider : null;
 
   if (body.intent === "sync" && provider) {
-    try { await syncVideos(shop, provider); return { ok: true }; }
+    try {
+      const r = await syncVideos(shop, provider);
+      const hidden = r.videoPosts - r.count;
+      return {
+        ok: true,
+        info: r.count > 0
+          ? `Synced ${r.count} video${r.count === 1 ? "" : "s"}.`
+          : r.posts === 0
+            ? "Instagram returned no posts for this account."
+            : `Instagram returned ${r.posts} posts, ${r.videoPosts} of them videos${hidden > 0 ? `, but ${hidden} had no playable link (e.g. reels with licensed music)` : ""}. Only video posts and reels can be shown.`,
+      };
+    }
     catch (err) { return { ok: false, message: err.message }; }
   }
   // The consent screen opens in a new tab that has no Shopify admin session, so
@@ -113,6 +124,7 @@ function ProviderRow({ p }) {
         )}
       </div>
       {err && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 8 }}>{err}</div>}
+      {fetcher.data?.info && <div style={{ color: C.muted, fontSize: 13, marginTop: 8 }}>{fetcher.data.info}</div>}
     </div>
   );
 }

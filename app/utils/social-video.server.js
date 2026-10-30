@@ -168,13 +168,15 @@ async function fetchInstagramVideos(conn) {
       limit: "50", access_token: token,
     })}`,
   );
-  return (json.data || [])
-    .filter((m) => m.media_type === "VIDEO" && m.media_url)
+  const all = json.data || [];
+  const isVideo = all.filter((m) => m.media_type === "VIDEO");
+  const videos = isVideo.filter((m) => m.media_url)
     .map((m) => ({
       externalId: m.id, caption: m.caption || null, videoUrl: m.media_url,
       thumbnailUrl: m.thumbnail_url || null, permalink: m.permalink,
       postedAt: m.timestamp ? new Date(m.timestamp) : null,
     }));
+  return { videos, stats: { posts: all.length, videoPosts: isVideo.length } };
 }
 
 async function fetchFacebookVideos(conn) {
@@ -201,7 +203,8 @@ async function fetchFacebookVideos(conn) {
       if (edge === "videos") throw err; // reels edge is optional
     }
   }
-  return [...out.values()];
+  const videos = [...out.values()];
+  return { videos, stats: { posts: videos.length, videoPosts: videos.length } };
 }
 
 // Pulls the latest videos for one provider; keeps the merchant's hide/show
@@ -212,7 +215,7 @@ export async function syncVideos(shop, provider) {
   // Stamp the attempt first so concurrent storefront hits don't all re-sync.
   await db.socialConnection.update({ where: { id: conn.id }, data: { lastSyncedAt: new Date() } });
   try {
-    const videos = provider === "instagram" ? await fetchInstagramVideos(conn) : await fetchFacebookVideos(conn);
+    const { videos, stats } = provider === "instagram" ? await fetchInstagramVideos(conn) : await fetchFacebookVideos(conn);
     for (const v of videos) {
       await db.socialVideo.upsert({
         where: { shop_provider_externalId: { shop, provider, externalId: v.externalId } },
@@ -224,7 +227,7 @@ export async function syncVideos(shop, provider) {
       where: { shop, provider, externalId: { notIn: videos.map((v) => v.externalId) } },
     });
     await db.socialConnection.update({ where: { id: conn.id }, data: { lastError: null } });
-    return videos.length;
+    return { count: videos.length, ...stats };
   } catch (err) {
     await db.socialConnection.update({ where: { id: conn.id }, data: { lastError: String(err.message).slice(0, 500) } });
     throw err;
