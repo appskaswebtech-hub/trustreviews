@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { PROVIDERS, buildAuthUrl, disconnect, isProviderConfigured, syncVideos } from "../utils/social-video.server";
 import { BRAND } from "../utils/brand";
+import { confirmDialog } from "../utils/dialogs";
 
 const LABEL = { instagram: "Instagram", facebook: "Facebook" };
 
@@ -127,7 +128,7 @@ function ProviderRow({ p }) {
         {p.connected ? (
           <>
             <button disabled={busy} style={btn("#2A74C9")} onClick={() => submit("sync")}>{busy ? "Syncing…" : "Sync now"}</button>
-            <button disabled={busy} style={btn("#c0392b")} onClick={() => window.confirm(`Disconnect ${LABEL[p.provider]}? Its videos will be removed from the widget.`) && submit("disconnect")}>Disconnect</button>
+            <button disabled={busy} style={btn("#c0392b")} onClick={async () => (await confirmDialog("Its posts, videos and stories will be removed from your widgets.", { title: `Disconnect ${LABEL[p.provider]}?`, confirmLabel: "Disconnect", destructive: true })) && submit("disconnect")}>Disconnect</button>
           </>
         ) : (
           <button

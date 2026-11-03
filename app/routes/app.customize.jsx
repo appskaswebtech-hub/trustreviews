@@ -5,6 +5,7 @@ import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import { BRAND } from "../utils/brand";
+import { confirmDialog } from "../utils/dialogs";
 
 // Feeds this shop's real reviews/rating stats into BlockMockup, wherever it's
 // rendered (top-level canvas, column children, the Preview modal) — set via
@@ -2519,8 +2520,8 @@ function PageBuilder({ template, onSave, onBack, realReviews, realStats, saveErr
     setTimeout(() => setFlash(false), 2000);
   }
 
-  function handleBack() {
-    if (isDirty() && !window.confirm("You have unsaved changes. Leave without saving?")) return;
+  async function handleBack() {
+    if (isDirty() && !(await confirmDialog("You have unsaved changes. Leave without saving?", { title: "Unsaved changes", confirmLabel: "Leave", destructive: true }))) return;
     onBack();
   }
 
@@ -3855,8 +3856,8 @@ export default function CustomizePage() {
     submit(fd, { method: "post" });
   }
 
-  function handleDelete(id) {
-    if (!confirm("Delete this template?")) return;
+  async function handleDelete(id) {
+    if (!(await confirmDialog("This template will be deleted.", { title: "Delete template?", confirmLabel: "Delete", destructive: true }))) return;
     const fd = new FormData(); fd.append("actionType", "delete"); fd.append("id", id);
     submit(fd, { method: "post" });
   }
