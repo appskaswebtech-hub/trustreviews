@@ -1,3 +1,17 @@
+const ensured = new Set();
+
+// Fire-and-forget wrapper: installs once per shop per server process, retries
+// on the next page load if it failed (e.g. scope not approved yet).
+export function ensureWidgetScript(shop, admin) {
+  if (ensured.has(shop)) return;
+  installWidgetScript(admin)
+    .then((r) => {
+      if (r.success) ensured.add(shop);
+      else console.error("[widget-script] install failed:", shop, r.message);
+    })
+    .catch((err) => console.error("[widget-script] install failed:", shop, err?.message));
+}
+
 // Installs the storefront widget script tag. Idempotent: does nothing when the
 // tag is already there. Needs the read_script_tags / write_script_tags scopes.
 export async function installWidgetScript(admin) {
