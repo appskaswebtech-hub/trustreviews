@@ -1,4 +1,6 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { Banner } from "@shopify/polaris";
+import { notify } from "../utils/dialogs";
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -414,9 +416,17 @@ export default function CustomCodePage() {
   const [css, setCss]         = useState(initialCss);
   const [js, setJs]           = useState(initialJs);
   const [codeSaved, setCodeSaved] = useState(false);
+  const [infoDismissed, setInfoDismissed]   = useState(false);
+  const [errorDismissed, setErrorDismissed] = useState(false);
 
   const fetcher     = useFetcher();
   const langFetcher = useFetcher();
+
+  // Success → short toast; errors are shown as a banner (see the alerts block).
+  useEffect(() => {
+    if (fetcher.data?.success === true) notify("Saved");
+    if (fetcher.data?.success === false) setErrorDismissed(false);
+  }, [fetcher.data]);
 
   const changeLanguage = (key) => {
     setLang(key);
@@ -848,6 +858,25 @@ export default function CustomCodePage() {
     }}
     className="tr-app-routes-app-custom-code-div-38"
   >
+    {/* ── Alerts (Shopify alert guidelines: banners for info / warning / error) ── */}
+    <div style={{ display: "grid", gap: 12, marginBottom: 16 }}>
+      {fetcher.data?.success === false && !errorDismissed && (
+        <Banner tone="critical" title="Couldn't save your changes" onDismiss={() => setErrorDismissed(true)}>
+          <p>{fetcher.data.message || "Something went wrong. Please try again."}</p>
+        </Banner>
+      )}
+      {tab === "code" && !isPro && (
+        <Banner tone="warning" title="Custom CSS & JS needs the Advanced plan">
+          <p>Upgrade your plan to save custom code. Your existing code stays as it is.</p>
+        </Banner>
+      )}
+      {tab === "snippets" && !infoDismissed && (
+        <Banner tone="info" title="Add the block first" onDismiss={() => setInfoDismissed(true)}>
+          <p>Snippets only render once the matching block is added in the Theme Editor.</p>
+        </Banner>
+      )}
+    </div>
+
     {/* ── SNIPPETS TAB ── */}
     {tab === "snippets" && (
       <div className="tr-app-routes-app-custom-code-div-39">
