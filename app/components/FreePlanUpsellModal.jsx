@@ -6,7 +6,7 @@
 // ever per shop. Reuses the same PlanStep UI and posts to the same
 // app.onboarding-embed.jsx action the onboarding popup uses.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { C, PlanStep } from "./onboardingWizardUI";
 
@@ -25,6 +25,14 @@ export default function FreePlanUpsellModal() {
     window.open(confirmationUrl, "_top");
   }
 
+  // Escape closes the dialog (keyboard users shouldn't be trapped).
+  useEffect(() => {
+    if (dismissed) return undefined;
+    const onKey = (e) => { if (e.key === "Escape") setDismissed(true); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [dismissed]);
+
   if (dismissed) return null;
 
   const submitAdvance = () => {
@@ -34,7 +42,9 @@ export default function FreePlanUpsellModal() {
   };
 
   return (
-    <div style={{
+    <div role="dialog" aria-modal="true" aria-label="Unlock more with Advanced"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) setDismissed(true); }}
+      style={{
       position: "fixed", inset: 0, zIndex: 1000,
       background: "rgba(12,12,16,.6)",
       backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",

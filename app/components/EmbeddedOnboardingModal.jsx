@@ -166,6 +166,9 @@ export default function EmbeddedOnboardingModal({ initial, initialStep, isDevSto
     //   </div>
     // </div>
     <div
+  role="dialog"
+  aria-modal="true"
+  aria-label="Welcome to Trust Reviews"
   className="trw-modal-overlay"
   style={{
     position: "fixed",

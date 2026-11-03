@@ -951,3 +951,13 @@
 .helpful-btn.is-voted { border-color: var(--rl-accent, #1a1a1a); background: #f1f1f1; font-weight: 700; }
 .helpful-btn--up.is-voted { border-color: #15803d; background: #f0fdf4; color: #15803d; }
 .helpful-btn--down.is-voted { border-color: #b91c1c; background: #fef2f2; color: #b91c1c; }
+
+/* Translatable file picker: the native input is visually hidden (its own
+   "Choose File / No file chosen" text follows the browser language, not the
+   storefront's) and replaced by a label button + status text. */
+.tr-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.tr-file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tr-file-btn { display: inline-block; padding: 8px 14px; border: 1px solid #c9cccf; border-radius: 6px; background: #f6f6f7; color: #1a1a1a; font-size: 14px; cursor: pointer; }
+.tr-file-btn:hover { background: #ececec; }
+.tr-file-input:focus-visible ~ .tr-file-row .tr-file-btn, .tr-file-row:focus-within .tr-file-btn { outline: 2px solid #2A74C9; outline-offset: 2px; }
+.tr-file-status { font-size: 13px; color: #6d7175; word-break: break-all; }

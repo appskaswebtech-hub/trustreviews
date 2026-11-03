@@ -56,12 +56,16 @@
       </div>
         <div class="form-field">
         <label id="upload-label" class="tr-extensions-product-review-blocks-review-label-18">Upload image/video</label>
+        <div class="tr-file-row">
+          <label for="review-file" id="file-choose-btn" class="tr-file-btn">Choose file</label>
+          <span id="file-status" class="tr-file-status">No file chosen</span>
+        </div>
         <input
           type="file"
           id="review-file"
           accept="image/*,video/*"
           onchange="previewReviewFile(event)"
-         class="tr-extensions-product-review-blocks-review-input-19">
+          class="tr-file-input tr-extensions-product-review-blocks-review-input-19">
         <div id="file-preview" class="file-preview"></div>
       </div>
       

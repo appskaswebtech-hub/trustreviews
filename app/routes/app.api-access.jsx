@@ -10,6 +10,7 @@ import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
 import { confirmDialog } from "../utils/dialogs";
+import ResultBanner from "../components/ResultBanner";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -132,7 +133,7 @@ export default function ApiAccessPage() {
                   <button disabled={busy} style={btn("#2A74C9")} onClick={() => run("generate")}>Generate API key</button>
                 </>
               )}
-              {fetcher.data?.ok === false && <div style={{ color: "#c0392b", marginTop: 10, fontSize: 13 }}>{fetcher.data.message}</div>}
+              {fetcher.data?.ok === false && <ResultBanner ok={false} message={fetcher.data.message} failedTitle="Couldn't complete that" />}
             </div>
 
             <div style={card}>

@@ -36,6 +36,7 @@ var REVIEW_TRANSLATIONS_EN = {
   search: "Search", searchAria: "Search reviews", searchPlaceholder: "Search reviews...",
   searchClearAria: "Clear search", noResults: "No reviews match your search.",
   noReviewsYet: "No reviews yet. Be the first to write one!",
+  chooseFile: "Choose file", noFileChosen: "No file chosen",
   helpful: "Helpful", share: "Share",
   helpfulQuestion: "Was this review helpful?", notHelpful: "Not helpful",
   requiredFieldsAlert: "Please fill all required fields", reviewLinkCopiedAlert: "Review link copied!",
@@ -65,6 +66,9 @@ function applyTranslations(remoteT){
   setText("feedback-label", T.feedbackLabel);
   setPlaceholder("comment", T.feedbackPlaceholder);
   setText("upload-label", T.uploadLabel);
+  setText("file-choose-btn", T.chooseFile || REVIEW_TRANSLATIONS_EN.chooseFile);
+  var fileInput = document.getElementById("review-file");
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) setText("file-status", T.noFileChosen || REVIEW_TRANSLATIONS_EN.noFileChosen);
   setText("name-label", T.nameLabel);
   setPlaceholder("name", T.namePlaceholder);
   setText("email-label", T.emailLabel);
@@ -266,6 +270,7 @@ function previewReviewFile(event) {
   const preview = document.getElementById("file-preview");
 
   preview.innerHTML = "";
+  setText("file-status", file ? file.name : (T.noFileChosen || REVIEW_TRANSLATIONS_EN.noFileChosen));
 
   if (!file) return;
 

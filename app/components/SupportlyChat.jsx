@@ -1,7 +1,7 @@
 // Floating message button in the admin app. Click opens a chat panel that talks
 // to Supportly through /api/supportly-chat (our server adds the shop, so the
-// browser never names it). Sits above the "?" HelpButton, which is pinned at
-// bottom: 18px.
+// browser never names it). The only floating element; the help link is an
+// inline footer (HelpButton).
 //
 // Replies are picked up by polling while the panel is open. Supportly also
 // offers socket.io for push, but that would have to run from the browser
@@ -228,7 +228,7 @@ export default function SupportlyChat() {
   return (
     <>
       <style>{`
-        .tr-chat-btn { position: fixed; right: 18px; bottom: 80px; z-index: 400; width: 60px; height: 60px;
+        .tr-chat-btn { position: fixed; right: 18px; bottom: 18px; z-index: 400; width: 60px; height: 60px;
           border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
           background: ${BRAND.blue}; color: #fff; box-shadow: 0 6px 18px rgba(42,116,201,.38);
           transition: transform .15s ease, box-shadow .15s ease; }
@@ -238,7 +238,7 @@ button.tr-chat-btn svg {
     width: 30px !important;
     height: 30px !important;
 }
-        .tr-chat-panel { position: fixed; right: 18px; bottom: 120px; z-index: 401; width: 340px; max-width: calc(100vw - 36px);
+        .tr-chat-panel { position: fixed; right: 18px; bottom: 88px; z-index: 401; width: 340px; max-width: calc(100vw - 36px);
           height: 440px; max-height: calc(100vh - 160px); background: #fff; border: 1px solid #E4E7EC; border-radius: 14px;
           box-shadow: 0 18px 44px rgba(16,24,40,.18); display: flex; flex-direction: column; overflow: hidden;
           font-family: var(--app-font-family); }

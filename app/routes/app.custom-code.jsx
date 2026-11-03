@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Banner } from "@shopify/polaris";
+import AlertBanner from "../components/AlertBanner";
 import { notify } from "../utils/dialogs";
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -861,19 +861,19 @@ export default function CustomCodePage() {
     {/* ── Alerts (Shopify alert guidelines: banners for info / warning / error) ── */}
     <div style={{ display: "grid", gap: 12, marginBottom: 16 }}>
       {fetcher.data?.success === false && !errorDismissed && (
-        <Banner tone="critical" title="Couldn't save your changes" onDismiss={() => setErrorDismissed(true)}>
-          <p>{fetcher.data.message || "Something went wrong. Please try again."}</p>
-        </Banner>
+        <AlertBanner tone="critical" title="Couldn't save your changes" onDismiss={() => setErrorDismissed(true)}>
+          <p style={{ margin: 0 }}>{fetcher.data.message || "Something went wrong. Please try again."}</p>
+        </AlertBanner>
       )}
       {tab === "code" && !isPro && (
-        <Banner tone="warning" title="Custom CSS & JS needs the Advanced plan">
-          <p>Upgrade your plan to save custom code. Your existing code stays as it is.</p>
-        </Banner>
+        <AlertBanner tone="warning" title="Custom CSS & JS needs the Advanced plan">
+          <p style={{ margin: 0 }}>Upgrade your plan to save custom code. Your existing code stays as it is.</p>
+        </AlertBanner>
       )}
       {tab === "snippets" && !infoDismissed && (
-        <Banner tone="info" title="Add the block first" onDismiss={() => setInfoDismissed(true)}>
-          <p>Snippets only render once the matching block is added in the Theme Editor.</p>
-        </Banner>
+        <AlertBanner tone="info" title="Add the block first" onDismiss={() => setInfoDismissed(true)}>
+          <p style={{ margin: 0 }}>Snippets only render once the matching block is added in the Theme Editor.</p>
+        </AlertBanner>
       )}
     </div>
 

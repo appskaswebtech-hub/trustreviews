@@ -11,6 +11,7 @@ import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
 import { confirmDialog } from "../utils/dialogs";
+import ResultBanner from "../components/ResultBanner";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -227,11 +228,7 @@ function FlowPage({ provider, connected, lastCheckedAt, fetcher, shop, adminBase
             </button>
           )}
         </div>
-        {result?.message && (
-          <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 8, fontSize: 12.5, background: result.ok ? C.greenLt : C.redLt, color: result.ok ? C.green : C.red }} className="tr-app-routes-app-integrations-provider-div-10">
-            {result.message}
-          </div>
-        )}
+        <ResultBanner ok={result?.ok} message={result?.message} okTitle="Connected" failedTitle="Connection problem" />
       </div>
 
       {/* Available triggers + Test buttons */}
@@ -374,11 +371,7 @@ function FeedPage({ provider, feedUrl, connected, fetcher }) {
           style={{ ...btn, border: "none", background: C.accent, color: C.onAccent }}>{busy ? "Creating…" : "Create feed link"}</button>
       )}
 
-      {result?.message && (
-        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 8, fontSize: 12.5, background: result.ok ? C.greenLt : C.redLt, color: result.ok ? C.green : C.red }}>
-          {result.message}
-        </div>
-      )}
+      <ResultBanner ok={result?.ok} message={result?.message} okTitle="Connected" failedTitle="Connection problem" />
 
       {provider.guide && (
         <div style={{ marginTop: 20, padding: "14px 16px", background: "#fff", borderRadius: 10, border: `1px solid ${C.border}` }}>
@@ -504,16 +497,8 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
         )}
       </div>
 
-      {result?.message && (
-        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 8, fontSize: 12.5, background: result.ok ? C.greenLt : C.redLt, color: result.ok ? C.green : C.red }} className="tr-app-routes-app-integrations-provider-div-80">
-          {result.message}
-        </div>
-      )}
-      {!result && lastError && (
-        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 8, fontSize: 12.5, background: C.redLt, color: C.red }} className="tr-app-routes-app-integrations-provider-div-81">
-          Last check failed: {lastError}
-        </div>
-      )}
+      <ResultBanner ok={result?.ok} message={result?.message} okTitle="Connected" failedTitle="Connection problem" />
+      {!result && lastError && <ResultBanner ok={false} message={`Last check failed: ${lastError}`} failedTitle="Connection problem" />}
 
       {/* Step-by-step setup guide */}
       {provider.guide && (
