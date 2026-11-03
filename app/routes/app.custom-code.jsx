@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useState } from "react";
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -417,20 +417,6 @@ export default function CustomCodePage() {
 
   const fetcher     = useFetcher();
   const langFetcher = useFetcher();
-
-  // Make sure the storefront script tag is installed so custom snippets work.
-  // The route is idempotent ("Already installed"); sessionStorage keeps it to
-  // one call per browser session.
-  useEffect(() => {
-    try {
-      const key = `tr-script-installed:${shop}`;
-      if (sessionStorage.getItem(key)) return;
-      fetch("/api/install-yu_script")
-        .then((r) => r.json())
-        .then((d) => { if (d?.success) sessionStorage.setItem(key, "1"); })
-        .catch(() => {});
-    } catch { /* storage unavailable: skip */ }
-  }, [shop]);
 
   const changeLanguage = (key) => {
     setLang(key);
