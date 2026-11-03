@@ -32,6 +32,7 @@
     reviewTitlePlaceholder: "Summarize your experience...",
     feedbackLabel: "Tell us your feedback about the product",
     feedbackPlaceholder: "Share your experience with this product...",
+    chooseFile: "Choose file", noFileChosen: "No file chosen",
     uploadLabel: "Upload image/video", nameLabel: "Your name", namePlaceholder: "Name",
     emailLabel: "Your email address", emailPlaceholder: "Email", cancel: "Cancel", submit: "Submit",
     requiredFieldsAlert: "Please fill all required fields",
@@ -45,8 +46,16 @@
 
   // Headings nobody typed (block default) are swapped for the store-language translation; the merchant's own text is kept.
   function isStockHeading(s){ s=String(s||'').trim().toLowerCase().replace(/[.!\s]+$/,''); return !s||s==='what our customers say'||s==='customer reviews'||s==="ce qu'en disent ceux qui l'ont essayé"; }
+  // Newer strings, bundled so they translate even when the server's response
+  // predates them. Filled in only where the server didn't send the key.
+  var TR_EXTRA = {"en":{"noReviewsYet":"No reviews yet. Be the first to write one!","chooseFile":"Choose file","noFileChosen":"No file chosen"},"hi":{"noReviewsYet":"अभी तक कोई समीक्षा नहीं। पहली समीक्षा आप लिखें!","chooseFile":"फ़ाइल चुनें","noFileChosen":"कोई फ़ाइल चयनित नहीं"},"es":{"noReviewsYet":"Aún no hay reseñas. ¡Sé el primero en escribir una!","chooseFile":"Elegir archivo","noFileChosen":"Ningún archivo seleccionado"},"fr":{"noReviewsYet":"Aucun avis pour le moment. Soyez le premier à en écrire un !","chooseFile":"Choisir un fichier","noFileChosen":"Aucun fichier choisi"},"de":{"noReviewsYet":"Noch keine Bewertungen. Schreiben Sie die erste!","chooseFile":"Datei auswählen","noFileChosen":"Keine Datei ausgewählt"},"it":{"noReviewsYet":"Ancora nessuna recensione. Scrivi la prima!","chooseFile":"Scegli file","noFileChosen":"Nessun file selezionato"},"pt":{"noReviewsYet":"Ainda não há avaliações. Seja o primeiro a escrever uma!","chooseFile":"Escolher arquivo","noFileChosen":"Nenhum arquivo escolhido"},"nl":{"noReviewsYet":"Nog geen reviews. Wees de eerste die er een schrijft!","chooseFile":"Bestand kiezen","noFileChosen":"Geen bestand gekozen"},"ar":{"noReviewsYet":"لا توجد تقييمات بعد. كن أول من يكتب تقييماً!","chooseFile":"اختر ملفاً","noFileChosen":"لم يتم اختيار ملف"},"zh":{"noReviewsYet":"暂无评论，来写第一条评论吧！","chooseFile":"选择文件","noFileChosen":"未选择任何文件"},"ja":{"noReviewsYet":"まだレビューがありません。最初のレビューを書いてみませんか？","chooseFile":"ファイルを選択","noFileChosen":"ファイルが選択されていません"},"ru":{"noReviewsYet":"Пока нет отзывов. Будьте первым, кто его напишет!","chooseFile":"Выберите файл","noFileChosen":"Файл не выбран"},"tr":{"noReviewsYet":"Henüz değerlendirme yok. İlk yazan siz olun!","chooseFile":"Dosya seç","noFileChosen":"Dosya seçilmedi"},"pl":{"noReviewsYet":"Brak jeszcze opinii. Napisz pierwszą!","chooseFile":"Wybierz plik","noFileChosen":"Nie wybrano pliku"},"ko":{"noReviewsYet":"아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해 보세요!","chooseFile":"파일 선택","noFileChosen":"선택된 파일 없음"}};
+  function fillExtraStrings(t, lang){
+    var x = TR_EXTRA[(lang || "").split("-")[0].toLowerCase()] || TR_EXTRA.en;
+    ["chooseFile","noFileChosen"].forEach(function(k){ if(t && !t[k]) t[k] = x[k]; });
+    return t;
+  }
   function applyTranslations(remoteT){
-    T = remoteT || T;
+    T = fillExtraStrings(remoteT || T, storeLocale);
     var rsHeading = section && section.querySelector(".rs-heading");
     if (rsHeading && isStockHeading(rsHeading.textContent) && T.customerReviews) rsHeading.textContent = T.customerReviews;
     setText("rs-based-on-label", T.basedOn);
@@ -61,6 +70,9 @@
     setText("rs-feedback-label", T.feedbackLabel);
     setPlaceholder("rs-comment", T.feedbackPlaceholder);
     setText("rs-upload-label", T.uploadLabel);
+    setText("rs-file-choose-btn", T.chooseFile || "Choose file");
+    var rsFile = document.getElementById("rs-review-file");
+    if(!rsFile || !rsFile.files || !rsFile.files[0]) setText("rs-file-status", T.noFileChosen || "No file chosen");
     setText("rs-name-label", T.nameLabel);
     setPlaceholder("rs-name", T.namePlaceholder);
     setText("rs-email-label", T.emailLabel);
@@ -127,6 +139,7 @@
     var file = event.target.files[0];
     var preview = document.getElementById("rs-file-preview");
     preview.innerHTML = "";
+    setText("rs-file-status", file ? file.name : (T.noFileChosen || "No file chosen"));
     if(!file) return;
     var url = URL.createObjectURL(file);
     if(file.type.startsWith("image/")) preview.innerHTML = '<img class="tr-extensions-product-review-assets-reviews-summary-img-1" src="' + url + '">';

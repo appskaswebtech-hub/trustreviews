@@ -73,7 +73,11 @@
       </div>
       <div class="rs-form-field">
         <label id="rs-upload-label" class="tr-extensions-product-review-blocks-reviews-summary-label-26">Upload image/video</label>
-        <input type="file" id="rs-review-file" accept="image/*,video/*" onchange="rsPreviewFile(event)" class="tr-extensions-product-review-blocks-reviews-summary-input-27">
+        <div class="tr-file-row">
+          <label for="rs-review-file" id="rs-file-choose-btn" class="tr-file-btn">Choose file</label>
+          <span id="rs-file-status" class="tr-file-status">No file chosen</span>
+        </div>
+        <input type="file" id="rs-review-file" accept="image/*,video/*" onchange="rsPreviewFile(event)" class="tr-file-input tr-extensions-product-review-blocks-reviews-summary-input-27">
         <div id="rs-file-preview" class="rs-file-preview"></div>
       </div>
       <div class="rs-dubble-field">

@@ -170,3 +170,10 @@
 .rs-card-reply { margin: 10px 0 2px; padding: 10px 12px; border-left: 3px solid var(--rs-accent, #1a1a1a); border-radius: 0 8px 8px 0; background: rgba(0,0,0,.035); }
 .rs-card-reply-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--rs-accent, #1a1a1a); }
 .rs-card-reply p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
+
+/* Translatable file picker (see review.css): native input hidden, label button + status text shown. */
+.tr-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.tr-file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tr-file-btn { display: inline-block; padding: 8px 14px; border: 1px solid #c9cccf; border-radius: 6px; background: #f6f6f7; color: #1a1a1a; font-size: 14px; cursor: pointer; }
+.tr-file-btn:hover { background: #ececec; }
+.tr-file-status { font-size: 13px; color: #6d7175; word-break: break-all; }
