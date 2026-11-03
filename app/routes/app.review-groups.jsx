@@ -6,7 +6,6 @@ import { useAdminT } from "../utils/adminTranslations";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
-import { confirmDialog } from "../utils/dialogs";
 
 const C = {
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
@@ -349,8 +348,8 @@ export default function ReviewGroupsPage() {
     submit(fd, { method: "post" });
   };
 
-  const deleteGroup = async (groupId) => {
-    if (!(await confirmDialog("Products will become ungrouped but their reviews are kept.", { title: "Delete this group?", confirmLabel: "Delete", destructive: true }))) return;
+  const deleteGroup = (groupId) => {
+    if (!confirm("Delete this group? Products will become ungrouped but their reviews are kept.")) return;
     const fd = new FormData();
     fd.append("actionType", "deleteGroup");
     fd.append("groupId", groupId);

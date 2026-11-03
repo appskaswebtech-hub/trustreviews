@@ -10,7 +10,6 @@ import { generateFeedToken, buildFeedUrl } from "../utils/google-feed.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
-import { confirmDialog } from "../utils/dialogs";
 
 function maskKey(key) {
   if (!key || key.length <= 10) return "••••••••";
@@ -363,9 +362,9 @@ function FeedPage({ provider, feedUrl, connected, fetcher }) {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button onClick={copy} style={{ ...btn, border: "none", background: C.accent, color: C.onAccent }}>{copied ? "Copied ✓" : "Copy URL"}</button>
             <a href={feedUrl} target="_blank" rel="noreferrer" style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.text, textDecoration: "none" }}>Preview feed ↗</a>
-            <button onClick={async () => { if (await confirmDialog("The current link will stop working.", { title: "Regenerate link?", confirmLabel: "Regenerate", destructive: true })) submit("regenerate"); }} disabled={busy}
+            <button onClick={() => { if (window.confirm("The current link will stop working. Continue?")) submit("regenerate"); }} disabled={busy}
               style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.text }}>Regenerate</button>
-            <button onClick={async () => { if (await confirmDialog("The feed link will stop working.", { title: "Remove the feed link?", confirmLabel: "Remove", destructive: true })) submit("disconnect"); }} disabled={busy}
+            <button onClick={() => { if (window.confirm("Remove the feed link?")) submit("disconnect"); }} disabled={busy}
               style={{ ...btn, border: `1px solid ${C.border}`, background: "#fff", color: C.red, marginLeft: "auto" }}>Disconnect</button>
           </div>
         </>
@@ -497,7 +496,7 @@ function ApiKeyPage({ provider, providerKey, hasKey, maskedKey, listId: savedLis
           </button>
         )}
         {connected && (
-          <button onClick={async () => { if (await confirmDialog("This integration will be disconnected.", { title: "Remove integration?", confirmLabel: "Remove", destructive: true })) submit("disconnect"); }} disabled={busy}
+          <button onClick={() => { if (window.confirm("Remove this integration?")) submit("disconnect"); }} disabled={busy}
             style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", background: "#fff", color: C.red, marginLeft: "auto" }} className="tr-app-routes-app-integrations-provider-button-79">
             Disconnect
           </button>

@@ -12,7 +12,6 @@ import {
   isDevStore,
 } from "../billing.server";
 import { BRAND } from "../utils/brand";
-import { confirmDialog } from "../utils/dialogs";
 
 /* ── Required by React Router v7 in production ── */
 export function headers() {
@@ -128,8 +127,8 @@ export default function BillingPage() {
     fetcher.submit(fd, { method: "post" });
   };
 
-  const handleCancel = async () => {
-    if (!(await confirmDialog("You'll lose Advanced features.", { title: "Downgrade to Free?", confirmLabel: "Downgrade", destructive: true }))) return;
+  const handleCancel = () => {
+    if (!confirm("Downgrade to Free? You'll lose Advanced features.")) return;
     const fd = new FormData();
     fd.append("actionType", "cancel");
     fetcher.submit(fd, { method: "post" });
