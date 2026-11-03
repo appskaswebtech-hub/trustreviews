@@ -9,6 +9,7 @@ import db from "../db.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import AdvancedPaywall from "../components/AdvancedPaywall";
 import { BRAND } from "../utils/brand";
+import { confirmDialog } from "../utils/dialogs";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -76,8 +77,8 @@ export default function ApiAccessPage() {
     setCopied(id);
     setTimeout(() => setCopied(""), 2000);
   };
-  const run = (intent, confirmMsg) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+  const run = async (intent, confirmMsg) => {
+    if (confirmMsg && !(await confirmDialog(confirmMsg, { title: intent === "revoke" ? "Revoke API key?" : "Generate a new key?", confirmLabel: intent === "revoke" ? "Revoke" : "Generate", destructive: true }))) return;
     fetcher.submit({ intent }, { method: "POST", encType: "application/json" });
   };
 

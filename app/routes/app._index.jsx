@@ -7,6 +7,7 @@ import { notifyIntegrations } from "../utils/events.server";
 import InstallWidgetModal from "../components/InstallWidgetModal";
 import RecommendedApps from "../components/RecommendedApps";
 import { BRAND } from "../utils/brand";
+import { confirmDialog, notify } from "../utils/dialogs";
 //import { syncSubscriptionStatus, isDevStore } from "../billing.server";
 
 const REVIEW_STATUSES = new Set(["pending", "approved", "rejected"]);
@@ -1403,9 +1404,9 @@ function ReviewRow({ review, onAction, t, selected, onToggleSelect }) {
       });
       const data = await res.json();
       if (data.success) setSentiment(data.sentiment);
-      else alert(data.message || "Could not analyze sentiment.");
+      else notify(data.message || "Could not analyze sentiment.", { isError: true });
     } catch {
-      alert("Could not analyze sentiment.");
+      notify("Could not analyze sentiment.", { isError: true });
     } finally {
       setAnalyzing(false);
     }
@@ -2132,7 +2133,7 @@ export default function ReviewsPage() {
         download: filename,
       }).click();
     } catch {
-      window.alert("Export failed. Please try again.");
+      notify("Export failed. Please try again.", { isError: true });
     } finally {
       setExporting(false);
     }
@@ -2410,9 +2411,9 @@ export default function ReviewsPage() {
                       )}
                       <button
                         className="tr-dashboard-bulk-delete-button"
-                        onClick={() => {
+                        onClick={async () => {
                           const count = selectAllPages ? total : selectedIds.length;
-                          if (window.confirm(`Delete ${count} review${count !== 1 ? "s" : ""}? This cannot be undone.`)) {
+                          if (await confirmDialog("This cannot be undone.", { title: `Delete ${count} review${count !== 1 ? "s" : ""}?`, confirmLabel: "Delete", destructive: true })) {
                             handleBulkAction("delete");
                           }
                         }}

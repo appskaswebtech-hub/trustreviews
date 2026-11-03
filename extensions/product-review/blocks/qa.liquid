@@ -117,13 +117,27 @@
       .catch(function(e){ console.error("Q&A style error:", e); });
   }
 
+  function showMsg(text, isError){
+    var el = document.getElementById("trust-qa-msg");
+    if(!el){
+      el = document.createElement("div");
+      el.id = "trust-qa-msg";
+      el.setAttribute("role", "status");
+      el.style.cssText = "margin:8px 0;font-size:14px;";
+      var anchor = document.getElementById("trust-qa-submit");
+      anchor.parentNode.parentNode.insertBefore(el, anchor.parentNode.nextSibling);
+    }
+    el.style.color = isError ? "#b42318" : "#067647";
+    el.textContent = text;
+  }
+
   document.getElementById("trust-qa-submit").onclick = function(){
     const name     = document.getElementById("trust-qa-name").value.trim();
     const email    = document.getElementById("trust-qa-email").value.trim();
     const question = document.getElementById("trust-qa-question").value.trim();
 
     if(!name || !email || !question){
-      alert(T.requiredAlert);
+      showMsg(T.requiredAlert, true);
       return;
     }
 
@@ -139,7 +153,7 @@
         document.getElementById("trust-qa-question").value = "";
         document.getElementById("trust-qa-form").style.display = "none";
         document.getElementById("trust-qa-open").style.display = "inline-block";
-        alert(T.thanksAlert);
+        showMsg(T.thanksAlert, false);
       })
       .catch(function(e){ console.error(e); });
   };
