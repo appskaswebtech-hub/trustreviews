@@ -3,13 +3,22 @@
   the app (Widgets page) or unticked "Show Trust Reviews widgets" in the
   Trust Reviews Engine app embed. Shown by default and hidden only once the status says
   "off", so enabled stores see no delay. Status is fetched once per page and
-  cached for a minute. The Theme Editor is never hidden, so blocks stay editable.
+  cached for a minute.
 {% endcomment %}
 <script>
 (function () {
-  if (window.Shopify && window.Shopify.designMode) return;
   var host = document.currentScript && document.currentScript.closest('[id^="shopify-block-"]');
   if (!host) return;
+  // In the Theme Editor only the embed's own checkbox hides blocks (so the
+  // merchant sees its effect); the app's master switch is ignored there so
+  // blocks stay editable.
+  var inEditor = !!(window.Shopify && window.Shopify.designMode);
+  if (inEditor) {
+    var hideIfOff = function () { if (window.__trWidgetsOff) host.style.display = 'none'; };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hideIfOff);
+    else hideIfOff();
+    return;
+  }
   window.__trWidgetsOn = window.__trWidgetsOn || new Promise(function (resolve) {
     var KEY = 'tr-widgets-on';
     try {
