@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router";
+import { Link, useFetcher, useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { useAdminT } from "../utils/adminTranslations";
@@ -9,11 +9,14 @@ import { getThemeAppBlocks } from "../utils/themeInstalls.server";
 import InstallVideo from "./how-to-install-widgets/InstallVideo";
 import { WIDGETS as VIDEO_WIDGETS } from "./how-to-install-widgets/guideData";
 import { BRAND } from "../utils/brand";
+import AlertBanner from "../components/AlertBanner";
+import { notify } from "../utils/dialogs";
 
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
 
-  const [installs, themeBlocks] = await Promise.all([
+  const [storeRow, installs, themeBlocks] = await Promise.all([
+    db.store.findUnique({ where: { shop: session.shop }, select: { widgetsEnabled: true } }).catch(() => null),
     db.widgetInstall.findMany({
       where: { shop: session.shop },
       select: { widgetKey: true },
@@ -26,6 +29,7 @@ export async function loader({ request }) {
   return {
     shop: session.shop,
     apiKey: process.env.SHOPIFY_API_KEY || "",
+    widgetsEnabled: storeRow ? storeRow.widgetsEnabled !== false : true,
     installedKeys: themeBlocks ? installedFromTheme(themeBlocks, clickedKeys) : clickedKeys,
   };
 }
@@ -60,6 +64,14 @@ function installedFromTheme(themeBlocks, clickedKeys) {
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const form = await request.formData();
+
+  // Master switch: hides / shows every Trust Reviews block on the storefront.
+  if (form.get("intent") === "toggleWidgets") {
+    const enabled = form.get("enabled") === "true";
+    await db.store.updateMany({ where: { shop: session.shop }, data: { widgetsEnabled: enabled } });
+    return { ok: true, widgetsEnabled: enabled };
+  }
+
   const widgetKey = form.get("widgetKey");
 
   // installedAt is refreshed on every click: the next new "Trust Reviews" block
@@ -381,8 +393,17 @@ function WidgetGuideModal({ widget, shop, apiKey, installed, onInstallClick, onC
    PAGE
 ───────────────────────────────────────── */
 export default function WidgetsGalleryPage() {
-  const { shop, apiKey, installedKeys } = useLoaderData();
+  const { shop, apiKey, installedKeys, widgetsEnabled } = useLoaderData();
   const t = useAdminT();
+  const switchFetcher = useFetcher();
+  const switchPending = switchFetcher.state !== "idle";
+  const widgetsOn = switchPending
+    ? switchFetcher.formData?.get("enabled") === "true"
+    : (switchFetcher.data?.widgetsEnabled ?? widgetsEnabled);
+  const setWidgetsOn = (enabled) => {
+    switchFetcher.submit({ intent: "toggleWidgets", enabled: String(enabled) }, { method: "post" });
+    notify(enabled ? "Widgets are showing on your store" : "Widgets are hidden on your store");
+  };
   const [installed, setInstalled] = useState(new Set(installedKeys));
   const revalidator = useRevalidator();
 
@@ -456,6 +477,25 @@ export default function WidgetsGalleryPage() {
         className="tr-widgets-container"
         style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 56px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 20 }}
       >
+        {/* Master switch */}
+        <AlertBanner tone={widgetsOn ? "info" : "warning"} title={widgetsOn ? "Widgets are showing on your storefront" : "Widgets are hidden on your storefront"}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, justifyContent: "space-between" }}>
+            <span>
+              {widgetsOn
+                ? "Turn this off to hide every Trust Reviews widget from your store without removing them from your theme."
+                : "Customers can't see any Trust Reviews widget right now. Turn them back on whenever you're ready."}
+            </span>
+            <button
+              type="button"
+              disabled={switchPending}
+              onClick={() => setWidgetsOn(!widgetsOn)}
+              style={widgetsOn ? btnSecondary : btnPrimary}
+            >
+              {widgetsOn ? "Turn off widgets" : "Turn on widgets"}
+            </button>
+          </div>
+        </AlertBanner>
+
         {/* Header */}
         <div className="tr-widgets-header" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <div className="tr-widgets-heading">

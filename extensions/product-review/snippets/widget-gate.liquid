@@ -1,0 +1,38 @@
+{% comment %}
+  Hides this block when the merchant has switched Trust Reviews widgets off in
+  the app (Widgets page) or unticked "Show Trust Reviews widgets" in the
+  Trust Reviews Engine app embed. Shown by default and hidden only once the status says
+  "off", so enabled stores see no delay. Status is fetched once per page and
+  cached for a minute. The Theme Editor is never hidden, so blocks stay editable.
+{% endcomment %}
+<script>
+(function () {
+  if (window.Shopify && window.Shopify.designMode) return;
+  var host = document.currentScript && document.currentScript.closest('[id^="shopify-block-"]');
+  if (!host) return;
+  window.__trWidgetsOn = window.__trWidgetsOn || new Promise(function (resolve) {
+    var KEY = 'tr-widgets-on';
+    try {
+      var c = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+      if (c && Date.now() - c.t < 60000) return resolve(c.on);
+    } catch (e) {}
+    fetch('/apps/review?type=widget-status')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var on = d.enabled !== false;
+        try { sessionStorage.setItem(KEY, JSON.stringify({ on: on, t: Date.now() })); } catch (e) {}
+        resolve(on);
+      })
+      .catch(function () { resolve(true); });
+  });
+  // Decide once the page has parsed, so the "Trust Reviews Engine" app embed
+  // (which loads near the end of <body>) has had the chance to set __trWidgetsOff.
+  function apply() {
+    window.__trWidgetsOn.then(function (on) {
+      if (!on || window.__trWidgetsOff) host.style.display = 'none';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
+</script>

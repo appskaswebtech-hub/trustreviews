@@ -44,6 +44,8 @@
 
 {% render 'block-position', widget: 'verified_counter', spot: 'under_title', position: block.settings.position, block_id: block.id %}
 
+{% render 'widget-gate' %}
+
 {% schema %}
 {
   "name": "Verified Reviews Counter",

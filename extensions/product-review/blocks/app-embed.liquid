@@ -9,6 +9,9 @@
   the page around it — the block itself doesn't need to be manually placed.
 {% endcomment %}
 {{ 'review.css' | asset_url | stylesheet_tag }}
+{%- unless block.settings.show_widgets -%}
+<script>window.__trWidgetsOff = true;</script>
+{%- endunless -%}
 <script class="tr-extensions-product-review-blocks-app-embed-script-1">
   var locale_language = `{{ request.locale.iso_code }}`;
   {% if product %}
@@ -21,6 +24,11 @@
   var trEmbedProductTitle = {{ product.title | json }};
   {% endif %}
 </script>
+{%- comment -%}
+  Star-rating badges for any [data-trust-product-id] element (Custom Code
+  snippets). Loaded here because script tags can't be created by the app.
+{%- endcomment -%}
+<script src="/apps/review?type=widget-script" defer></script>
 <script src="{{ 'review.js' | asset_url }}" defer class="tr-extensions-product-review-blocks-app-embed-script-2"></script>
 
 {%- comment -%}
@@ -61,6 +69,15 @@
 {% schema %}
 {
   "name": "Trust Reviews Engine",
-  "target": "body"
+  "target": "body",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_widgets",
+      "label": "Show Trust Reviews widgets on my store",
+      "default": true,
+      "info": "Untick to hide every Trust Reviews widget without removing them from your theme."
+    }
+  ]
 }
 {% endschema %}

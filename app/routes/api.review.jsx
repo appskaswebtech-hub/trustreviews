@@ -213,6 +213,23 @@ export async function loader({ request }) {
     return Response.json(await batchRatings(shop, url.searchParams.get("product_ids") || ""));
   }
 
+  // ── Storefront badge script (loaded by the Trust Reviews Engine app embed) ──
+  // Shopify no longer lets this app create script tags, so the embed loads it
+  // through the app proxy instead. Same script as /api/widget.
+  if (url.searchParams.get("type") === "widget-script") {
+    const { loader: widgetLoader } = await import("./api.widget");
+    return widgetLoader({ request });
+  }
+
+  // ── Master widget switch (storefront blocks hide themselves when false) ──
+  if (url.searchParams.get("type") === "widget-status") {
+    // Fail open: if the column isn't deployed yet, widgets stay on.
+    const row = await prisma.store.findUnique({ where: { shop }, select: { widgetsEnabled: true } }).catch(() => null);
+    return Response.json({ enabled: row ? row.widgetsEnabled !== false : true }, {
+      headers: { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
   // ── Product-page block placement ("move" | "here") ───────────────────────
   if (url.searchParams.get("type") === "block-placement") {
     const placement = await resolveBlockPlacement(

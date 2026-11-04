@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import AlertBanner from "../components/AlertBanner";
+import SaveBar from "../components/SaveBar";
 import { notify } from "../utils/dialogs";
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -23,6 +24,7 @@ export async function loader({ request }) {
 
   return {
     shop: session.shop,
+    apiKey: process.env.SHOPIFY_API_KEY || "",
     lang: store?.language || "en",
     customCss: customCode?.customCss || "",
     customJs:  customCode?.customJs  || "",
@@ -299,6 +301,42 @@ function TabBar({ active, onChange }) {
   );
 }
 
+const ENGINE_SCRIPT = '<script src="/apps/review?type=widget-script" defer></script>';
+
+// The snippets only render once the storefront script is on the page. The
+// "Trust Reviews Engine" app embed loads it automatically; the tag below is the
+// manual fallback for themes where the embed can't be used.
+function EngineScriptCard({ shop, apiKey }) {
+  const [copied, setCopied] = useState(false);
+  const embedUrl = `https://${shop}/admin/themes/current/editor?context=apps&activateAppId=${encodeURIComponent(apiKey)}/app-embed`;
+  const copy = () => {
+    navigator.clipboard?.writeText(ENGINE_SCRIPT).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div style={{ marginBottom: 16, padding: "18px 20px", background: "#FFFFFF", border: "1px solid #D5E6FB", borderRadius: 14 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: "#10224A", marginBottom: 4 }}>Storefront script</div>
+      <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#4a4a4a", lineHeight: 1.5 }}>
+        Snippets need this script on your store. Turn on the <strong>Trust Reviews Engine</strong> app embed and it
+        loads automatically on every page. Open the Theme Editor, make sure the embed is on, then press Save.
+      </p>
+      <a href={embedUrl} target="_top" style={{ display: "inline-block", padding: "9px 16px", borderRadius: 9, background: "#2A74C9", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none", marginBottom: 14 }}>
+        Turn on in Theme Editor
+      </a>
+      <p style={{ margin: "0 0 6px", fontSize: 12.5, color: "#667085" }}>
+        Can't use app embeds? Paste this just before <code>&lt;/body&gt;</code> in <code>theme.liquid</code> instead:
+      </p>
+      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+        <code style={{ flex: 1, padding: "10px 12px", background: "#0F1B2D", color: "#E6EDF7", borderRadius: 8, fontSize: 12.5, overflowX: "auto", whiteSpace: "nowrap" }}>{ENGINE_SCRIPT}</code>
+        <button type="button" onClick={copy} style={{ padding: "0 14px", borderRadius: 8, border: "1px solid #c9cccf", background: "#fff", cursor: "pointer", fontWeight: 600, fontSize: 13 }}>
+          {copied ? "✓ Copied" : "Copy"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SnippetCard({ snippet, shop }) {
   const [copied, setCopied] = useState(false);
 
@@ -408,14 +446,13 @@ function CodeEditor({ label, value, onChange, placeholder, hint }) {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function CustomCodePage() {
-  const { shop, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro, badgeSettings, initialTab } = useLoaderData();
+  const { shop, apiKey, lang: initialLang, customCss: initialCss, customJs: initialJs, isPro, badgeSettings, initialTab } = useLoaderData();
 
   const t = useAdminT();
   const [tab, setTab]         = useState(initialTab);
   const [lang, setLang]       = useState(initialLang);
   const [css, setCss]         = useState(initialCss);
   const [js, setJs]           = useState(initialJs);
-  const [codeSaved, setCodeSaved] = useState(false);
   const [infoDismissed, setInfoDismissed]   = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
 
@@ -424,7 +461,7 @@ export default function CustomCodePage() {
 
   // Success → short toast; errors are shown as a banner (see the alerts block).
   useEffect(() => {
-    if (fetcher.data?.success === true) notify("Saved");
+    if (fetcher.data?.success === true) { notify("Saved"); setSavedCss(css); setSavedJs(js); }
     if (fetcher.data?.success === false) setErrorDismissed(false);
   }, [fetcher.data]);
 
@@ -436,14 +473,19 @@ export default function CustomCodePage() {
     );
   };
 
+  // Contextual Save Bar: the last-saved values are the baseline for "dirty".
+  const [savedCss, setSavedCss] = useState(initialCss);
+  const [savedJs, setSavedJs]   = useState(initialJs);
+  const codeDirty  = isPro && (css !== savedCss || js !== savedJs);
+  const codeSaving = fetcher.state !== "idle";
+
   const saveCode = () => {
     fetcher.submit(
       { actionType: "custom-code", css, js },
       { method: "POST", encType: "application/json" },
     );
-    setCodeSaved(true);
-    setTimeout(() => setCodeSaved(false), 3000);
   };
+  const discardCode = () => { setCss(savedCss); setJs(savedJs); };
 
   return (
     // <div style={{ minHeight: "100vh", background: SHELL_C.bg, fontFamily: "var(--app-font-family)" }} className="tr-app-routes-app-custom-code-div-29">
@@ -796,54 +838,6 @@ export default function CustomCodePage() {
       </div>
     </div>
 
-    {tab === "code" && (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-        className="tr-app-routes-app-custom-code-div-35"
-      >
-        {codeSaved && (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              fontSize: 11.5,
-              fontWeight: 700,
-              color: "#10224A",
-              background: "#D5E6FB",
-              padding: "5px 11px",
-              borderRadius: 20,
-              border: "1px solid rgba(42,116,201,.45)",
-            }}
-            className="tr-app-routes-app-custom-code-span-36"
-          >
-            ✓ Saved
-          </span>
-        )}
-
-        <button
-          onClick={saveCode}
-          style={{
-            border: "none",
-            borderRadius: 9,
-            padding: "9px 18px",
-            background: "linear-gradient(135deg,#2A74C9,#1F62B0)",
-            color: "#FFFFFF",
-            fontWeight: 700,
-            fontSize: 12.5,
-            cursor: "pointer",
-            boxShadow: "0 6px 16px rgba(16,34,74,.17)",
-          }}
-          className="tr-app-routes-app-custom-code-button-37"
-        >
-          {t.saveCode}
-        </button>
-      </div>
-    )}
   </div>
 
   {/* ── Tab bar ── */}
@@ -858,6 +852,8 @@ export default function CustomCodePage() {
     }}
     className="tr-app-routes-app-custom-code-div-38"
   >
+    <SaveBar id="custom-code-save-bar" dirty={codeDirty} saving={codeSaving} onSave={saveCode} onDiscard={discardCode} saveLabel={t.saveCode} discardLabel="Discard" />
+
     {/* ── Alerts (Shopify alert guidelines: banners for info / warning / error) ── */}
     <div style={{ display: "grid", gap: 12, marginBottom: 16 }}>
       {fetcher.data?.success === false && !errorDismissed && (
@@ -876,6 +872,8 @@ export default function CustomCodePage() {
         </AlertBanner>
       )}
     </div>
+
+    {tab === "snippets" && <EngineScriptCard shop={shop} apiKey={apiKey} />}
 
     {/* ── SNIPPETS TAB ── */}
     {tab === "snippets" && (
@@ -1341,32 +1339,6 @@ document.addEventListener('trust:review-submitted', function(e) {
             </div>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: 16,
-            }}
-            className="tr-app-routes-app-custom-code-div-75"
-          >
-            <button
-              onClick={saveCode}
-              style={{
-                border: "none",
-                borderRadius: 9,
-                padding: "10px 24px",
-                background: "linear-gradient(135deg,#2A74C9,#1F62B0)",
-                color: "#FFFFFF",
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: "pointer",
-                boxShadow: "0 7px 18px rgba(16,34,74,.17)",
-              }}
-              className="tr-app-routes-app-custom-code-button-76"
-            >
-              {t.saveCode}
-            </button>
-          </div>
         </div>
       ) : (
         <AdvancedPaywall

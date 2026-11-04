@@ -10,7 +10,6 @@ import enTranslations from "@shopify/polaris/locales/en.json";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { syncSubscriptionStatus, isDevStore, getShopPlan } from "../billing.server";
-import { ensureWidgetScript } from "../utils/widgetScript.server";
 import { signOnboardingToken } from "../utils/onboarding-token.server";
 import { hasAdvancedAccess } from "../utils/planGuard.server";
 import { connectSupportly, getSupportlyStatus } from "../supportly.server";
@@ -22,11 +21,6 @@ import "@shopify/polaris/build/esm/styles.css";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
-
-  // afterAuth only fires on a fresh token exchange, so stores with a live
-  // session would never get the widget script. Ensure it here, once per shop
-  // per server process, without blocking the page.
-  ensureWidgetScript(session.shop, admin);
 
   const url = new URL(request.url);
 

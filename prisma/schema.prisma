@@ -38,6 +38,9 @@ model Store {
   shop         String         @unique
   language     String?
   autoPublish  Boolean        @default(false)
+  // Master switch for every storefront widget (Widgets page). Defaults to true
+  // so every store that existed before this column keeps its widgets live.
+  widgetsEnabled Boolean      @default(true)
   createdAt    DateTime       @default(now())
   products     Product[]
   reviews      Review[]

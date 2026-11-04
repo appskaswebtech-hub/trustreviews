@@ -149,6 +149,8 @@
 
 {% render 'block-position', widget: 'inline_rating', spot: 'under_title', position: block.settings.position, block_id: block.id %}
 
+{% render 'widget-gate' %}
+
 {% schema %}
 {
   "name": "Inline Star Rating",

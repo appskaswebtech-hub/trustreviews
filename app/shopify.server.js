@@ -7,7 +7,6 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 import { connectSupportly } from "./supportly.server";
-import { installWidgetScript } from "./utils/widgetScript.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -26,12 +25,6 @@ const shopify = shopifyApp({
     // cannot break a merchant's auth.
     afterAuth: async ({ session }) => {
       await connectSupportly(session);
-      // Install the storefront widget script automatically. Not awaited and
-      // never throws, so it can't slow down or break a merchant's auth.
-      shopify.unauthenticated
-        .admin(session.shop)
-        .then(({ admin }) => installWidgetScript(admin))
-        .catch((err) => console.error("[widget-script] auto install failed:", err?.message));
     },
   },
   future: {
