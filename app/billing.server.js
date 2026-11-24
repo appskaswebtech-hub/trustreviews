@@ -1,6 +1,7 @@
 // app/billing.server.js
 
 import db from "./db.server";
+import { isBlackFridaySale, BLACK_FRIDAY } from "./utils/blackFriday";
 
 export const PLANS = {
   free: {
@@ -60,6 +61,9 @@ export async function createSubscription(admin, shop, returnUrl) {
   // are never development stores, so their charges stay real in production.
   const test = process.env.NODE_ENV !== "production" || (await isPartnerDevelopmentStore(admin));
 
+  // Black Friday: charge the sale price the banner and Billing page advertise.
+  const price = isBlackFridaySale() ? BLACK_FRIDAY.salePrice : PLANS.advanced.price;
+
   const response = await admin.graphql(
     `#graphql
     mutation AppSubscriptionCreate($name: String!, $lineItems: [AppSubscriptionLineItemInput!]!, $returnUrl: URL!, $test: Boolean,$trialDays: Int) {
@@ -86,7 +90,7 @@ export async function createSubscription(admin, shop, returnUrl) {
             plan: {
               appRecurringPricingDetails: {
                 price: {
-                  amount: PLANS.advanced.price,
+                  amount: price,
                   currencyCode: PLANS.advanced.currencyCode,
                 },
                 interval: "EVERY_30_DAYS",

@@ -16,6 +16,8 @@ import { connectSupportly, getSupportlyStatus } from "../supportly.server";
 import EmbeddedOnboardingModal from "../components/EmbeddedOnboardingModal";
 import FreePlanUpsellModal from "../components/FreePlanUpsellModal";
 import HelpButton from "../components/HelpButton";
+import BlackFridayBanner from "../components/BlackFridayBanner";
+import { isBlackFridaySale } from "../utils/blackFriday";
 import SupportlyChat from "../components/SupportlyChat";
 import "@shopify/polaris/build/esm/styles.css";
 
@@ -144,11 +146,12 @@ export const loader = async ({ request }) => {
     onboardingModalData,
     showFreeUpsell,
     supportlyChat,
+    blackFriday: isBlackFridaySale(),
   };
 };
 
 export default function App() {
-  const { apiKey, onboardingUrl, onboardingModalData, showFreeUpsell, supportlyChat } = useLoaderData();
+  const { apiKey, onboardingUrl, onboardingModalData, showFreeUpsell, supportlyChat, blackFriday } = useLoaderData();
 
   // AppProvider stays mounted regardless — it's what loads the App Bridge
   // script, and App Bridge is *required* to break out of the Shopify admin
@@ -210,6 +213,7 @@ export default function App() {
             </Link>
           </NavMenu>
 
+          <BlackFridayBanner active={blackFriday} />
           <Outlet />
           <HelpButton />
           {supportlyChat && <SupportlyChat />}

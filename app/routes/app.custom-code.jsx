@@ -204,6 +204,10 @@ function ManualInstallGuide() {
 
 function TabBar({ active, onChange }) {
   const tr = useAdminT();
+  // Mobile shows two tabs at a time; the arrow flips to the other pair.
+  const PAGE = 2;
+  const [tabPage, setTabPage] = useState(() => Math.max(0, Math.floor(TABS.findIndex((x) => x.id === active) / PAGE)));
+  const lastPage = Math.ceil(TABS.length / PAGE) - 1;
   const TAB_LABELS = { snippets: tr.snippetsTab, language: tr.languageTab, code: tr.codeTab, settings: tr.settingsTab };
   return (
     // <div style={{
@@ -242,19 +246,27 @@ function TabBar({ active, onChange }) {
     padding: "12px 20px 0",
     borderBottom: "1px solid #D5E6FB",
     background: "linear-gradient(180deg,#FFFFFF 0%,#F8FBFF 100%)",
+    // Tabs wrap onto a second row on narrow screens so every tab stays
+    // visible (see the media query in the page's <style>).
+    flexWrap: "wrap",
+    maxWidth: "100%",
+    boxSizing: "border-box",
   }}
 >
-  {TABS.map((tab) => {
+  {TABS.map((tab, idx) => {
     const isActive = active === tab.id;
+    const offPage = Math.floor(idx / PAGE) !== tabPage;
 
     return (
       <button
         key={tab.id}
         onClick={() => onChange(tab.id)}
-        className="tr-app-routes-app-custom-code-button-8"
+        className={`tr-app-routes-app-custom-code-button-8${offPage ? " tr-tab-off" : ""}`}
         style={{
           border: "none",
           cursor: "pointer",
+          flexShrink: 0,
+          whiteSpace: "nowrap",
           padding: "9px 15px",
           borderRadius: "9px 9px 0 0",
           fontSize: 14,
@@ -297,6 +309,18 @@ function TabBar({ active, onChange }) {
       </button>
     );
   })}
+  <button
+    type="button"
+    className="tr-tab-more"
+    aria-label={tabPage < lastPage ? "Show more tabs" : "Show previous tabs"}
+    onClick={() => setTabPage(tabPage < lastPage ? tabPage + 1 : 0)}
+    style={{
+      display: "none", border: "1px solid #D5E6FB", background: "#fff", color: "#10224A",
+      borderRadius: 9, fontSize: 18, lineHeight: 1, cursor: "pointer", padding: "0 10px",
+    }}
+  >
+    {tabPage < lastPage ? "›" : "‹"}
+  </button>
 </div>
   );
 }
@@ -328,7 +352,7 @@ function EngineScriptCard({ shop, apiKey }) {
         Can't use app embeds? Paste this just before <code>&lt;/body&gt;</code> in <code>theme.liquid</code> instead:
       </p>
       <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-        <code style={{ flex: 1, padding: "10px 12px", background: "#0F1B2D", color: "#E6EDF7", borderRadius: 8, fontSize: 12.5, overflowX: "auto", whiteSpace: "nowrap" }}>{ENGINE_SCRIPT}</code>
+        <code style={{ flex: 1, minWidth: 0, padding: "10px 12px", background: "#0F1B2D", color: "#E6EDF7", borderRadius: 8, fontSize: 12.5, overflowX: "auto", whiteSpace: "nowrap" }}>{ENGINE_SCRIPT}</code>
         <button type="button" onClick={copy} style={{ padding: "0 14px", borderRadius: 8, border: "1px solid #c9cccf", background: "#fff", cursor: "pointer", fontWeight: 600, fontSize: 13 }}>
           {copied ? "✓ Copied" : "Copy"}
         </button>
@@ -744,9 +768,30 @@ export default function CustomCodePage() {
     minHeight: "100vh",
     background: "#EAF3FE",
     fontFamily: "var(--app-font-family)",
+    maxWidth: "100%",
+    overflowX: "clip",
   }}
   className="tr-app-routes-app-custom-code-div-29"
 >
+  <style>{`
+    .tr-app-routes-app-custom-code-div-29 pre,
+    .tr-app-routes-app-custom-code-div-29 textarea,
+    .tr-app-routes-app-custom-code-div-29 code { max-width: 100%; box-sizing: border-box; }
+    @media (max-width: 640px) {
+      .tr-app-routes-app-custom-code-div-38 { padding: 16px 12px 28px !important; }
+      .tr-app-routes-app-custom-code-div-7 {
+        display: grid !important; grid-template-columns: 1fr 1fr 40px; gap: 6px !important; padding: 10px 12px !important;
+      }
+      .tr-tab-off { display: none !important; }
+      .tr-tab-more { display: block !important; }
+      .tr-app-routes-app-custom-code-div-7 > button {
+        flex-shrink: 1 !important; min-width: 0; white-space: normal !important; text-align: center;
+        justify-content: center; padding: 9px 6px !important; font-size: 13px !important;
+        border-radius: 9px !important; background-clip: padding-box;
+      }
+      .tr-app-routes-app-custom-code-span-9 { display: none !important; }
+    }
+  `}</style>
   {/* ── Topbar ── */}
   <div
     style={{

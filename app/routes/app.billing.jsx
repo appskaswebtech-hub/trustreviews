@@ -1,517 +1,1092 @@
 // app/routes/app.billing.jsx
 
+
+
 import { useLoaderData, useNavigation, useFetcher } from "react-router";
+
 import { redirect } from "react-router";
+
 import { authenticate } from "../shopify.server";
+
 import db from "../db.server";
+
 import {
+
   getShopPlan,
+
   createSubscription,
+
   cancelSubscription,
+
   syncSubscriptionStatus,
+
   isDevStore,
+
 } from "../billing.server";
+
 import { BRAND } from "../utils/brand";
+
 import { confirmDialog } from "../utils/dialogs";
 
+import { isBlackFridaySale, BLACK_FRIDAY } from "../utils/blackFriday";
+
+
+
 /* ── Required by React Router v7 in production ── */
+
 export function headers() {
+
   return {};
+
 }
+
+
 
 export function ErrorBoundary() {
+
   return (
+
     <div style={{ fontFamily: "var(--app-font-family)", padding: 40, textAlign: "center" }} className="tr-app-routes-app-billing-div-1">
+
       <div style={{ fontSize: 16, fontWeight: 600, color: "#a5423b" }} className="tr-app-routes-app-billing-div-2">
+
         Something went wrong on the billing page.
+
       </div>
+
     </div>
+
   );
+
 }
 
+
+
 /* ── Loader ── */
+
 export const loader = async ({ request }) => {
+
   const { admin, session } = await authenticate.admin(request);
+
   await getShopPlan(session.shop);
 
+
+
   const dev = await isDevStore(admin);
+
+
 
   const url = new URL(request.url);
+
   const chargeId = url.searchParams.get("charge_id");
+
   if (chargeId) {
+
     await syncSubscriptionStatus(admin, session.shop);
+
   }
 
+
+
   const activePlan = await syncSubscriptionStatus(admin, session.shop);
-  return { plan: activePlan, isDevStore: dev };
+
+  const blackFriday = isBlackFridaySale();
+
+  return { plan: activePlan, isDevStore: dev, blackFriday };
+
 };
 
+
+
 /* ── Action ── */
+
 export const action = async ({ request }) => {
+
   const { admin, session } = await authenticate.admin(request);
+
   const formData = await request.formData();
+
   const actionType = formData.get("actionType");
 
+
+
   const dev = await isDevStore(admin);
+
   if (dev) return { error: "Dev stores do not require a subscription." };
 
+
+
   if (actionType === "subscribe") {
+
     const appUrl = process.env.SHOPIFY_APP_URL?.replace(/\/$/, "");
+
     const apiKey = process.env.SHOPIFY_API_KEY;
+
     if (!appUrl) throw new Error("SHOPIFY_APP_URL is not set in .env");
+
     if (!apiKey) throw new Error("SHOPIFY_API_KEY is not set in .env");
 
+
+
     const storeName = session.shop.replace(".myshopify.com", "");
+
     const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${apiKey}/app/billing`;
+
+
 
     console.log("[billing] returnUrl:", returnUrl);
 
+
+
     const { confirmationUrl, subscriptionId } = await createSubscription(
+
       admin,
+
       session.shop,
+
       returnUrl,
+
     );
+
+
 
     console.log("[billing] confirmationUrl:", confirmationUrl);
 
+
+
     // Not "active" yet — the merchant hasn't approved the charge on
+
     // Shopify's confirmation screen. isAdvancedOrHigher() requires
+
     // status === "active", so recording it as "pending" here keeps them
+
     // gated on Free until this route's own loader re-runs syncSubscriptionStatus
+
     // on return and confirms the real state from Shopify.
+
     await db.shopPlan.upsert({
+
       where: { shop: session.shop },
+
       update: { subscriptionId, status: "pending" },
+
       create: { shop: session.shop, plan: "free", subscriptionId, status: "pending" },
+
     });
+
+
 
     return { confirmationUrl };
+
   }
+
+
 
   if (actionType === "cancel") {
+
     const shopPlan = await db.shopPlan.findUnique({ where: { shop: session.shop } });
+
     if (shopPlan?.subscriptionId) {
+
       await cancelSubscription(admin, shopPlan.subscriptionId);
+
     }
+
     await db.shopPlan.update({
+
       where: { shop: session.shop },
+
       data: { plan: "free", subscriptionId: null, status: "active" },
+
     });
+
     return redirect("/app/billing");
+
   }
+
+
 
   return null;
+
 };
+
+
 
 /* ── Styles ── */
+
 const C = {
+
   bg: "#f6f6f8", surface: "#ffffff", border: "#e5e4ec",
+
   text: BRAND.navy, muted: "#6b6b78", accent: BRAND.blue,
+
   onAccent: BRAND.onBlue, accentText: BRAND.blueText,
+
 };
 
+
+
 /* ── Page ── */
+
 export default function BillingPage() {
-  const { plan, isDevStore: devStore } = useLoaderData();
+
+  const { plan, isDevStore: devStore, blackFriday } = useLoaderData();
+
   const fetcher = useFetcher();
+
   const navigation = useNavigation();
+
   const isLoading = navigation.state !== "idle" || fetcher.state !== "idle";
+
   const isAdvanced = plan === "advanced";
 
+
+
   if (fetcher.data?.confirmationUrl) {
+
     window.top.location.href = fetcher.data.confirmationUrl;
+
   }
 
+
+
   const handleSubscribe = () => {
+
     const fd = new FormData();
+
     fd.append("actionType", "subscribe");
+
     fetcher.submit(fd, { method: "post" });
+
   };
+
+
 
   const handleCancel = async () => {
+
     if (!(await confirmDialog("You'll lose Advanced features.", { title: "Downgrade to Free?", confirmLabel: "Downgrade", destructive: true }))) return;
+
     const fd = new FormData();
+
     fd.append("actionType", "cancel");
+
     fetcher.submit(fd, { method: "post" });
+
   };
 
+
+
   return (
+
     // <div style={{
+
     //   fontFamily: "var(--app-font-family)",
+
     //   background: C.bg,
+
     //   minHeight: "100vh",
+
     //   padding: "48px 28px",
+
     // }} className="tr-app-routes-app-billing-div-3">
+
     //   <div style={{ maxWidth: 760, margin: "0 auto" }} className="tr-app-routes-app-billing-div-4">
+
     //     <h1 style={{ fontSize: 26, fontWeight: 600, color: C.text, margin: "0 0 8px" }} className="tr-app-routes-app-billing-h1-5">
+
     //       Pricing
+
     //     </h1>
+
     //     <p style={{ fontSize: 13, color: C.muted, margin: "0 0 28px" }} className="tr-app-routes-app-billing-p-6">
+
     //       Choose the plan that fits your store.
+
     //     </p>
+
+
 
     //     {devStore && (
+
     //       <div style={{
+
     //         background: "#eff6ff", border: "1px solid #93c5fd", borderRadius: 10,
+
     //         padding: "12px 18px", marginBottom: 24, fontSize: 13,
+
     //         color: "#1e40af", fontWeight: 600,
+
     //       }} className="tr-app-routes-app-billing-div-7">
+
     //         Development store detected — <strong className="tr-app-routes-app-billing-strong-8">Advanced plan is free</strong> for development and testing.
+
     //       </div>
+
     //     )}
+
+
 
     //     {!devStore && isAdvanced && (
+
     //       <div style={{
+
     //         background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: 10,
+
     //         padding: "12px 18px", marginBottom: 24, fontSize: 13,
+
     //         color: "#065f46", fontWeight: 600,
+
     //       }} className="tr-app-routes-app-billing-div-9">
+
     //         ✓ You are currently on the <strong className="tr-app-routes-app-billing-strong-10">Advanced</strong> plan.
+
     //       </div>
+
     //     )}
 
+
+
     //     <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 28 }} className="tr-app-routes-app-billing-div-11">
+
     //       <PlanCard
+
     //         name="Free"
+
     //         price={null}
+
     //         features={[
+
     //           "All core review widgets & group products",
+
     //           "Review Wall, Homepage Reviews (5 layouts)",
+
     //           "Questions & Answers widget",
+
     //           "CSV import/export, bulk moderation actions",
+
     //           "15-language storefront",
+
     //           "Custom CSS/JS code injection",
+
     //           "PageFly & GemPages support",
+
     //           "SEO Schema & Tags",
+
     //         ]}
+
     //         isCurrent={!isAdvanced}
+
     //         badge={null}
+
     //         action={
+
     //           devStore ? null
+
     //           : isAdvanced
+
     //             ? { label: "Downgrade to Free", onClick: handleCancel, variant: "outline" }
+
     //             : null
+
     //         }
+
     //         isLoading={isLoading}
+
     //       />
+
     //       <PlanCard
+
     //         name="Advanced"
+
     //         price={9.99}
+
     //         features={[
+
     //           "Priority customer support",
+
     //           "Automatic feature updates",
+
     //           "High-performance and scalable setup",
+
     //           "Review-Reward Coupon thank-you discount",
+
     //           "All integrations — Klaviyo, Mailchimp, etc.",
+
     //           "Custom Template Builder — 20+ blocks",
+
     //           "Everything in Free, plus:",
+
     //           "Google Reviews — Business Profile sync",
+
     //         ]}
+
     //         isCurrent={isAdvanced}
+
     //         badge={devStore ? "FREE FOR DEV STORES" : null}
+
     //         action={
+
     //           devStore ? null
+
     //           : !isAdvanced
+
     //             ? { label: "Upgrade to Advanced", onClick: handleSubscribe, variant: "primary" }
+
     //             : null
+
     //         }
+
     //         isLoading={isLoading}
+
     //         footer="10-day free trial"
+
     //       />
+
     //     </div>
 
+
+
     //     <p style={{ fontSize: 13, color: C.muted }} className="tr-app-routes-app-billing-p-12">
+
     //       All charges are billed in USD. Recurring and usage-based charges are billed every 30 days.
+
     //     </p>
+
     //   </div>
+
     // </div>
+
     <div
+
   style={{
+
     fontFamily: "var(--app-font-family)",
+
     background:
+
       "radial-gradient(circle at 8% 0%, rgba(42,116,201,.20), transparent 28%), radial-gradient(circle at 92% 5%, rgba(213,230,251,.55), transparent 30%), #EAF3FE",
+
     minHeight: "100vh",
+
     padding: "44px 28px 56px",
+
   }}
+
   className="tr-app-routes-app-billing-div-3"
+
 >
+
   <div
+
     style={{
+
       maxWidth: 940,
+
       margin: "0 auto",
+
       background: "rgba(255,255,255,.72)",
+
       border: "1px solid #D5E6FB",
+
       borderRadius: 24,
+
       padding: "34px",
+
       boxShadow: "0 18px 50px rgba(16,34,74,.09)",
+
       backdropFilter: "blur(12px)",
+
     }}
+
     className="tr-app-routes-app-billing-div-4"
+
   >
+
+    {blackFriday && (
+
+      <div
+
+        style={{
+
+          background: "linear-gradient(135deg, #1a0a00 0%, #3d1400 40%, #7c2900 100%)",
+
+          borderRadius: 14,
+
+          padding: "16px 24px",
+
+          marginBottom: 22,
+
+          textAlign: "center",
+
+          boxShadow: "0 8px 32px rgba(0,0,0,.35), 0 0 0 1px rgba(255,180,0,.18)",
+
+          position: "relative",
+
+          overflow: "hidden",
+
+        }}
+
+        className="tr-app-routes-app-billing-bf-banner"
+
+      >
+
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(255,180,0,.12), transparent 70%)", pointerEvents: "none" }} />
+
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#FFD700", letterSpacing: "0.08em", marginBottom: 4 }}> BLACK FRIDAY SALE </div>
+
+        <div style={{ fontSize: 14, color: "#FFE4B5", fontWeight: 600 }}>Limited time offer — Advanced plan for only <span style={{ color: "#FFD700", fontWeight: 800 }}>$4.99/month</span>! (normally $9.99)</div>
+
+        <div style={{ fontSize: 12, color: "rgba(255,228,181,.65)", marginTop: 4 }}>Offer ends November 30th</div>
+
+      </div>
+
+    )}
+
+
+
     <h1
+
       style={{
+
         fontSize: 32,
+
         fontWeight: 800,
+
         color: "#10224A",
+
         margin: "0 0 7px",
+
         textAlign: "center",
+
         letterSpacing: "-.035em",
+
         lineHeight: 1.15,
+
       }}
+
       className="tr-app-routes-app-billing-h1-5"
+
     >
-      Pricing
+
+      {blackFriday ? "Black Friday Pricing" : "Pricing"}
+
     </h1>
 
+
+
     <p
+
       style={{
+
         fontSize: 14,
+
         color: "#5B6B85",
+
         margin: "0 0 30px",
+
         textAlign: "center",
+
         lineHeight: 1.6,
+
       }}
+
       className="tr-app-routes-app-billing-p-6"
+
     >
+
       Choose the plan that fits your store.
+
     </p>
+
+
 
     {devStore && (
+
       <div
+
         style={{
+
           background: "linear-gradient(135deg,#EAF3FE 0%,#FFFFFF 100%)",
+
           border: "1px solid #2A74C9",
+
           borderRadius: 12,
+
           padding: "12px 16px",
+
           marginBottom: 22,
+
           fontSize: 12.8,
+
           color: "#10224A",
+
           fontWeight: 650,
+
           textAlign: "center",
+
           boxShadow: "0 6px 18px rgba(16,34,74,.07)",
+
         }}
+
         className="tr-app-routes-app-billing-div-7"
+
       >
+
         Development store detected —{" "}
+
         <strong
+
           className="tr-app-routes-app-billing-strong-8"
+
           style={{
+
             fontWeight: 800,
+
             color: "#10224A",
+
           }}
+
         >
+
           Advanced plan is free
+
         </strong>{" "}
+
         for development and testing.
+
       </div>
+
     )}
+
+
 
     {!devStore && isAdvanced && (
+
       <div
+
         style={{
+
           background: "linear-gradient(135deg,#FFFFFF 0%,#EAF3FE 100%)",
+
           border: "1px solid #B9D3E6",
+
           borderRadius: 12,
+
           padding: "12px 16px",
+
           marginBottom: 22,
+
           fontSize: 12.8,
+
           color: "#10224A",
+
           fontWeight: 650,
+
           textAlign: "center",
+
           boxShadow: "0 6px 18px rgba(16,34,74,.06)",
+
         }}
+
         className="tr-app-routes-app-billing-div-9"
+
       >
+
         ✓ You are currently on the{" "}
+
         <strong
+
           className="tr-app-routes-app-billing-strong-10"
+
           style={{
+
             fontWeight: 800,
+
             color: "#10224A",
+
           }}
+
         >
+
           Advanced
+
         </strong>{" "}
+
         plan.
+
       </div>
+
     )}
 
+
+
     <div
+
       style={{
+
         display: "flex",
+
         gap: 22,
+
         flexWrap: "wrap",
+
         marginBottom: 26,
+
         alignItems: "stretch",
+
         padding: "4px",
+
         borderRadius: 20,
+
         background:
+
           "linear-gradient(135deg,rgba(234,243,254,.85),rgba(255,255,255,.65))",
+
       }}
+
       className="tr-app-routes-app-billing-div-11"
+
     >
-      <PlanCard
-        name="Free"
-        price={null}
-        features={[
-          "All core review widgets & group products",
-          "Review Wall, Homepage Reviews (5 layouts)",
-          "Questions & Answers widget",
-          "CSV import/export, bulk moderation actions",
-          "15-language storefront",
-          "Custom CSS/JS code injection",
-          "PageFly & GemPages support",
-          "SEO Schema & Tags",
-        ]}
-        isCurrent={!isAdvanced}
-        badge={null}
-        action={
-          devStore
-            ? null
-            : isAdvanced
-            ? {
-                label: "Downgrade to Free",
-                onClick: handleCancel,
-                variant: "outline",
-              }
-            : null
-        }
-        isLoading={isLoading}
-      />
 
       <PlanCard
-        name="Advanced"
-        price={9.99}
+
+        name="Free"
+
+        price={null}
+
         features={[
-          "Priority customer support",
-          "Automatic feature updates",
-          "High-performance and scalable setup",
-          "Review-Reward Coupon thank-you discount",
-          "All integrations — Klaviyo, Mailchimp, etc.",
-          "Custom Template Builder — 20+ blocks",
-          "Everything in Free, plus:",
-          "Google Reviews — Business Profile sync",
+
+          "All core review widgets & group products",
+
+          "Review Wall, Homepage Reviews (5 layouts)",
+
+          "Questions & Answers widget",
+
+          "CSV import/export, bulk moderation actions",
+
+          "15-language storefront",
+
+          "Custom CSS/JS code injection",
+
+          "PageFly & GemPages support",
+
+          "SEO Schema & Tags",
+
         ]}
-        isCurrent={isAdvanced}
-        badge={devStore ? "FREE FOR DEV STORES" : null}
+
+        isCurrent={!isAdvanced}
+
+        badge={null}
+
         action={
+
           devStore
+
             ? null
-            : !isAdvanced
+
+            : isAdvanced
+
             ? {
-                label: "Upgrade to Advanced",
-                onClick: handleSubscribe,
-                variant: "primary",
+
+                label: "Downgrade to Free",
+
+                onClick: handleCancel,
+
+                variant: "outline",
+
               }
+
             : null
+
         }
+
         isLoading={isLoading}
-        footer="10-day free trial"
+
       />
+
+
+
+      <PlanCard
+
+        name="Advanced"
+
+        price={blackFriday ? BLACK_FRIDAY.salePrice : BLACK_FRIDAY.originalPrice}
+
+        originalPrice={blackFriday ? BLACK_FRIDAY.originalPrice : null}
+
+        features={[
+
+          "Priority customer support",
+
+          "Automatic feature updates",
+
+          "High-performance and scalable setup",
+
+          "Review-Reward Coupon thank-you discount",
+
+          "All integrations — Klaviyo, Mailchimp, etc.",
+
+          "Custom Template Builder — 20+ blocks",
+
+          "Everything in Free, plus:",
+
+          "Google Reviews — Business Profile sync",
+
+        ]}
+
+        isCurrent={isAdvanced}
+
+        badge={devStore ? "FREE FOR DEV STORES" : blackFriday ? BLACK_FRIDAY.badge : null}
+
+        action={
+
+          devStore
+
+            ? null
+
+            : !isAdvanced
+
+            ? {
+
+                label: blackFriday ? "Get Black Friday Deal" : "Upgrade to Advanced",
+
+                onClick: handleSubscribe,
+
+                variant: "primary",
+
+              }
+
+            : null
+
+        }
+
+        isLoading={isLoading}
+
+        footer={blackFriday ? "50% off — ends Nov 30 · 10-day free trial" : "10-day free trial"}
+
+      />
+
     </div>
+
+
 
     <p
+
       style={{
+
         fontSize: 14,
+
         color: "#5B6B85",
+
         margin: 0,
+
         textAlign: "center",
+
         lineHeight: 1.6,
+
         padding: "11px 14px",
+
         background: "#F7FAFC",
+
         border: "1px solid #D5E6FB",
+
         borderRadius: 10,
+
       }}
+
       className="tr-app-routes-app-billing-p-12"
+
     >
+
       All charges are billed in USD. Recurring and usage-based charges are billed every 30 days.
+
     </p>
+
   </div>
+
 </div>
+
   );
+
 }
+
+
 
 /* ── Plan Card ── */
-function PlanCard({ name, price, features, isCurrent, badge, action, isLoading, footer }) {
+
+function PlanCard({ name, price, originalPrice, features, isCurrent, badge, action, isLoading, footer }) {
+
   return (
+
     <div style={{
+
       flex: "1 1 300px",
+
       background: "#fff",
+
       borderRadius: 14,
+
       border: `1px solid ${isCurrent ? "#111827" : "#e8e8e4"}`,
+
       boxShadow: isCurrent ? "0 0 0 2px #111827" : "0 1px 4px rgba(0,0,0,.06)",
+
       position: "relative",
+
     }} className="tr-app-routes-app-billing-div-13">
+
       <div style={{ padding: "28px 24px 24px" }} className="tr-app-routes-app-billing-div-14">
+
       {isCurrent && !badge && (
+
         <span style={{
+
           position: "absolute", top: -11, left: 20,
+
           background: "#111827", color: "#fff",
+
           fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 12px",
+
           letterSpacing: ".04em",
+
         }} className="tr-app-routes-app-billing-span-15">CURRENT PLAN</span>
+
       )}
+
       {badge && (
+
         <span style={{
+
           position: "absolute", top: -11, left: 20,
+
           background: "#1d4ed8", color: "#fff",
+
           fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 12px",
+
           letterSpacing: ".04em",
+
         }} className="tr-app-routes-app-billing-span-16">{badge}</span>
+
       )}
+
+
 
       <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 4 }} className="tr-app-routes-app-billing-div-17">{name}</div>
+
       <div style={{ fontSize: 36, fontWeight: 600, color: "#17171c", marginBottom: 24, lineHeight: 1.1 }} className="tr-app-routes-app-billing-div-18">
+
         {price === null ? "Free" : (
+
           <>
-            ${price.toFixed(2)}
+
+            {originalPrice && (
+
+              <span style={{ fontSize: 20, fontWeight: 600, color: "#9ca3af", textDecoration: "line-through", marginRight: 8 }}>
+
+                ${originalPrice.toFixed(2)}
+
+              </span>
+
+            )}
+
+            <span style={{ color: originalPrice ? "#16a34a" : "#17171c" }}>${price.toFixed(2)}</span>
+
             <span style={{ fontSize: 14, fontWeight: 500, color: "#6b7280" }} className="tr-app-routes-app-billing-span-19"> / month</span>
+
           </>
+
         )}
+
       </div>
+
+
 
       <div style={{ fontSize: 13, fontWeight: 600, color: "#17171c", marginBottom: 10 }} className="tr-app-routes-app-billing-div-20">Features</div>
+
       <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 7 }} className="tr-app-routes-app-billing-ul-21">
+
         {features.map((f, i) => (
+
           <li key={i} style={{ fontSize: 14, color: "#374151", display: "flex", alignItems: "flex-start", gap: 7 }} className="tr-app-routes-app-billing-li-22">
+
             <span style={{ color: "#111827", fontWeight: 600, flexShrink: 0 }} className="tr-app-routes-app-billing-span-23">✓</span>
+
             {f}
+
           </li>
+
         ))}
+
       </ul>
 
+
+
       {action && (
+
         <button
+
           onClick={action.onClick}
+
           disabled={isLoading}
+
           style={{
+
             width: "100%",
+
             border: action.variant === "primary" ? "none" : "1.5px solid #111827",
+
             borderRadius: 9,
+
             padding: "15px 0",
+
             fontSize: 16,
+
             fontWeight: 600,
+
             cursor: isLoading ? "wait" : "pointer",
+
             // background: action.variant === "primary" ? "#111827" : "#fff",
+
              background:
+
                 "linear-gradient(135deg,#2A74C9 0%,#1F62B0 100%)",
+
             color: action.variant === "primary" ? "#fff" : "#fff",
+
             transition: "opacity .15s",
+
             opacity: isLoading ? 0.6 : 1,
+
           }}
+
          className="tr-app-routes-app-billing-button-24">
+
           {isLoading ? "Please wait…" : action.label}
+
         </button>
+
       )}
+
       </div>
+
       {footer && (
+
         <div style={{
+
           padding: "12px 24px", background: "#f8f9fc", borderTop: "1px solid #e8e8e4",
+
           fontSize: 13, color: "#6b7280", borderBottomLeftRadius: 13, borderBottomRightRadius: 13,
+
         }} className="tr-app-routes-app-billing-div-25">
+
           {footer}
+
         </div>
+
       )}
+
     </div>
+
   );
+
 }
+
